@@ -7,26 +7,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Conversacion {
-    private Usuario usuario;
     private List<Mensaje> mensajes = new ArrayList<>();
+    private boolean pendiente = true;
 
-    public Conversacion(Usuario usuario) {
-        this.usuario = usuario;
-    }
+    public Conversacion() {
 
-    public Usuario getUsuario() {
-        return usuario;
-    }
-
-    public void setUsuario(Usuario usuario) {
-        this.usuario = usuario;
     }
 
     public List<Mensaje> getMensajes() {
         return mensajes;
     }
 
-    public void setMensajes(List<Mensaje> mensajes) {
-        this.mensajes = mensajes;
+    public boolean isPendiente() {
+        return pendiente;
     }
+
+    public void setPendiente(boolean pendiente) {
+        this.pendiente = pendiente;
+    }
+
+
 }

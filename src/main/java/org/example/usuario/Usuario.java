@@ -9,12 +9,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-public class Usuario implements Serializable {
+public class Usuario {
     private String nombre;
     private String ip;
     private int puerto;
     private List<UsuarioDTO> contactos;
-    private Map<UsuarioDTO, List<Mensaje>> conversaciones = new HashMap<>();
+    private Map<UsuarioDTO, Conversacion> conversaciones = new HashMap<>();
 
     public Usuario(String nombre, String ip, int puerto) {
         this.nombre = nombre;
@@ -34,8 +34,12 @@ public class Usuario implements Serializable {
         return puerto;
     }
 
-    public Map<UsuarioDTO, List<Mensaje>> getConversaciones() {
+    public Map<UsuarioDTO, Conversacion> getConversaciones() {
         return conversaciones;
+    }
+
+    public List<UsuarioDTO> getContactos() {
+        return contactos;
     }
 
     @Override

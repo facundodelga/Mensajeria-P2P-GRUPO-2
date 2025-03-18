@@ -27,8 +27,8 @@ public class ManejadorCliente implements Runnable {
             System.out.println("Mensaje recibido de " + mensaje.getUsuario() + ": " + mensaje.getContenido());
 
             //Me fijo si la conversacion ya existe y si no, la creo (La linea me la recomendo IntelliJ jajaja)
-            Sistema.getInstancia().getUsuario().getConversaciones().computeIfAbsent(mensaje.getUsuario(), k -> new ArrayList<>());
-            Sistema.getInstancia().getUsuario().getConversaciones().get(mensaje.getUsuario()).add(mensaje);
+            Sistema.getInstancia().getUsuario().getConversaciones().computeIfAbsent(mensaje.getUsuario(), k -> new Conversacion());
+            Sistema.getInstancia().getUsuario().getConversaciones().get(mensaje.getUsuario()).getMensajes().add(mensaje);
 
 
         } catch (IOException | ClassNotFoundException e) {
