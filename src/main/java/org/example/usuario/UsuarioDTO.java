@@ -14,6 +14,11 @@ public class UsuarioDTO implements Serializable {
         this.puerto = usuario.getPuerto();
     }
 
+    public UsuarioDTO(String nombre, String ip, int puerto) {
+        this.nombre = nombre;
+        this.ip = ip;
+        this.puerto = puerto;
+    }
     public static UsuarioDTO fromUsuario(Usuario usuario) {
         return new UsuarioDTO(usuario);
     }
@@ -39,6 +44,9 @@ public class UsuarioDTO implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         UsuarioDTO that = (UsuarioDTO) o;
+        System.out.println("equals");
+        System.out.println("this: " + this);
+        System.out.println("that: " + that);
         return puerto == that.puerto && Objects.equals(nombre, that.nombre) && Objects.equals(ip, that.ip);
     }
 

@@ -14,7 +14,6 @@ public class Sistema implements Runnable{
     private Usuario usuario;
     private ServerSocket socketServer;
     private Socket socket;
-
     private ConcurrentHashMap<UsuarioDTO, ObjectOutputStream> conexionesDeSalida = new ConcurrentHashMap<>();
 
     private Sistema() {
@@ -32,7 +31,7 @@ public class Sistema implements Runnable{
             this.socketServer = new ServerSocket(usuario.getPuerto());
             System.out.println("Servidor configurado en el puerto: " + usuario.getPuerto());
             this.usuario = usuario;
-
+            System.out.println("Servidor iniciado...");
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -40,9 +39,13 @@ public class Sistema implements Runnable{
 
     public void iniciarServidor() {
         try {
+
             while(true){
+                System.out.println("Esperando conexiones...");
                 this.socket = this.socketServer.accept();
                 new Thread(new ManejadorCliente(this.socket)).start();
+
+
             }
 
         } catch (Exception e) {
@@ -52,18 +55,32 @@ public class Sistema implements Runnable{
         cerrarConexiones();
     }
 
-    public void enviarMensaje(Mensaje mensaje) {
-        ObjectOutputStream salida = conexionesDeSalida.get(mensaje.getUsuario());
+    public void enviarMensaje(UsuarioDTO usuarioDTO, Mensaje mensaje) {
+        System.out.println("Intentando enviar mensaje a " + usuarioDTO);
+        ObjectOutputStream salida = conexionesDeSalida.get(usuarioDTO);
         if (salida != null) {
             try {
-                System.out.println("Enviando mensaje a " + mensaje.getUsuario().getNombre() + ": " + mensaje.getContenido());
+                System.out.println("Enviando mensaje a " + usuarioDTO + ": " + mensaje.getContenido());
                 salida.writeObject(mensaje);
                 salida.flush();
             } catch (IOException e) {
                 e.printStackTrace();
             }
         } else {
-            System.out.println("El usuario " + mensaje.getUsuario().getNombre() + " no está conectado.");
+            System.out.println("El usuario " + usuarioDTO.getPuerto() + " no está conectado.");
+            System.out.println("Conexiones actuales: " + conexionesDeSalida.keySet());
+        }
+    }
+
+
+    public void agregarConexionDeSalida(String nombre, Socket socket) {
+        try {
+            ObjectOutputStream salida = new ObjectOutputStream(socket.getOutputStream());
+            System.out.println("Conexión de salida agregada para " + nombre);
+            UsuarioDTO usuarioDTO = new UsuarioDTO(nombre, socket.getInetAddress().getHostAddress(), socket.getPort());
+            conexionesDeSalida.put(usuarioDTO, salida);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 

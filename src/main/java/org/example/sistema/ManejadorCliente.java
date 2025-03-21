@@ -22,7 +22,7 @@ public class ManejadorCliente implements Runnable {
             ObjectInputStream entrada = new ObjectInputStream(socket.getInputStream());
             Mensaje mensaje = (Mensaje) entrada.readObject();
 
-
+            System.out.println("Mensaje recibido de " + mensaje.getUsuario() + ": " + mensaje.getContenido());
             //Si no existe la conexion de salida, la agrego
             if (!Sistema.getInstancia().getConexionesDeSalida().containsKey(mensaje.getUsuario())) {
                 ObjectOutputStream salida = new ObjectOutputStream(socket.getOutputStream());
