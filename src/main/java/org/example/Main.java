@@ -8,7 +8,8 @@ import org.example.vista.Vista;
 public class Main {
     public static void main(String[] args) {
         System.out.println("Hello world!");
-        Controlador c =new Controlador(new Vista());
+        Controlador.getInstancia();
+
 
 
     }

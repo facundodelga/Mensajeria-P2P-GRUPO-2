@@ -44,8 +44,6 @@ public class Sistema implements Runnable{
                 System.out.println("Esperando conexiones...");
                 this.socket = this.socketServer.accept();
                 new Thread(new ManejadorCliente(this.socket)).start();
-
-
             }
 
         } catch (Exception e) {

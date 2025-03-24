@@ -1,5 +1,6 @@
 package org.example.sistema;
 
+import org.example.controlador.Controlador;
 import org.example.conversacion.Conversacion;
 import org.example.mensaje.Mensaje;
 
@@ -8,12 +9,14 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.ArrayList;
+import java.util.Observable;
 
-public class ManejadorCliente implements Runnable {
+public class ManejadorCliente extends Observable implements Runnable {
     private Socket socket;
 
     public ManejadorCliente(Socket socket) {
         this.socket = socket;
+        addObserver(Controlador.getInstancia());
     }
 
     @Override
@@ -36,6 +39,8 @@ public class ManejadorCliente implements Runnable {
             Sistema.getInstancia().getUsuario().getConversaciones().get(mensaje.getUsuario()).getMensajes().add(mensaje);
 
 
+            setChanged();
+            notifyObservers(mensaje);
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
