@@ -1,13 +1,15 @@
-package org.example.vista;
-
-import javax.swing.SwingUtilities;
+package Vista;
 
 public class AppInicio {
     public static void main(String[] args) {
-        SwingUtilities.invokeLater(() -> {
-            AppVista vista = new AppVista();
-            new AppControlador(vista);
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            VentanaInicioSesion login = new VentanaInicioSesion();
+            login.setOnLoginExitoso(() -> {
+                AppVista vista = new AppVista();
+                new AppControlador(vista);
+                vista.setVisible(true);
+            });
+            login.setVisible(true);
         });
     }
 }
-
