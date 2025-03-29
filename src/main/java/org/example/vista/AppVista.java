@@ -90,20 +90,20 @@ public class AppVista extends JFrame {
 
         // Panel derecho
         JPanel panel_Derecho = new JPanel() {
-            //private final ImageIcon iconoFondo = new ImageIcon(getClass().getResource("/Img/icono_central.png"));
+            private final ImageIcon iconoFondo = new ImageIcon(getClass().getResource("/Img/icono_central.png"));
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
                 if (!panel_ChatActual.isVisible()) {
-                    //int x = (getWidth() - iconoFondo.getIconWidth()) / 2;
-                    //int y = (getHeight() - iconoFondo.getIconHeight()) / 2;
-                    //g.drawImage(iconoFondo.getImage(), x, y, this);
+                    int x = (getWidth() - iconoFondo.getIconWidth()) / 2;
+                    int y = (getHeight() - iconoFondo.getIconHeight()) / 2;
+                    g.drawImage(iconoFondo.getImage(), x, y, this);
                     g.setFont(new Font("Arial", Font.BOLD, 24));
                     g.setColor(Color.LIGHT_GRAY);
                     FontMetrics fm = g.getFontMetrics();
                     String texto = "Bienvenido";
                     int textWidth = fm.stringWidth(texto);
-                    //g.drawString(texto, (getWidth() - textWidth) / 2, y + iconoFondo.getIconHeight() + 40);
+                    g.drawString(texto, (getWidth() - textWidth) / 2, y + iconoFondo.getIconHeight() + 40);
                 }
             }
         };
