@@ -1,4 +1,4 @@
-package Vista;
+package org.example.vista;
 
 import javax.swing.SwingUtilities;
 

@@ -1,4 +1,4 @@
-package Vista;
+package org.example.vista;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
