@@ -72,7 +72,7 @@ public class AppControlador {
             filtrarLista();
         });
 
-        // Acción personalizada del botón "Agregar contacto"
+        // Accion del botón "Agregar contacto"
         vista.setAccionAgregarContacto(this::mostrarDialogoAgregarContacto);
     }
 

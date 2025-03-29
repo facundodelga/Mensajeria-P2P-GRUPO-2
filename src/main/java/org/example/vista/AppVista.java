@@ -161,7 +161,7 @@ public class AppVista extends JFrame {
         setVisible(true);
     }
 
-    // ===== GETTERS =====
+    // Getters
     public JTextField getCampoBusqueda() { return textField_BarraBusqueda; }
     public JTextField getCampoMensaje() { return textField_Mensaje; }
     public JButton getBotonEnviar() { return botonEnviar; }
@@ -174,7 +174,7 @@ public class AppVista extends JFrame {
     public JButton getBotonChats() { return boton_Chats; }
     public JButton getBotonContactos() { return boton_Contactos; }
 
-    // ===== Método para que el controlador registre acción de "Agregar contacto" =====
+    // Metodo para que el controlador registre accion de Agregar contacto
     public void setAccionAgregarContacto(Runnable accion) {
         itemAgregarContacto.addActionListener(e -> accion.run());
     }
