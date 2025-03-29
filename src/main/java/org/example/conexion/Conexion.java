@@ -1,15 +1,14 @@
-package org.example.sistema;
+package org.example.conexion;
 
-import org.example.mensaje.Mensaje;
-import org.example.usuario.Usuario;
-import org.example.usuario.UsuarioDTO;
+import org.example.modelo.mensaje.Mensaje;
+import org.example.modelo.usuario.UsuarioDTO;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class Conexion implements Runnable{
+public class Conexion implements Runnable, IConexion {
     private static Conexion instancia;
     private ServerSocket socketServer;
     private Socket socket;
@@ -25,6 +24,7 @@ public class Conexion implements Runnable{
         return instancia;
     }
 
+    @Override
     public void configurarServidor(int puerto) {
         try {
             this.socketServer = new ServerSocket(puerto);
@@ -36,6 +36,7 @@ public class Conexion implements Runnable{
         }
     }
 
+    @Override
     public void iniciarServidor() {
         try {
 
@@ -52,6 +53,7 @@ public class Conexion implements Runnable{
         cerrarConexiones();
     }
 
+    @Override
     public void enviarMensaje(UsuarioDTO usuarioDTO, Mensaje mensaje) {
         System.out.println("Intentando enviar mensaje a " + usuarioDTO);
         ObjectOutputStream salida = conexionesDeSalida.get(usuarioDTO);
@@ -70,6 +72,7 @@ public class Conexion implements Runnable{
     }
 
 
+    @Override
     public void agregarConexionDeSalida(String nombre, Socket socket) {
         try {
             ObjectOutputStream salida = new ObjectOutputStream(socket.getOutputStream());
@@ -81,6 +84,7 @@ public class Conexion implements Runnable{
         }
     }
 
+    @Override
     public void cerrarConexiones(){
         try {
 

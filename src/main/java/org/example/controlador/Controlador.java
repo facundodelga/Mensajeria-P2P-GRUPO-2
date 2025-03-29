@@ -1,11 +1,11 @@
 package org.example.controlador;
 
-import org.example.conversacion.Conversacion;
-import org.example.mensaje.Mensaje;
-import org.example.sistema.Conexion;
-import org.example.usuario.Usuario;
-import org.example.usuario.UsuarioDAO;
-import org.example.usuario.UsuarioDTO;
+import org.example.modelo.mensaje.Mensaje;
+import org.example.conexion.Conexion;
+import org.example.modelo.IUsuarioDAO;
+import org.example.modelo.usuario.Usuario;
+import org.example.modelo.UsuarioDAO;
+import org.example.modelo.usuario.UsuarioDTO;
 import org.example.vista.Vista;
 
 import java.awt.event.ActionEvent;
@@ -19,7 +19,7 @@ import java.util.Observer;
 public class Controlador implements ActionListener, Observer {
     private static Controlador instancia;
     private Vista vista;
-    private UsuarioDAO usuarioDAO;
+    private IUsuarioDAO usuarioDAO;
     private final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
 
     public Controlador() {
@@ -80,13 +80,10 @@ public class Controlador implements ActionListener, Observer {
 
     @Override
     public void update(Observable o, Object arg) {
-
-
         Mensaje mensaje = (Mensaje) arg;
-        this.usuarioDAO.addMensaje(mensaje.getEmisor(), mensaje);
+        this.usuarioDAO.addMensaje(mensaje);
         String fechaFormateada = sdf.format(mensaje.getFecha());
 
         vista.addMensaje("[" + mensaje.getEmisor().getNombre() + " | " + fechaFormateada + "]: " + mensaje.getContenido());
-
     }
 }

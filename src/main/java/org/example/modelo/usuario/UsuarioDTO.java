@@ -1,4 +1,4 @@
-package org.example.usuario;
+package org.example.modelo.usuario;
 
 import java.io.Serializable;
 import java.util.Objects;
@@ -47,7 +47,7 @@ public class UsuarioDTO implements Serializable {
         System.out.println("equals");
         System.out.println("this: " + this);
         System.out.println("that: " + that);
-        return puerto == that.puerto && Objects.equals(nombre, that.nombre) && Objects.equals(ip, that.ip);
+        return puerto == that.puerto && Objects.equals(ip, that.ip);
     }
 
     @Override

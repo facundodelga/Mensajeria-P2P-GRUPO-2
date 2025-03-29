@@ -1,7 +1,6 @@
-package org.example.conversacion;
+package org.example.modelo.conversacion;
 
-import org.example.mensaje.Mensaje;
-import org.example.usuario.Usuario;
+import org.example.modelo.mensaje.Mensaje;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,9 +16,7 @@ public class Conversacion {
     public List<Mensaje> getMensajes() {
         return mensajes;
     }
-    public void addMensaje(Mensaje mensaje) {
-        mensajes.add(mensaje);
-    }
+
 
     public boolean isPendiente() {
         return pendiente;

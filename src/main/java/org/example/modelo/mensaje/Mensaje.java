@@ -1,6 +1,6 @@
-package org.example.mensaje;
+package org.example.modelo.mensaje;
 
-import org.example.usuario.UsuarioDTO;
+import org.example.modelo.usuario.UsuarioDTO;
 
 import java.io.Serializable;
 import java.util.Date;

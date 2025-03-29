@@ -1,19 +1,14 @@
-package org.example.usuario;
+package org.example.modelo.usuario;
 
-import org.example.conversacion.Conversacion;
-import org.example.mensaje.Mensaje;
+import org.example.modelo.conversacion.Conversacion;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class Usuario {
     private String nombre;
     private String ip;
     private int puerto;
-    private List<UsuarioDTO> contactos;
+    private List<UsuarioDTO> contactos = new ArrayList<>();
     private Map<UsuarioDTO, Conversacion> conversaciones = new HashMap<>();
 
     public Usuario(String nombre, String ip, int puerto) {
@@ -42,10 +37,6 @@ public class Usuario {
         return contactos;
     }
 
-    public void addContacto(UsuarioDTO contacto) {
-        contactos.add(contacto);
-    }
-
     @Override
     public String toString() {
         return "Usuario{" +
@@ -70,11 +61,4 @@ public class Usuario {
         return Objects.hash(nombre, ip, puerto);
     }
 
-    public void addConversacion(UsuarioDTO contacto, Conversacion conversacion) {
-        conversaciones.put(contacto, conversacion);
-    }
-
-    public void addMensaje(UsuarioDTO contacto, Mensaje mensaje) {
-        conversaciones.get(contacto).addMensaje(mensaje);
-    }
 }

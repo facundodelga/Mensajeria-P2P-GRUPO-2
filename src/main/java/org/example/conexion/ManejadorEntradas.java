@@ -1,8 +1,7 @@
-package org.example.sistema;
+package org.example.conexion;
 
 import org.example.controlador.Controlador;
-import org.example.conversacion.Conversacion;
-import org.example.mensaje.Mensaje;
+import org.example.modelo.mensaje.Mensaje;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
