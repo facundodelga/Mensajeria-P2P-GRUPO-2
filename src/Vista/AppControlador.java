@@ -19,18 +19,23 @@ public class AppControlador {
 
     private AppVista vista;
     private static Map<String, List<Mensaje>> mensajesPorContacto = new HashMap<>();
+    private List<String> listaContactos = new ArrayList<>();
     private String contactoActual = null;
+    private boolean mostrandoContactos = false;
 
     public AppControlador(AppVista vista) {
         this.vista = vista;
 
         // Datos iniciales de ejemplo
-        DefaultListModel<String> modelo = vista.getModeloChats();
-        modelo.addElement("Contacto 1");
-        modelo.addElement("Contacto 2");
-        modelo.addElement("Contacto 3");
+        listaContactos.add("Contacto 1");
+        listaContactos.add("Contacto 2");
+        listaContactos.add("Contacto 3");
+        listaContactos.add("Contacto 4");
+        listaContactos.add("Contacto 5");
 
-        // Eventos
+        cargarListaChats();
+
+        // Eventos de selección de lista
         vista.getListaChats().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 contactoActual = vista.getListaChats().getSelectedValue();
@@ -48,8 +53,18 @@ public class AppControlador {
         vista.getCampoBusqueda().addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
-                filtrarChats();
+                filtrarLista();
             }
+        });
+
+        vista.getBotonChats().addActionListener(e -> {
+            mostrandoContactos = false;
+            cargarListaChats();
+        });
+
+        vista.getBotonContactos().addActionListener(e -> {
+            mostrandoContactos = true;
+            cargarLista(listaContactos);
         });
     }
 
@@ -63,8 +78,16 @@ public class AppControlador {
             vista.getCampoMensaje().setText("");
             mostrarMensajes();
 
+            if (!listaContactos.contains(contactoActual)) {
+                listaContactos.add(contactoActual);
+            }
+            if (!obtenerListaChats().contains(contactoActual)) {
+                cargarListaChats();
+            }
+
             // Simular respuesta
             javax.swing.Timer respuestaTimer = new javax.swing.Timer(1000, evt -> {
+                mensajesPorContacto.putIfAbsent(contactoActual, new ArrayList<>());
                 mensajesPorContacto.get(contactoActual).add(new Mensaje("Recibido 👍", false));
                 mostrarMensajes();
             });
@@ -101,32 +124,51 @@ public class AppControlador {
         panelMensajes.revalidate();
         panelMensajes.repaint();
 
-        // Scroll automático al final
         JScrollBar barra = vista.getScrollMensajes().getVerticalScrollBar();
         SwingUtilities.invokeLater(() -> barra.setValue(barra.getMaximum()));
     }
 
-    private void filtrarChats() {
+    private void filtrarLista() {
         String filtro = vista.getCampoBusqueda().getText().toLowerCase();
-        DefaultListModel<String> modeloOriginal = vista.getModeloChats();
-        DefaultListModel<String> modeloFiltrado = new DefaultListModel<>();
+        DefaultListModel<String> modelo = new DefaultListModel<>();
+        List<String> fuente = mostrandoContactos ? listaContactos : obtenerListaChats();
 
-        for (int i = 0; i < modeloOriginal.getSize(); i++) {
-            String nombre = modeloOriginal.getElementAt(i);
+        for (String nombre : fuente) {
             if (nombre.toLowerCase().contains(filtro)) {
-                modeloFiltrado.addElement(nombre);
+                modelo.addElement(nombre);
             }
         }
 
-        vista.getListaChats().setModel(modeloFiltrado);
+        vista.getListaChats().setModel(modelo);
+    }
+
+    private void cargarLista(List<String> fuente) {
+        DefaultListModel<String> modelo = new DefaultListModel<>();
+        for (String nombre : fuente) {
+            modelo.addElement(nombre);
+        }
+        vista.getListaChats().setModel(modelo);
+    }
+
+    private void cargarListaChats() {
+        List<String> conMensajes = obtenerListaChats();
+        cargarLista(conMensajes);
+    }
+
+    private List<String> obtenerListaChats() {
+        List<String> chatsConMensajes = new ArrayList<>();
+        for (String contacto : listaContactos) {
+            List<Mensaje> mensajes = mensajesPorContacto.get(contacto);
+            if (mensajes != null && !mensajes.isEmpty()) {
+                chatsConMensajes.add(contacto);
+            }
+        }
+        return chatsConMensajes;
     }
 
     public static void borrarMensajesDeContacto(String contacto) {
-        if (mensajesPorContacto.containsKey(contacto)) {
-            mensajesPorContacto.remove(contacto);
-        }
+        mensajesPorContacto.remove(contacto);
     }
 }
-
 
 
