@@ -7,43 +7,32 @@ import org.example.modelo.usuario.UsuarioDTO;
 
 import java.util.List;
 
-public class UsuarioDAO implements IUsuarioDAO {
+public class ConversacionServicio implements IConversacion {
     private Usuario usuario;
-    public UsuarioDAO(Usuario usuario){
+
+    public ConversacionServicio(Usuario usuario){
         this.usuario = usuario;
     }
-
     @Override
-    public String getNombre() {
-        return usuario.getNombre();
+    public List<Mensaje> getMensajes(UsuarioDTO contacto){
+        return usuario.getConversaciones().get(contacto).getMensajes();
     }
-
     @Override
-    public String getIp() {
-        return usuario.getIp();
-    }
-
-    @Override
-    public int getPuerto() {
-        return usuario.getPuerto();
-    }
-
-    @Override
-    public void addContacto(UsuarioDTO contacto) {
-        usuario.getContactos().add(contacto);
-    }
-
-    @Override
-    public void addMensaje(Mensaje mensaje) {
+    public void addMensajeEntrante(Mensaje mensaje) {
         //Me fijo si la conversacion ya existe y si no, la creo (La linea me la recomendo IntelliJ jajaja)
         usuario.getConversaciones().computeIfAbsent(mensaje.getEmisor(), k -> new Conversacion());
         //agrego el mensaje a la conversacion
         usuario.getConversaciones().get(mensaje.getEmisor())
                 .getMensajes().add(mensaje);
     }
+
     @Override
-    public List<Mensaje> getMensajes(UsuarioDTO contacto){
-        return usuario.getConversaciones().get(contacto).getMensajes();
+    public void addMensajeSaliente(UsuarioDTO contacto, Mensaje mensaje) {
+        //Me fijo si la conversacion ya existe y si no, la creo (La linea me la recomendo IntelliJ jajaja)
+        usuario.getConversaciones().computeIfAbsent(contacto, k -> new Conversacion());
+        //agrego el mensaje a la conversacion
+        usuario.getConversaciones().get(contacto)
+                .getMensajes().add(mensaje);
     }
 
     @Override
@@ -52,8 +41,4 @@ public class UsuarioDAO implements IUsuarioDAO {
             usuario.getConversaciones().get(contacto).setPendiente(false);
         }
     }
-
-
-
-
 }

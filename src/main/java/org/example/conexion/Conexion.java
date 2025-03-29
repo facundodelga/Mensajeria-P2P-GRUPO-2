@@ -6,27 +6,14 @@ import org.example.modelo.usuario.UsuarioDTO;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.net.UnknownHostException;
-import java.util.concurrent.ConcurrentHashMap;
 
-public class Conexion implements Runnable, IConexion {
-    private static Conexion instancia;
+public class Conexion implements IConexion {
     private ServerSocket socketServer;
     private Socket socket;
-
-
-    private Conexion() {
+    public Conexion() {
     }
-
-    public static Conexion getInstancia() {
-        if (instancia == null) {
-            instancia = new Conexion();
-        }
-        return instancia;
-    }
-
     @Override
-    public void configurarServidor(int puerto) {
+    public void iniciarServidor(int puerto) {
         try {
             this.socketServer = new ServerSocket(puerto);
             System.out.println("Servidor configurado en el puerto: " + puerto);
@@ -38,7 +25,7 @@ public class Conexion implements Runnable, IConexion {
     }
 
     @Override
-    public void iniciarServidor() {
+    public void esperarMensajes() {
         try {
 
             while(true){
@@ -98,7 +85,7 @@ public class Conexion implements Runnable, IConexion {
 
     @Override
     public void run() {
-        iniciarServidor();
+        esperarMensajes();
     }
 
     public ServerSocket getSocketServer() {
