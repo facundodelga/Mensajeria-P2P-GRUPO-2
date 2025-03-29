@@ -42,6 +42,10 @@ public class Usuario {
         return contactos;
     }
 
+    public void addContacto(UsuarioDTO contacto) {
+        contactos.add(contacto);
+    }
+
     @Override
     public String toString() {
         return "Usuario{" +
@@ -58,11 +62,19 @@ public class Usuario {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Usuario usuario = (Usuario) o;
-        return puerto == usuario.puerto && Objects.equals(nombre, usuario.nombre) && Objects.equals(ip, usuario.ip);
+        return puerto == usuario.puerto && Objects.equals(ip, usuario.ip);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(nombre, ip, puerto);
+    }
+
+    public void addConversacion(UsuarioDTO contacto, Conversacion conversacion) {
+        conversaciones.put(contacto, conversacion);
+    }
+
+    public void addMensaje(UsuarioDTO contacto, Mensaje mensaje) {
+        conversaciones.get(contacto).addMensaje(mensaje);
     }
 }

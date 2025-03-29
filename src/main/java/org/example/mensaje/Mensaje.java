@@ -1,6 +1,5 @@
 package org.example.mensaje;
 
-import org.example.usuario.Usuario;
 import org.example.usuario.UsuarioDTO;
 
 import java.io.Serializable;
@@ -9,11 +8,11 @@ import java.util.Date;
 public class Mensaje implements Serializable {
     private Date fecha = new Date();
     private String contenido;
-    private UsuarioDTO usuario;
+    private UsuarioDTO emisor;
 
     public Mensaje(String contenido, UsuarioDTO usuario) {
         this.contenido = contenido;
-        this.usuario = usuario;
+        this.emisor = usuario;
 
     }
 
@@ -25,8 +24,8 @@ public class Mensaje implements Serializable {
         return contenido;
     }
 
-    public UsuarioDTO getUsuario() {
-        return usuario;
+    public UsuarioDTO getEmisor() {
+        return emisor;
     }
 
     @Override
@@ -34,7 +33,7 @@ public class Mensaje implements Serializable {
         return "Mensaje{" +
                 "fecha=" + fecha +
                 ", contenido='" + contenido + '\'' +
-                ", usuario=" + usuario +
+                ", usuario=" + emisor +
                 '}';
     }
 }

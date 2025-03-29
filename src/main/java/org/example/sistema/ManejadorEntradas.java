@@ -8,13 +8,12 @@ import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
-import java.util.ArrayList;
 import java.util.Observable;
 
-public class ManejadorCliente extends Observable implements Runnable {
+public class ManejadorEntradas extends Observable implements Runnable {
     private Socket socket;
 
-    public ManejadorCliente(Socket socket) {
+    public ManejadorEntradas(Socket socket) {
         this.socket = socket;
         addObserver(Controlador.getInstancia());
     }
@@ -25,18 +24,14 @@ public class ManejadorCliente extends Observable implements Runnable {
             ObjectInputStream entrada = new ObjectInputStream(socket.getInputStream());
             Mensaje mensaje = (Mensaje) entrada.readObject();
 
-            System.out.println("Mensaje recibido de " + mensaje.getUsuario() + ": " + mensaje.getContenido());
+            System.out.println("Mensaje recibido de " + mensaje.getEmisor() + ": " + mensaje.getContenido());
             //Si no existe la conexion de salida, la agrego
-            if (!Sistema.getInstancia().getConexionesDeSalida().containsKey(mensaje.getUsuario())) {
+            if (!Conexion.getInstancia().getConexionesDeSalida().containsKey(mensaje.getEmisor())) {
                 ObjectOutputStream salida = new ObjectOutputStream(socket.getOutputStream());
-                Sistema.getInstancia().getConexionesDeSalida().put(mensaje.getUsuario(), salida);
+                Conexion.getInstancia().getConexionesDeSalida().put(mensaje.getEmisor(), salida);
             }
 
-            System.out.println("Mensaje recibido de " + mensaje.getUsuario() + ": " + mensaje.getContenido());
-
-            //Me fijo si la conversacion ya existe y si no, la creo (La linea me la recomendo IntelliJ jajaja)
-            Sistema.getInstancia().getUsuario().getConversaciones().computeIfAbsent(mensaje.getUsuario(), k -> new Conversacion());
-            Sistema.getInstancia().getUsuario().getConversaciones().get(mensaje.getUsuario()).getMensajes().add(mensaje);
+            System.out.println("Mensaje recibido de " + mensaje.getEmisor() + ": " + mensaje.getContenido());
 
 
             setChanged();

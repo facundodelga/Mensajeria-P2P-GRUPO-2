@@ -9,29 +9,28 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.concurrent.ConcurrentHashMap;
 
-public class Sistema implements Runnable{
-    private static Sistema instancia;
-    private Usuario usuario;
+public class Conexion implements Runnable{
+    private static Conexion instancia;
     private ServerSocket socketServer;
     private Socket socket;
     private ConcurrentHashMap<UsuarioDTO, ObjectOutputStream> conexionesDeSalida = new ConcurrentHashMap<>();
 
-    private Sistema() {
+    private Conexion() {
     }
 
-    public static Sistema getInstancia() {
+    public static Conexion getInstancia() {
         if (instancia == null) {
-            instancia = new Sistema();
+            instancia = new Conexion();
         }
         return instancia;
     }
 
-    public void configurarServidor(Usuario usuario) {
+    public void configurarServidor(int puerto) {
         try {
-            this.socketServer = new ServerSocket(usuario.getPuerto());
-            System.out.println("Servidor configurado en el puerto: " + usuario.getPuerto());
-            this.usuario = usuario;
+            this.socketServer = new ServerSocket(puerto);
+            System.out.println("Servidor configurado en el puerto: " + puerto);
             System.out.println("Servidor iniciado...");
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -43,7 +42,7 @@ public class Sistema implements Runnable{
             while(true){
                 System.out.println("Esperando conexiones...");
                 this.socket = this.socketServer.accept();
-                new Thread(new ManejadorCliente(this.socket)).start();
+                new Thread(new ManejadorEntradas(this.socket)).start();
             }
 
         } catch (Exception e) {
@@ -88,7 +87,6 @@ public class Sistema implements Runnable{
             this.socket.close();
             this.socketServer.close();
 
-
         } catch (IOException e) {
             e.printStackTrace();
             }
@@ -111,7 +109,4 @@ public class Sistema implements Runnable{
         return conexionesDeSalida;
     }
 
-    public Usuario getUsuario() {
-        return usuario;
-    }
 }

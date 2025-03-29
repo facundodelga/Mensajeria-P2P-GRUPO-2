@@ -17,6 +17,9 @@ public class Conversacion {
     public List<Mensaje> getMensajes() {
         return mensajes;
     }
+    public void addMensaje(Mensaje mensaje) {
+        mensajes.add(mensaje);
+    }
 
     public boolean isPendiente() {
         return pendiente;
