@@ -1,4 +1,4 @@
-package Vista;
+package org.example.vista;
 
 public class AppInicio {
     public static void main(String[] args) {
