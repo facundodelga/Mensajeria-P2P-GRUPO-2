@@ -6,13 +6,14 @@ import org.example.modelo.usuario.UsuarioDTO;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Conexion implements Runnable, IConexion {
     private static Conexion instancia;
     private ServerSocket socketServer;
     private Socket socket;
-    private ConcurrentHashMap<UsuarioDTO, ObjectOutputStream> conexionesDeSalida = new ConcurrentHashMap<>();
+
 
     private Conexion() {
     }
@@ -56,19 +57,18 @@ public class Conexion implements Runnable, IConexion {
     @Override
     public void enviarMensaje(UsuarioDTO usuarioDTO, Mensaje mensaje) {
         System.out.println("Intentando enviar mensaje a " + usuarioDTO);
-        ObjectOutputStream salida = conexionesDeSalida.get(usuarioDTO);
-        if (salida != null) {
-            try {
-                System.out.println("Enviando mensaje a " + usuarioDTO + ": " + mensaje.getContenido());
-                salida.writeObject(mensaje);
-                salida.flush();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        } else {
-            System.out.println("El usuario " + usuarioDTO.getPuerto() + " no está conectado.");
-            System.out.println("Conexiones actuales: " + conexionesDeSalida.keySet());
+
+
+        try {
+            Socket socketSalida = new Socket(usuarioDTO.getIp(),usuarioDTO.getPuerto());
+            ObjectOutputStream salida = new ObjectOutputStream(socketSalida.getOutputStream());
+            System.out.println("Enviando mensaje a " + usuarioDTO + ": " + mensaje.getContenido());
+            salida.writeObject(mensaje);
+            salida.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
+
     }
 
 
@@ -78,7 +78,7 @@ public class Conexion implements Runnable, IConexion {
             ObjectOutputStream salida = new ObjectOutputStream(socket.getOutputStream());
             System.out.println("Conexión de salida agregada para " + nombre);
             UsuarioDTO usuarioDTO = new UsuarioDTO(nombre, socket.getInetAddress().getHostAddress(), socket.getPort());
-            conexionesDeSalida.put(usuarioDTO, salida);
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -109,8 +109,5 @@ public class Conexion implements Runnable, IConexion {
         return socket;
     }
 
-    public ConcurrentHashMap<UsuarioDTO, ObjectOutputStream> getConexionesDeSalida() {
-        return conexionesDeSalida;
-    }
 
 }

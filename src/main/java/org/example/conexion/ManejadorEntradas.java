@@ -24,11 +24,7 @@ public class ManejadorEntradas extends Observable implements Runnable {
             Mensaje mensaje = (Mensaje) entrada.readObject();
 
             System.out.println("Mensaje recibido de " + mensaje.getEmisor() + ": " + mensaje.getContenido());
-            //Si no existe la conexion de salida, la agrego
-            if (!Conexion.getInstancia().getConexionesDeSalida().containsKey(mensaje.getEmisor())) {
-                ObjectOutputStream salida = new ObjectOutputStream(socket.getOutputStream());
-                Conexion.getInstancia().getConexionesDeSalida().put(mensaje.getEmisor(), salida);
-            }
+
 
             System.out.println("Mensaje recibido de " + mensaje.getEmisor() + ": " + mensaje.getContenido());
 

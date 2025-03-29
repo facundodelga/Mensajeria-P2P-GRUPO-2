@@ -20,6 +20,7 @@ public class Controlador implements ActionListener, Observer {
     private static Controlador instancia;
     private Vista vista;
     private IUsuarioDAO usuarioDAO;
+    private UsuarioDTO usuarioDTO;
     private final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
 
     public Controlador() {
@@ -45,7 +46,7 @@ public class Controlador implements ActionListener, Observer {
             int puerto = vista.getPuerto();
             Usuario usuario = new Usuario(nombre, host, puerto);
             this.usuarioDAO = new UsuarioDAO(usuario);
-
+            this.usuarioDTO = new UsuarioDTO(usuario);
             Conexion.getInstancia().configurarServidor(puerto);
             new Thread(Conexion.getInstancia()).start();
             vista.addMensaje("Servidor iniciado en " + host + ":" + puerto);
@@ -63,7 +64,7 @@ public class Controlador implements ActionListener, Observer {
         } else if (e.getSource() == vista.getEnviarMensajeButton()) {
             String mensaje = vista.getMensaje();
 
-            Mensaje mensajeObj = new Mensaje(mensaje, new UsuarioDTO(vista.getNombre(), vista.getHost(), vista.getPuerto()));
+            Mensaje mensajeObj = new Mensaje(mensaje, this.usuarioDTO);
             String host = vista.getHost();
             int puerto = vista.getPuerto();
             String nombreReceptor = vista.getNombre();
