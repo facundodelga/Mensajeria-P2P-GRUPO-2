@@ -3,7 +3,7 @@ package org.example.vista;
 import java.awt.*;
 import javax.swing.*;
 
-public class VentanaInicioSesion extends JFrame {
+public class VentanaInicioSesion extends JFrame implements IVistaInicioSesion {
 
     private JTextField textField_CampoNickname;
     private JTextField TextField_CampoPuerto;

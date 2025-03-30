@@ -3,7 +3,7 @@ package org.example.vista;
 import java.awt.*;
 import javax.swing.*;
 
-public class AppVista extends JFrame {
+public class AppVista extends JFrame implements IVistaAppVista {
 
     private JTextField textField_BarraBusqueda;
     private JTextField textField_Mensaje;
