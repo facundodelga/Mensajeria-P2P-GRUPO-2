@@ -76,49 +76,49 @@ public class AppControlador {
     }
 
     private void mostrarDialogoAgregarContacto() {
-        VentanaAgregarContacto dialog = new VentanaAgregarContacto(vista);
-        dialog.setVisible(true);
-
-        String nombre = dialog.getNombre();
-        String ip = dialog.getIP();
-        String puerto = dialog.getPuerto();
-
-        if (nombre.isEmpty() || ip.isEmpty() || puerto.isEmpty()) {
-        	mostrarMensajeFlotante("<html>Usuario registrado sin éxito:<br>Todos los campos deben completarse correctamente.</html>", new Color(200, 50, 50));
-
-            return;
-        }
-
-        if (!listaContactos.contains(nombre)) {
-            listaContactos.add(nombre);
-            if (mostrandoContactos) {
-                cargarLista(listaContactos);
-                filtrarLista();
-            }
-
-            mostrarMensajeFlotante("Usuario registrado con éxito", new Color(0, 128, 0));
-        } else {
-            mostrarMensajeFlotante("El contacto ya existe.", new Color(200, 50, 50));
-        }
+//        VentanaAgregarContacto dialog = new VentanaAgregarContacto(vista);
+//        dialog.setVisible(true);
+//
+//        String nombre = dialog.getNombre();
+//        String ip = dialog.getIP();
+//        String puerto = dialog.getPuerto();
+//
+//        if (nombre.isEmpty() || ip.isEmpty() || puerto.isEmpty()) {
+//        	mostrarMensajeFlotante("<html>Usuario registrado sin éxito:<br>Todos los campos deben completarse correctamente.</html>", new Color(200, 50, 50));
+//
+//            return;
+//        }
+//
+//        if (!listaContactos.contains(nombre)) {
+//            listaContactos.add(nombre);
+//            if (mostrandoContactos) {
+//                cargarLista(listaContactos);
+//                filtrarLista();
+//            }
+//
+//            mostrarMensajeFlotante("Usuario registrado con éxito", new Color(0, 128, 0));
+//        } else {
+//            mostrarMensajeFlotante("El contacto ya existe.", new Color(200, 50, 50));
+//        }
     }
-    
+
     private void mostrarMensajeFlotante(String texto, Color fondo) {
-        JDialog mensaje = new JDialog(vista, false);
-        mensaje.setUndecorated(true);
-        mensaje.getContentPane().setBackground(fondo);
-
-        JLabel label = new JLabel("<html><div style='text-align: center;'>" + texto + "</div></html>", SwingConstants.CENTER);
-        label.setForeground(Color.WHITE);
-        label.setFont(new Font("Arial", Font.BOLD, 13));
-        label.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20)); // padding interno
-        mensaje.getContentPane().add(label);
-
-        mensaje.pack(); // ajusta automaticamente al contenido
-        mensaje.setLocationRelativeTo(vista);
-        mensaje.setAlwaysOnTop(true);
-        mensaje.setVisible(true);
-
-        new Timer(2000, e -> mensaje.dispose()).start();
+//        JDialog mensaje = new JDialog(vista, false);
+//        mensaje.setUndecorated(true);
+//        mensaje.getContentPane().setBackground(fondo);
+//
+//        JLabel label = new JLabel("<html><div style='text-align: center;'>" + texto + "</div></html>", SwingConstants.CENTER);
+//        label.setForeground(Color.WHITE);
+//        label.setFont(new Font("Arial", Font.BOLD, 13));
+//        label.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20)); // padding interno
+//        mensaje.getContentPane().add(label);
+//
+//        mensaje.pack(); // ajusta automaticamente al contenido
+//        mensaje.setLocationRelativeTo(vista);
+//        mensaje.setAlwaysOnTop(true);
+//        mensaje.setVisible(true);
+//
+//        new Timer(2000, e -> mensaje.dispose()).start();
     }
 
     private void enviarMensaje() {

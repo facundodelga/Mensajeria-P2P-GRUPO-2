@@ -1,5 +1,7 @@
 package org.example.vista;
 
+import org.example.modelo.usuario.UsuarioDTO;
+
 import javax.swing.*;
 
 public interface IVistaPrincipal {
@@ -15,7 +17,7 @@ public interface IVistaPrincipal {
     JScrollPane getScrollMensajes();
     JButton getBotonChats();
     JButton getBotonContactos();
-    void mostrarVentanaInicioSesion();
+    UsuarioDTO mostrarAgregarContacto();
 
     void setAccionAgregarContacto(Runnable accion);
 

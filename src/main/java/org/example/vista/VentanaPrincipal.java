@@ -1,6 +1,7 @@
 package org.example.vista;
 
 import org.example.controlador.Controlador;
+import org.example.modelo.usuario.UsuarioDTO;
 
 import java.awt.*;
 import javax.swing.*;
@@ -63,6 +64,8 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         // Crear menu emergente
         JPopupMenu menuOpciones = new JPopupMenu();
         itemAgregarContacto = new JMenuItem("Agregar contacto");  // se usa en el controlador
+        itemAgregarContacto.addActionListener(Controlador.getInstancia());
+        itemAgregarContacto.setActionCommand("botonAgregarContacto");
         menuOpciones.add(itemAgregarContacto);
 
         botonMenu.addActionListener(e -> menuOpciones.show(botonMenu, 0, botonMenu.getHeight()));
@@ -166,8 +169,9 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
     public void mostrar() {
 
         setVisible(true);
-
     }
+
+
     // Getters
     public JTextField getCampoBusqueda() { return textField_BarraBusqueda; }
     public JTextField getCampoMensaje() { return textField_Mensaje; }
@@ -182,9 +186,14 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
     public JButton getBotonContactos() { return boton_Contactos; }
 
     @Override
-    public void mostrarVentanaInicioSesion() {
+    public UsuarioDTO mostrarAgregarContacto() {
+        VentanaAgregarContacto dialog = new VentanaAgregarContacto(this);
+        dialog.setVisible(true);
+
+        return new UsuarioDTO(dialog.getNombre(), dialog.getIP(),Integer.parseInt(dialog.getPuerto()));
 
     }
+
 
     // Metodo para que el controlador registre accion de Agregar contacto
     public void setAccionAgregarContacto(Runnable accion) {

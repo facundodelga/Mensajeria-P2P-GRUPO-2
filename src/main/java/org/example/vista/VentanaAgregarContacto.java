@@ -4,7 +4,7 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-public class VentanaAgregarContacto extends JDialog {
+public class VentanaAgregarContacto extends JDialog implements IVistaAgregarContacto {
 
     private final JTextField campoNombre;
     private final JTextField campoIP;
@@ -55,12 +55,30 @@ public class VentanaAgregarContacto extends JDialog {
         agregarPlaceholder(campoPuerto, PLACEHOLDER_PUERTO);
         getContentPane().add(campoPuerto);
 
-        botonAceptar = new JButton("Aceptar");
+        botonAceptar = new JButton("Agregar Contacto");
         botonAceptar.setBackground(new Color(144, 238, 144));
         botonAceptar.setBounds(70, 200, 100, 30);
         getContentPane().add(botonAceptar);
 
-        botonAceptar.addActionListener(e -> dispose());
+
+        botonAceptar.addActionListener(e -> {
+                    if (getNombre().isEmpty() || getIP().isEmpty() || getPuerto().isEmpty()) {
+                        JOptionPane.showMessageDialog(this, "Todos los campos deben estar llenos", "Error", JOptionPane.ERROR_MESSAGE);
+                    } else if (!getIP().matches("\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b")) {
+                        JOptionPane.showMessageDialog(this, "La IP no es válida", "Error", JOptionPane.ERROR_MESSAGE);
+                    } else {
+                        try {
+                            int puerto = Integer.parseInt(getPuerto());
+                            if (puerto < 0 || puerto > 65535) {
+                                JOptionPane.showMessageDialog(this, "El puerto debe estar entre 0 y 65535", "Error", JOptionPane.ERROR_MESSAGE);
+                            } else {
+                                dispose();
+                            }
+                        } catch (NumberFormatException ex) {
+                            JOptionPane.showMessageDialog(this, "El puerto debe ser un número", "Error", JOptionPane.ERROR_MESSAGE);
+                        }
+                    }
+                });
     }
 
     private void agregarPlaceholder(JTextField campo, String placeholder) {
@@ -87,22 +105,22 @@ public class VentanaAgregarContacto extends JDialog {
     }
 
     // Getters para acceder a los campos (sin tomar los placeholders)
+    @Override
     public String getNombre() {
         String texto = campoNombre.getText().trim();
         return texto.equals(PLACEHOLDER_NOMBRE) ? "" : texto;
     }
 
+    @Override
     public String getIP() {
         String texto = campoIP.getText().trim();
         return texto.equals(PLACEHOLDER_IP) ? "" : texto;
     }
 
+    @Override
     public String getPuerto() {
         String texto = campoPuerto.getText().trim();
         return texto.equals(PLACEHOLDER_PUERTO) ? "" : texto;
     }
 
-    public JButton getBotonAceptar() {
-        return botonAceptar;
-    }
 }

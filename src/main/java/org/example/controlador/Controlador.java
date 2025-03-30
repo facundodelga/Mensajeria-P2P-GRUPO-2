@@ -8,6 +8,8 @@ import org.example.modelo.usuario.Usuario;
 import org.example.modelo.usuario.UsuarioDTO;
 import org.example.vista.*;
 
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -21,6 +23,7 @@ public class Controlador implements ActionListener, Observer {
     private static Controlador instancia = null;
     private IVistaPrincipal vista;
     private IVistaInicioSesion vistaInicioSesion;
+    private IVistaAgregarContacto vistaAgregarContacto;
     private IUsuario usuarioServicio;
     private IAgenda agendaServicio;
     private IConversacion conversacionServicio;
@@ -29,7 +32,7 @@ public class Controlador implements ActionListener, Observer {
     private final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
 
     public Controlador() {
-       
+
 
     }
 
@@ -44,8 +47,12 @@ public class Controlador implements ActionListener, Observer {
     public void actionPerformed(ActionEvent e) {
         if(e.getActionCommand().equalsIgnoreCase("Iniciar")) {
             iniciarServidor();
+        }else if(e.getActionCommand().equalsIgnoreCase("botonAgregarContacto")) {
+            mostrarDialogoAgregarContacto();
         }
     }
+
+
 
     public void iniciarServidor() {
         String nombre = vistaInicioSesion.getNombre();
@@ -64,6 +71,45 @@ public class Controlador implements ActionListener, Observer {
 
         vista.mostrar();
 
+    }
+
+    private void nuevoContacto() {
+
+    }
+
+    private void mostrarDialogoAgregarContacto() {
+
+        UsuarioDTO nuevoContacto = vista.mostrarAgregarContacto();
+
+
+/*
+        if (nombre.isEmpty() || ip.isEmpty() || puerto.isEmpty()) {
+            mostrarMensajeFlotante("<html>Usuario registrado sin éxito:<br>Todos los campos deben completarse correctamente.</html>", new Color(200, 50, 50));
+            return;
+
+        }
+        System.out.println("Nombre: " + nombre + " IP: " + ip + " Puerto: " + puerto);
+
+ */
+    }
+
+    private void mostrarMensajeFlotante(String texto, Color fondo) {
+        JDialog mensaje = new JDialog((Frame) vista, false);
+        mensaje.setUndecorated(true);
+        mensaje.getContentPane().setBackground(fondo);
+
+        JLabel label = new JLabel("<html><div style='text-align: center;'>" + texto + "</div></html>", SwingConstants.CENTER);
+        label.setForeground(Color.WHITE);
+        label.setFont(new Font("Arial", Font.BOLD, 13));
+        label.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20)); // padding interno
+        mensaje.getContentPane().add(label);
+
+        mensaje.pack(); // ajusta automaticamente al contenido
+        mensaje.setLocationRelativeTo((Component) vista);
+        mensaje.setAlwaysOnTop(true);
+        mensaje.setVisible(true);
+
+        new Timer(2000, e -> mensaje.dispose()).start();
     }
 
     @Override
