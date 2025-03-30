@@ -4,7 +4,7 @@ public interface IVistaInicioSesion {
     public void setOnLoginExitoso(Runnable r);
 
 
-    public String getNickname();
+    public String getNombre();
 
     public String getPuerto();
 }

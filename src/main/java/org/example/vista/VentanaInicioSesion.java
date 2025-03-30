@@ -5,7 +5,7 @@ import javax.swing.*;
 
 public class VentanaInicioSesion extends JFrame implements IVistaInicioSesion {
 
-    private JTextField textField_CampoNickname;
+    private JTextField textField_CampoNombre;
     private JTextField TextField_CampoPuerto;
     private JButton botonLogin;
     private Runnable onLoginExitoso;
@@ -19,15 +19,15 @@ public class VentanaInicioSesion extends JFrame implements IVistaInicioSesion {
         getContentPane().setBackground(new Color(61, 61, 61));
         getContentPane().setLayout(null);
 
-        JLabel Label_Nickname = new JLabel("Nickname:");
+        JLabel Label_Nickname = new JLabel("Nombre de Usuario:");
         Label_Nickname.setBounds(82, 111, 100, 25);
         Label_Nickname.setFont(new Font("Tahoma", Font.PLAIN, 14));
         Label_Nickname.setForeground(Color.WHITE);
         getContentPane().add(Label_Nickname);
 
-        textField_CampoNickname = new JTextField();
-        textField_CampoNickname.setBounds(82, 150, 180, 25);
-        getContentPane().add(textField_CampoNickname);
+        textField_CampoNombre = new JTextField();
+        textField_CampoNombre.setBounds(82, 150, 180, 25);
+        getContentPane().add(textField_CampoNombre);
 
         JLabel Label_Puerto = new JLabel("Puerto:");
         Label_Puerto.setBounds(82, 186, 100, 25);
@@ -50,7 +50,7 @@ public class VentanaInicioSesion extends JFrame implements IVistaInicioSesion {
         getContentPane().add(Label_ConfigurarUsuario);
 
         botonLogin.addActionListener(e -> {
-            String nickname = textField_CampoNickname.getText().trim();
+            String nickname = textField_CampoNombre.getText().trim();
             String puerto = TextField_CampoPuerto.getText().trim();
 
             if (!nickname.isEmpty() && !puerto.isEmpty() && puerto.matches("\\d+")) {
@@ -68,8 +68,8 @@ public class VentanaInicioSesion extends JFrame implements IVistaInicioSesion {
         this.onLoginExitoso = r;
     }
 
-    public String getNickname() {
-        return textField_CampoNickname.getText().trim();
+    public String getNombre() {
+        return textField_CampoNombre.getText().trim();
     }
 
     public String getPuerto() {
