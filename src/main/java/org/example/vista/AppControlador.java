@@ -1,6 +1,8 @@
 package org.example.vista;
 
+import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
@@ -8,34 +10,34 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.swing.BorderFactory;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
+import javax.swing.SwingConstants;
 import javax.swing.SwingUtilities;
+import javax.swing.Timer;
 
 public class AppControlador {
 
-    private AppVista vista;
-    private static Map<String, List<Mensaje>> mensajesPorContacto = new HashMap<>();
-    private List<String> listaContactos = new ArrayList<>();
+    private final VentanaPrincipal vista;
+    private final Map<String, List<Mensaje>> mensajesPorContacto = new HashMap<>();
+    private final List<String> listaContactos = new ArrayList<>();
+    private final List<String> listaChats = new ArrayList<>();
     private String contactoActual = null;
     private boolean mostrandoContactos = false;
 
-    public AppControlador(AppVista vista) {
+    public AppControlador(VentanaPrincipal vista) {
         this.vista = vista;
+        listaContactos.addAll(List.of("Contacto 1", "Contacto 2", "Contacto 3", "Contacto 4"));
 
-        // Datos iniciales de ejemplo
-        listaContactos.add("Contacto 1");
-        listaContactos.add("Contacto 2");
-        listaContactos.add("Contacto 3");
-        listaContactos.add("Contacto 4");
-        listaContactos.add("Contacto 5");
+        cargarLista(listaChats);
 
-        cargarListaChats();
-
-        // Eventos de selección de lista
+        // Eventos
         vista.getListaChats().addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting()) {
                 contactoActual = vista.getListaChats().getSelectedValue();
@@ -47,8 +49,8 @@ public class AppControlador {
             }
         });
 
-        vista.getBotonEnviar().addActionListener(e -> enviarMensaje());
         vista.getCampoMensaje().addActionListener(e -> vista.getBotonEnviar().doClick());
+        vista.getBotonEnviar().addActionListener(e -> enviarMensaje());
 
         vista.getCampoBusqueda().addKeyListener(new KeyAdapter() {
             @Override
@@ -59,13 +61,64 @@ public class AppControlador {
 
         vista.getBotonChats().addActionListener(e -> {
             mostrandoContactos = false;
-            cargarListaChats();
+            cargarLista(listaChats);
+            filtrarLista();
         });
 
         vista.getBotonContactos().addActionListener(e -> {
             mostrandoContactos = true;
             cargarLista(listaContactos);
+            filtrarLista();
         });
+
+        // Accion del botón "Agregar contacto"
+        vista.setAccionAgregarContacto(this::mostrarDialogoAgregarContacto);
+    }
+
+    private void mostrarDialogoAgregarContacto() {
+        VentanaAgregarContacto dialog = new VentanaAgregarContacto(vista);
+        dialog.setVisible(true);
+
+        String nombre = dialog.getNombre();
+        String ip = dialog.getIP();
+        String puerto = dialog.getPuerto();
+
+        if (nombre.isEmpty() || ip.isEmpty() || puerto.isEmpty()) {
+        	mostrarMensajeFlotante("<html>Usuario registrado sin éxito:<br>Todos los campos deben completarse correctamente.</html>", new Color(200, 50, 50));
+
+            return;
+        }
+
+        if (!listaContactos.contains(nombre)) {
+            listaContactos.add(nombre);
+            if (mostrandoContactos) {
+                cargarLista(listaContactos);
+                filtrarLista();
+            }
+
+            mostrarMensajeFlotante("Usuario registrado con éxito", new Color(0, 128, 0));
+        } else {
+            mostrarMensajeFlotante("El contacto ya existe.", new Color(200, 50, 50));
+        }
+    }
+    
+    private void mostrarMensajeFlotante(String texto, Color fondo) {
+        JDialog mensaje = new JDialog(vista, false);
+        mensaje.setUndecorated(true);
+        mensaje.getContentPane().setBackground(fondo);
+
+        JLabel label = new JLabel("<html><div style='text-align: center;'>" + texto + "</div></html>", SwingConstants.CENTER);
+        label.setForeground(Color.WHITE);
+        label.setFont(new Font("Arial", Font.BOLD, 13));
+        label.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20)); // padding interno
+        mensaje.getContentPane().add(label);
+
+        mensaje.pack(); // ajusta automaticamente al contenido
+        mensaje.setLocationRelativeTo(vista);
+        mensaje.setAlwaysOnTop(true);
+        mensaje.setVisible(true);
+
+        new Timer(2000, e -> mensaje.dispose()).start();
     }
 
     private void enviarMensaje() {
@@ -76,23 +129,21 @@ public class AppControlador {
             mensajesPorContacto.putIfAbsent(contactoActual, new ArrayList<>());
             mensajesPorContacto.get(contactoActual).add(new Mensaje(texto, true));
             vista.getCampoMensaje().setText("");
+
+            if (!listaChats.contains(contactoActual)) {
+                listaChats.add(contactoActual);
+                if (!mostrandoContactos) cargarLista(listaChats);
+            }
+
             mostrarMensajes();
 
-            if (!listaContactos.contains(contactoActual)) {
-                listaContactos.add(contactoActual);
-            }
-            if (!obtenerListaChats().contains(contactoActual)) {
-                cargarListaChats();
-            }
-
-            // Simular respuesta
-            javax.swing.Timer respuestaTimer = new javax.swing.Timer(1000, evt -> {
-                mensajesPorContacto.putIfAbsent(contactoActual, new ArrayList<>());
+            // Simula una respuesta
+            Timer timer = new Timer(1000, e -> {
                 mensajesPorContacto.get(contactoActual).add(new Mensaje("Recibido 👍", false));
                 mostrarMensajes();
             });
-            respuestaTimer.setRepeats(false);
-            respuestaTimer.start();
+            timer.setRepeats(false);
+            timer.start();
         }
     }
 
@@ -101,9 +152,9 @@ public class AppControlador {
         panelMensajes.removeAll();
 
         List<Mensaje> mensajes = mensajesPorContacto.getOrDefault(contactoActual, new ArrayList<>());
-        for (Mensaje msg : mensajes) {
-            MensajeBubble burbuja = new MensajeBubble(msg);
 
+        for (Mensaje msg : mensajes) {
+            BurbujaMensaje burbuja = new BurbujaMensaje(msg);
             JPanel alineador = new JPanel();
             alineador.setLayout(new BoxLayout(alineador, BoxLayout.X_AXIS));
             alineador.setOpaque(false);
@@ -131,7 +182,7 @@ public class AppControlador {
     private void filtrarLista() {
         String filtro = vista.getCampoBusqueda().getText().toLowerCase();
         DefaultListModel<String> modelo = new DefaultListModel<>();
-        List<String> fuente = mostrandoContactos ? listaContactos : obtenerListaChats();
+        List<String> fuente = mostrandoContactos ? listaContactos : listaChats;
 
         for (String nombre : fuente) {
             if (nombre.toLowerCase().contains(filtro)) {
@@ -149,26 +200,4 @@ public class AppControlador {
         }
         vista.getListaChats().setModel(modelo);
     }
-
-    private void cargarListaChats() {
-        List<String> conMensajes = obtenerListaChats();
-        cargarLista(conMensajes);
-    }
-
-    private List<String> obtenerListaChats() {
-        List<String> chatsConMensajes = new ArrayList<>();
-        for (String contacto : listaContactos) {
-            List<Mensaje> mensajes = mensajesPorContacto.get(contacto);
-            if (mensajes != null && !mensajes.isEmpty()) {
-                chatsConMensajes.add(contacto);
-            }
-        }
-        return chatsConMensajes;
-    }
-
-    public static void borrarMensajesDeContacto(String contacto) {
-        mensajesPorContacto.remove(contacto);
-    }
 }
-
-

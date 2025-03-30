@@ -1,27 +1,9 @@
 package org.example.vista;
 
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Font;
-import java.awt.FontMetrics;
-import java.awt.Graphics;
-import java.awt.GridLayout;
+import java.awt.*;
+import javax.swing.*;
 
-import javax.swing.BoxLayout;
-import javax.swing.DefaultListModel;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.JTextField;
-
-public class AppVista extends JFrame {
+public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
 
     private JTextField textField_BarraBusqueda;
     private JTextField textField_Mensaje;
@@ -34,8 +16,10 @@ public class AppVista extends JFrame {
     private JScrollPane scrollPane_MensajesChatActual;
     private JButton boton_Chats;
     private JButton boton_Contactos;
+    private JMenuItem itemAgregarContacto; 
 
-    public AppVista() {
+    public VentanaPrincipal() {
+    	getContentPane().setBackground(new Color(32, 32, 32));
         setTitle("App de Mensajeria");
         setSize(900, 600);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -46,7 +30,6 @@ public class AppVista extends JFrame {
         panel_Inicio.setBackground(new Color(32, 32, 32));
         panel_Inicio.setBounds(10, 11, 860, 540);
         panel_Inicio.setLayout(null);
-        getContentPane().setBackground(new Color(32, 32, 32));
         getContentPane().add(panel_Inicio);
 
         JPanel panel_Izquierda = new JPanel();
@@ -60,55 +43,27 @@ public class AppVista extends JFrame {
         panel_TituloChats.setBackground(new Color(61, 61, 61));
         panel_TituloChats.setLayout(null);
         panel_Izquierda.add(panel_TituloChats);
-        
-        JLabel Label_Chats = new JLabel("Chats");
-        
-        // Boton Menu (⋮)
+
+        JLabel labelChats = new JLabel("Chats");
+        labelChats.setBounds(10, 8, 100, 14);
+        labelChats.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        labelChats.setForeground(Color.WHITE);
+        panel_TituloChats.add(labelChats);
+
         JButton botonMenu = new JButton("⋮");
-        botonMenu.setBounds(188, 5, 20, 20); // Ajusta posición si es necesario
+        botonMenu.setBounds(188, 5, 20, 20);
         botonMenu.setFocusPainted(false);
         botonMenu.setBackground(new Color(61, 61, 61));
         botonMenu.setForeground(Color.WHITE);
         botonMenu.setBorderPainted(false);
         panel_TituloChats.add(botonMenu);
 
-        // Menu desplegable
+        // Crear menu emergente
         JPopupMenu menuOpciones = new JPopupMenu();
-        JMenuItem itemAgregarContacto = new JMenuItem("Agregar contacto");
+        itemAgregarContacto = new JMenuItem("Agregar contacto");  // se usa en el controlador
         menuOpciones.add(itemAgregarContacto);
 
-        // Accion para agregar contacto
-        itemAgregarContacto.addActionListener(e -> {
-            JPanel panel = new JPanel(new GridLayout(3, 2, 10, 10));
-            JTextField nombreField = new JTextField();
-            JTextField ipField = new JTextField();
-            JTextField puertoField = new JTextField();
-
-            panel.add(new JLabel("Nombre:"));
-            panel.add(nombreField);
-            panel.add(new JLabel("IP:"));
-            panel.add(ipField);
-            panel.add(new JLabel("Puerto:"));
-            panel.add(puertoField);
-
-            int result = JOptionPane.showConfirmDialog(this, panel, "Agregar nuevo contacto", JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
-            if (result == JOptionPane.OK_OPTION) {
-                String nombre = nombreField.getText().trim();
-                if (!nombre.isEmpty()) {
-                    modeloChats.addElement(nombre);
-                    // Agregar a la lista despues
-                }
-            }
-        });
-
-        // Mostrar el menu
         botonMenu.addActionListener(e -> menuOpciones.show(botonMenu, 0, botonMenu.getHeight()));
-
-        
-        Label_Chats.setBounds(10, 11, 46, 14);
-        panel_TituloChats.add(Label_Chats);
-        Label_Chats.setFont(new Font("Tahoma", Font.PLAIN, 14));
-        Label_Chats.setForeground(new Color(255, 255, 255));
 
         textField_BarraBusqueda = new JTextField();
         textField_BarraBusqueda.setBounds(10, 40, 198, 25);
@@ -124,7 +79,7 @@ public class AppVista extends JFrame {
         JScrollPane scrollPanel_Chats = new JScrollPane(listaChats);
         scrollPanel_Chats.setBounds(10, 107, 198, 401);
         panel_Izquierda.add(scrollPanel_Chats);
-        
+
         boton_Contactos = new JButton("Contactos");
         boton_Contactos.setBounds(10, 76, 98, 20);
         panel_Izquierda.add(boton_Contactos);
@@ -133,8 +88,9 @@ public class AppVista extends JFrame {
         boton_Chats.setBounds(110, 76, 98, 20);
         panel_Izquierda.add(boton_Chats);
 
+        // Panel derecho
         JPanel panel_Derecho = new JPanel() {
-            private final ImageIcon iconoFondo = new ImageIcon(getClass().getResource("/img/icono_central.png"));
+            private final ImageIcon iconoFondo = new ImageIcon(getClass().getResource("/Img/icono_central.png"));
             @Override
             protected void paintComponent(Graphics g) {
                 super.paintComponent(g);
@@ -151,7 +107,6 @@ public class AppVista extends JFrame {
                 }
             }
         };
-
         panel_Derecho.setBounds(238, 11, 612, 518);
         panel_Derecho.setBackground(new Color(61, 61, 61));
         panel_Derecho.setLayout(null);
@@ -206,6 +161,7 @@ public class AppVista extends JFrame {
         setVisible(true);
     }
 
+    // Getters
     public JTextField getCampoBusqueda() { return textField_BarraBusqueda; }
     public JTextField getCampoMensaje() { return textField_Mensaje; }
     public JButton getBotonEnviar() { return botonEnviar; }
@@ -217,5 +173,10 @@ public class AppVista extends JFrame {
     public JScrollPane getScrollMensajes() { return scrollPane_MensajesChatActual; }
     public JButton getBotonChats() { return boton_Chats; }
     public JButton getBotonContactos() { return boton_Contactos; }
+
+    // Metodo para que el controlador registre accion de Agregar contacto
+    public void setAccionAgregarContacto(Runnable accion) {
+        itemAgregarContacto.addActionListener(e -> accion.run());
+    }
 }
 

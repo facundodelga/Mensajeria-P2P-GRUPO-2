@@ -11,10 +11,10 @@ import java.awt.RenderingHints;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 
-public class MensajeBubble extends JPanel {
+public class BurbujaMensaje extends JPanel {
     private final Mensaje mensaje;
 
-    public MensajeBubble(Mensaje mensaje) {
+    public BurbujaMensaje(Mensaje mensaje) {
         this.mensaje = mensaje;
         setOpaque(false);
         setLayout(new BorderLayout());
