@@ -1,19 +1,14 @@
-package org.example.usuario;
+package org.example.modelo.usuario;
 
-import org.example.conversacion.Conversacion;
-import org.example.mensaje.Mensaje;
+import org.example.modelo.conversacion.Conversacion;
 
-import java.io.Serializable;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class Usuario {
     private String nombre;
     private String ip;
     private int puerto;
-    private List<UsuarioDTO> contactos;
+    private List<UsuarioDTO> contactos = new ArrayList<>();
     private Map<UsuarioDTO, Conversacion> conversaciones = new HashMap<>();
 
     public Usuario(String nombre, String ip, int puerto) {
@@ -58,11 +53,12 @@ public class Usuario {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Usuario usuario = (Usuario) o;
-        return puerto == usuario.puerto && Objects.equals(nombre, usuario.nombre) && Objects.equals(ip, usuario.ip);
+        return puerto == usuario.puerto && Objects.equals(ip, usuario.ip);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(nombre, ip, puerto);
     }
+
 }

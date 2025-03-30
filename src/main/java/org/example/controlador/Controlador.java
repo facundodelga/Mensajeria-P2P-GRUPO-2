@@ -1,9 +1,11 @@
 package org.example.controlador;
 
-import org.example.mensaje.Mensaje;
-import org.example.sistema.Sistema;
-import org.example.usuario.Usuario;
-import org.example.usuario.UsuarioDTO;
+import org.example.conexion.IConexion;
+import org.example.modelo.*;
+import org.example.modelo.mensaje.Mensaje;
+import org.example.conexion.Conexion;
+import org.example.modelo.usuario.Usuario;
+import org.example.modelo.usuario.UsuarioDTO;
 import org.example.vista.Vista;
 
 import java.awt.event.ActionEvent;
@@ -17,11 +19,15 @@ import java.util.Observer;
 public class Controlador implements ActionListener, Observer {
     private static Controlador instancia;
     private Vista vista;
-    private Sistema sistema;
+    private IUsuario usuarioServicio;
+    private IAgenda agendaServicio;
+    private IConversacion conversacionServicio;
+    private IConexion conexion;
+    private UsuarioDTO usuarioDTO;
     private final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
 
     public Controlador() {
-        this.sistema = Sistema.getInstancia();
+
         this.vista = new Vista();
         this.vista.getIniciarServidorButton().addActionListener(this);
         this.vista.getConectarButton().addActionListener(this);
@@ -41,17 +47,26 @@ public class Controlador implements ActionListener, Observer {
             String nombre = vista.getNombre();
             String host = vista.getHost();
             int puerto = vista.getPuerto();
-            UsuarioDTO usuario = new UsuarioDTO(nombre, host, puerto);
 
-            sistema.configurarServidor(UsuarioDTO.toUsuario(usuario));
-            new Thread(sistema).start();
+
+
+            Usuario usuario = new Usuario(nombre, host, puerto);
+            this.usuarioServicio = new UsuarioServicio(usuario);
+            this.agendaServicio = new AgendaServicio(usuario);
+            this.conversacionServicio = new ConversacionServicio(usuario);
+            this.conexion = new Conexion();
+
+            this.usuarioDTO = new UsuarioDTO(usuario);
+
+            conexion.iniciarServidor(puerto);
+            new Thread(this.conexion).start();
             vista.addMensaje("Servidor iniciado en " + host + ":" + puerto);
         } else if (e.getSource() == vista.getConectarButton()) {
             String host = vista.getHost();
             int puerto = vista.getPuerto();
             try {
                 Socket socket = new Socket(host, puerto);
-                sistema.agregarConexionDeSalida(vista.getNombre(),socket);
+                this.conexion.agregarConexionDeSalida(vista.getNombre(),socket);
                 vista.addMensaje("Conectado a " + host + ":" + puerto);
             } catch (IOException ex) {
                 ex.printStackTrace();
@@ -59,13 +74,21 @@ public class Controlador implements ActionListener, Observer {
             }
         } else if (e.getSource() == vista.getEnviarMensajeButton()) {
             String mensaje = vista.getMensaje();
-            Usuario usuario = Sistema.getInstancia().getUsuario();
-            Mensaje mensajeObj = new Mensaje(mensaje, new UsuarioDTO(usuario));
+
+            Mensaje mensajeObj = new Mensaje(mensaje, this.usuarioDTO);
             String host = vista.getHost();
             int puerto = vista.getPuerto();
             String nombreReceptor = vista.getNombre();
+
             UsuarioDTO usuarioDTO = new UsuarioDTO(nombreReceptor, host, puerto);
-            Sistema.getInstancia().enviarMensaje(usuarioDTO,mensajeObj);
+
+            try {
+                this.conexion.enviarMensaje(usuarioDTO,mensajeObj);
+            } catch (IOException ex) {
+                throw new RuntimeException(ex);
+            }
+            conversacionServicio.addMensajeSaliente(usuarioDTO,mensajeObj);
+
             // Aquí puedes agregar la lógica para enviar el mensaje
             vista.addMensaje("Mensaje enviado: " + mensaje);
         }
@@ -77,11 +100,10 @@ public class Controlador implements ActionListener, Observer {
 
     @Override
     public void update(Observable o, Object arg) {
-
         Mensaje mensaje = (Mensaje) arg;
+        this.conversacionServicio.addMensajeEntrante(mensaje);
         String fechaFormateada = sdf.format(mensaje.getFecha());
 
-        vista.addMensaje("[" + mensaje.getUsuario().getNombre() + " | " + fechaFormateada + "]: " + mensaje.getContenido());
-
+        vista.addMensaje("[" + mensaje.getEmisor().getNombre() + " | " + fechaFormateada + "]: " + mensaje.getContenido());
     }
 }
