@@ -5,7 +5,7 @@ public class AppInicio {
         javax.swing.SwingUtilities.invokeLater(() -> {
             VentanaInicioSesion login = new VentanaInicioSesion();
             login.setOnLoginExitoso(() -> {
-                AppVista vista = new AppVista();
+                VentanaPrincipal vista = new VentanaPrincipal();
                 new AppControlador(vista);
                 vista.setVisible(true);
             });

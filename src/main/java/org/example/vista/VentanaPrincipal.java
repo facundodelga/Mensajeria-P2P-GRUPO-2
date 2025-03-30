@@ -3,7 +3,7 @@ package org.example.vista;
 import java.awt.*;
 import javax.swing.*;
 
-public class AppVista extends JFrame implements IVistaAppVista {
+public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
 
     private JTextField textField_BarraBusqueda;
     private JTextField textField_Mensaje;
@@ -18,7 +18,7 @@ public class AppVista extends JFrame implements IVistaAppVista {
     private JButton boton_Contactos;
     private JMenuItem itemAgregarContacto; 
 
-    public AppVista() {
+    public VentanaPrincipal() {
     	getContentPane().setBackground(new Color(32, 32, 32));
         setTitle("App de Mensajeria");
         setSize(900, 600);

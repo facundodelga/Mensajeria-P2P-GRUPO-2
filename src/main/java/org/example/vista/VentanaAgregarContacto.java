@@ -4,7 +4,7 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
-public class AgregarContactoDialog extends JDialog {
+public class VentanaAgregarContacto extends JDialog {
 
     private final JTextField campoNombre;
     private final JTextField campoIP;
@@ -16,7 +16,7 @@ public class AgregarContactoDialog extends JDialog {
     private final String PLACEHOLDER_IP = "192.168.0.1";
     private final String PLACEHOLDER_PUERTO = "8009";
 
-    public AgregarContactoDialog(JFrame parent) {
+    public VentanaAgregarContacto(JFrame parent) {
         super(parent, "Nuevo contacto", true);
         setSize(250, 280);
         setLocationRelativeTo(parent);

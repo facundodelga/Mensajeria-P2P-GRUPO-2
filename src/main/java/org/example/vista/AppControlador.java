@@ -16,7 +16,6 @@ import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.SwingConstants;
@@ -25,14 +24,14 @@ import javax.swing.Timer;
 
 public class AppControlador {
 
-    private final AppVista vista;
+    private final VentanaPrincipal vista;
     private final Map<String, List<Mensaje>> mensajesPorContacto = new HashMap<>();
     private final List<String> listaContactos = new ArrayList<>();
     private final List<String> listaChats = new ArrayList<>();
     private String contactoActual = null;
     private boolean mostrandoContactos = false;
 
-    public AppControlador(AppVista vista) {
+    public AppControlador(VentanaPrincipal vista) {
         this.vista = vista;
         listaContactos.addAll(List.of("Contacto 1", "Contacto 2", "Contacto 3", "Contacto 4"));
 
@@ -77,7 +76,7 @@ public class AppControlador {
     }
 
     private void mostrarDialogoAgregarContacto() {
-        AgregarContactoDialog dialog = new AgregarContactoDialog(vista);
+        VentanaAgregarContacto dialog = new VentanaAgregarContacto(vista);
         dialog.setVisible(true);
 
         String nombre = dialog.getNombre();
@@ -155,7 +154,7 @@ public class AppControlador {
         List<Mensaje> mensajes = mensajesPorContacto.getOrDefault(contactoActual, new ArrayList<>());
 
         for (Mensaje msg : mensajes) {
-            MensajeBubble burbuja = new MensajeBubble(msg);
+            BurbujaMensaje burbuja = new BurbujaMensaje(msg);
             JPanel alineador = new JPanel();
             alineador.setLayout(new BoxLayout(alineador, BoxLayout.X_AXIS));
             alineador.setOpaque(false);

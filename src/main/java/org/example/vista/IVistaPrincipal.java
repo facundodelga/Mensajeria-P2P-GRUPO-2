@@ -1,9 +1,8 @@
 package org.example.vista;
 
 import javax.swing.*;
-import java.awt.*;
 
-public interface IVistaAppVista {
+public interface IVistaPrincipal {
 
     JTextField getCampoBusqueda();
     JTextField getCampoMensaje();
