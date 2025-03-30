@@ -15,6 +15,9 @@ public interface IVistaPrincipal {
     JScrollPane getScrollMensajes();
     JButton getBotonChats();
     JButton getBotonContactos();
+    void mostrarVentanaInicioSesion();
 
     void setAccionAgregarContacto(Runnable accion);
+
+    void mostrar();
 }

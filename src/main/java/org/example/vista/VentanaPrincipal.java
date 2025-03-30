@@ -1,5 +1,7 @@
 package org.example.vista;
 
+import org.example.controlador.Controlador;
+
 import java.awt.*;
 import javax.swing.*;
 
@@ -158,9 +160,14 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         botonEnviar.setBounds(510, 12, 89, 34);
         panel_TextoChatActual.add(botonEnviar);
 
-        setVisible(true);
-    }
 
+    }
+    @Override
+    public void mostrar() {
+
+        setVisible(true);
+
+    }
     // Getters
     public JTextField getCampoBusqueda() { return textField_BarraBusqueda; }
     public JTextField getCampoMensaje() { return textField_Mensaje; }
@@ -173,6 +180,11 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
     public JScrollPane getScrollMensajes() { return scrollPane_MensajesChatActual; }
     public JButton getBotonChats() { return boton_Chats; }
     public JButton getBotonContactos() { return boton_Contactos; }
+
+    @Override
+    public void mostrarVentanaInicioSesion() {
+
+    }
 
     // Metodo para que el controlador registre accion de Agregar contacto
     public void setAccionAgregarContacto(Runnable accion) {

@@ -1,5 +1,7 @@
 package org.example.vista;
 
+import org.example.controlador.Controlador;
+
 import java.awt.*;
 import javax.swing.*;
 
@@ -8,7 +10,6 @@ public class VentanaInicioSesion extends JFrame implements IVistaInicioSesion {
     private JTextField textField_CampoNombre;
     private JTextField TextField_CampoPuerto;
     private JButton botonLogin;
-    private Runnable onLoginExitoso;
 
     public VentanaInicioSesion() {
     	setBackground(new Color(32, 32, 32));
@@ -42,13 +43,15 @@ public class VentanaInicioSesion extends JFrame implements IVistaInicioSesion {
         botonLogin = new JButton("Aceptar");
         botonLogin.setBounds(102, 291, 130, 30);
         getContentPane().add(botonLogin);
+        botonLogin.setActionCommand("Iniciar");
+        botonLogin.addActionListener(Controlador.getInstancia());
         
         JLabel Label_ConfigurarUsuario = new JLabel("Configurar Usuario");
         Label_ConfigurarUsuario.setBounds(91, 31, 171, 25);
         Label_ConfigurarUsuario.setForeground(new Color(255, 255, 255));
         Label_ConfigurarUsuario.setFont(new Font("Tahoma", Font.PLAIN, 20));
         getContentPane().add(Label_ConfigurarUsuario);
-
+        /*
         botonLogin.addActionListener(e -> {
             String nickname = textField_CampoNombre.getText().trim();
             String puerto = TextField_CampoPuerto.getText().trim();
@@ -62,10 +65,16 @@ public class VentanaInicioSesion extends JFrame implements IVistaInicioSesion {
                 JOptionPane.showMessageDialog(this, "Debes ingresar un nickname y un puerto válido.", "Error", JOptionPane.ERROR_MESSAGE);
             }
         });
+        */
+        setVisible(true);
     }
 
-    public void setOnLoginExitoso(Runnable r) {
-        this.onLoginExitoso = r;
+
+
+    @Override
+    public void ocultar() {
+        dispose();
+
     }
 
     public String getNombre() {
