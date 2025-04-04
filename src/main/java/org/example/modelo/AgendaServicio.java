@@ -13,5 +13,6 @@ public class AgendaServicio implements IAgenda {
     @Override
     public void addContacto(UsuarioDTO contacto) {
         usuario.getContactos().add(contacto);
+        System.out.println(contacto.toString());
     }
 }

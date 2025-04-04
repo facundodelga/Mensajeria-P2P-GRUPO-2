@@ -1,6 +1,6 @@
 package org.example.vista;
 
-import org.example.controlador.Controlador;
+import org.example.controlador.*;
 
 public class AppInicio {
     public static void main(String[] args) {

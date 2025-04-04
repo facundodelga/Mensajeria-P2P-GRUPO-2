@@ -49,6 +49,7 @@ public class Controlador implements ActionListener, Observer {
             iniciarServidor();
         }else if(e.getActionCommand().equalsIgnoreCase("botonAgregarContacto")) {
             mostrarDialogoAgregarContacto();
+            nuevoContacto();
         }
     }
 
@@ -74,6 +75,13 @@ public class Controlador implements ActionListener, Observer {
     }
 
     private void nuevoContacto() {
+
+        UsuarioDTO usuarioDTO = new UsuarioDTO(
+                vistaAgregarContacto.getNombre(),
+                vistaAgregarContacto.getIP(),
+                Integer.parseInt(vistaAgregarContacto.getPuerto()));
+
+        agendaServicio.addContacto(usuarioDTO);
 
     }
 

@@ -108,19 +108,21 @@ public class VentanaAgregarContacto extends JDialog implements IVistaAgregarCont
     @Override
     public String getNombre() {
         String texto = campoNombre.getText().trim();
-        return texto.equals(PLACEHOLDER_NOMBRE) ? "" : texto;
+        //return texto.equals(PLACEHOLDER_NOMBRE) ? "" : texto;
+        return texto;
     }
 
     @Override
     public String getIP() {
         String texto = campoIP.getText().trim();
-        return texto.equals(PLACEHOLDER_IP) ? "" : texto;
+        return texto;
     }
 
     @Override
     public String getPuerto() {
         String texto = campoPuerto.getText().trim();
-        return texto.equals(PLACEHOLDER_PUERTO) ? "" : texto;
+        //return texto.equals(PLACEHOLDER_PUERTO) ? "" : texto;
+        return texto;
     }
 
 }
