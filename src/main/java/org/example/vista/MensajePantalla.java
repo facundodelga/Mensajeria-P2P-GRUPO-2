@@ -3,15 +3,15 @@ package org.example.vista;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
-public class Mensaje {
+public class MensajePantalla {
     private String texto;
     private boolean esMio;
     private String hora;
 
-    public Mensaje(String texto, boolean esMio) {
+    public MensajePantalla(String texto, boolean esMio, String hora) {
         this.texto = texto;
         this.esMio = esMio;
-        this.hora = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"));
+        this.hora = hora;
     }
 
     public String getTexto() {

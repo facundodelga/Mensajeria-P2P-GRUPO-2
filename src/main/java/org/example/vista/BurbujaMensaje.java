@@ -12,9 +12,9 @@ import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 
 public class BurbujaMensaje extends JPanel {
-    private final Mensaje mensaje;
+    private final MensajePantalla mensaje;
 
-    public BurbujaMensaje(Mensaje mensaje) {
+    public BurbujaMensaje(MensajePantalla mensaje) {
         this.mensaje = mensaje;
         setOpaque(false);
         setLayout(new BorderLayout());

@@ -67,6 +67,7 @@ public class Controlador implements ActionListener, Observer {
             conexion.enviarMensaje(vista.getListaChats().getSelectedValue(),mensaje);
             this.conversacionServicio.addMensajeSaliente(vista.getListaChats().getSelectedValue(),mensaje);
             vista.getCampoMensaje().setText("");
+            
         } catch (IOException e) {
             mostrarMensajeFlotante("Error al enviar el mensaje", Color.RED);
         }
