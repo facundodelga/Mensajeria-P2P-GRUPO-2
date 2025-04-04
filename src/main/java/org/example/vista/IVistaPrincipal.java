@@ -9,15 +9,15 @@ public interface IVistaPrincipal {
     JTextField getCampoBusqueda();
     JTextField getCampoMensaje();
     JButton getBotonEnviar();
-    JList<String> getListaChats();
-    DefaultListModel<String> getModeloChats();
+    JList<UsuarioDTO> getListaChats();
+    DefaultListModel<UsuarioDTO> getModeloChats();
     JLabel getEtiquetaContacto();
     JPanel getPanelMensajes();
     JPanel getPanelChatActual();
     JScrollPane getScrollMensajes();
-    JButton getBotonChats();
-    JButton getBotonContactos();
     UsuarioDTO mostrarAgregarContacto();
+    public JList<UsuarioDTO> getListaContactos();
+    public DefaultListModel<UsuarioDTO> getModeloContactos();
 
     void setAccionAgregarContacto(Runnable accion);
 

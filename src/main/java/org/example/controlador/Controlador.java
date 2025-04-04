@@ -12,6 +12,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Observable;
 import java.util.Observer;
@@ -28,7 +31,7 @@ public class Controlador implements ActionListener, Observer {
     private UsuarioDTO usuarioDTO;
     private final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
 
-    public Controlador() {
+    private Controlador() {
 
 
     }
@@ -46,10 +49,28 @@ public class Controlador implements ActionListener, Observer {
             iniciarServidor();
         }else if(e.getActionCommand().equalsIgnoreCase("botonAgregarContacto")) {
             agregarNuevoContacto();
-
+        } else if(e.getActionCommand().equalsIgnoreCase("Enviar")) {
+            enviarMensaje();
+        } else if(e.getActionCommand().equalsIgnoreCase("botonIniciarChat")) {
+            iniciarChat();
         }
     }
 
+    private void iniciarChat() {
+    }
+
+    private void enviarMensaje()  {
+
+        Mensaje mensaje = new Mensaje(vista.getCampoMensaje().getText(),this.usuarioDTO);
+
+        try {
+            conexion.enviarMensaje(vista.getListaChats().getSelectedValue(),mensaje);
+            this.conversacionServicio.addMensajeSaliente(vista.getListaChats().getSelectedValue(),mensaje);
+            vista.getCampoMensaje().setText("");
+        } catch (IOException e) {
+            mostrarMensajeFlotante("Error al enviar el mensaje", Color.RED);
+        }
+    }
 
 
     public void iniciarServidor() {
@@ -66,37 +87,19 @@ public class Controlador implements ActionListener, Observer {
         this.usuarioDTO = new UsuarioDTO(usuario);
 
         conexion.iniciarServidor(puerto);
-
+        new Thread(conexion).start();
         vista.mostrar();
 
     }
 
-    private void nuevoContacto() {
-//
-//        UsuarioDTO usuarioDTO = new UsuarioDTO(
-//                vistaAgregarContacto.getNombre(),
-//                vistaAgregarContacto.getIP(),
-//                Integer.parseInt(vistaAgregarContacto.getPuerto()));
-//
-//        agendaServicio.addContacto(usuarioDTO);
-
-    }
-
-    private void agregarNuevoContacto() {
+    public void agregarNuevoContacto() {
 
         UsuarioDTO nuevoContacto = vista.mostrarAgregarContacto();
         agendaServicio.addContacto(nuevoContacto);
+        vista.getModeloContactos().addElement(nuevoContacto);
 
-/*
-        if (nombre.isEmpty() || ip.isEmpty() || puerto.isEmpty()) {
-            mostrarMensajeFlotante("<html>Usuario registrado sin éxito:<br>Todos los campos deben completarse correctamente.</html>", new Color(200, 50, 50));
-            return;
-
-        }
-        System.out.println("Nombre: " + nombre + " IP: " + ip + " Puerto: " + puerto);
-
- */
     }
+
 
     private void mostrarMensajeFlotante(String texto, Color fondo) {
         JDialog mensaje = new JDialog((Frame) vista, false);

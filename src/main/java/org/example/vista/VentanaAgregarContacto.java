@@ -79,6 +79,21 @@ public class VentanaAgregarContacto extends JDialog implements IVistaAgregarCont
                         }
                     }
                 });
+
+        // Dentro del constructor de VentanaAgregarContacto
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                limpiarCampos();
+            }
+        });
+    }
+
+    // Método para limpiar los campos. Cuando se cerraba la ventana, los campos se quedaban con el placeholder
+    private void limpiarCampos() {
+        campoNombre.setText("");
+        campoIP.setText("");
+        campoPuerto.setText("");
     }
 
     private void agregarPlaceholder(JTextField campo, String placeholder) {

@@ -26,7 +26,7 @@ public class ManejadorEntradas extends Observable implements Runnable {
             System.out.println("Mensaje recibido de " + mensaje.getEmisor() + ": " + mensaje.getContenido());
 
 
-            System.out.println("Mensaje recibido de " + mensaje.getEmisor() + ": " + mensaje.getContenido());
+            //System.out.println("Mensaje recibido de " + mensaje.getEmisor() + ": " + mensaje.getContenido());
 
 
             setChanged();
