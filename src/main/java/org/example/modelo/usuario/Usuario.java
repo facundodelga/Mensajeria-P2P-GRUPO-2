@@ -3,13 +3,14 @@ package org.example.modelo.usuario;
 import org.example.modelo.conversacion.Conversacion;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class Usuario {
     private String nombre;
     private String ip;
     private int puerto;
     private List<UsuarioDTO> contactos = new ArrayList<>();
-    private Map<UsuarioDTO, Conversacion> conversaciones = new HashMap<>();
+    private Map<UsuarioDTO, Conversacion> conversaciones = new ConcurrentHashMap<>();
 
     public Usuario(String nombre, String ip, int puerto) {
         this.nombre = nombre;

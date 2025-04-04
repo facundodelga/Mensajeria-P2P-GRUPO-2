@@ -1,5 +1,7 @@
 package org.example.vista;
 
+import org.example.modelo.mensaje.Mensaje;
+
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 
@@ -24,5 +26,9 @@ public class MensajePantalla {
 
     public String getHora() {
         return hora;
+    }
+
+    public static MensajePantalla mensajeToMensajePantalla(Mensaje mensaje, boolean esMio, String hora) {
+        return new MensajePantalla(mensaje.getContenido(), esMio, hora);
     }
 }

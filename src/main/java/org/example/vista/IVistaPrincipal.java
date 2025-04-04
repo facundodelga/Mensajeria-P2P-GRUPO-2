@@ -20,6 +20,7 @@ public interface IVistaPrincipal {
     public DefaultListModel<UsuarioDTO> getModeloContactos();
 
     void setAccionAgregarContacto(Runnable accion);
+    public void addMensajeBurbuja(MensajePantalla mensaje);
 
     void mostrar();
 }

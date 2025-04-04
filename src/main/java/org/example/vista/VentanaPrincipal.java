@@ -268,4 +268,14 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
     public void setAccionAgregarContacto(Runnable accion) {
         itemAgregarContacto.addActionListener(e -> accion.run());
     }
+
+    // Method to add a message bubble to the chat panel
+    public void addMensajeBurbuja(MensajePantalla mensaje) {
+        BurbujaMensaje burbuja = new BurbujaMensaje(mensaje);
+        panelMensajes.add(burbuja);
+        panelMensajes.revalidate();
+        panelMensajes.repaint();
+    }
+
+
 }

@@ -67,7 +67,12 @@ public class Controlador implements ActionListener, Observer {
             conexion.enviarMensaje(vista.getListaChats().getSelectedValue(),mensaje);
             this.conversacionServicio.addMensajeSaliente(vista.getListaChats().getSelectedValue(),mensaje);
             vista.getCampoMensaje().setText("");
-            
+
+            //agregar el mensaje a la vista
+            vista.addMensajeBurbuja(MensajePantalla.mensajeToMensajePantalla(
+                    mensaje,
+                    true,
+                    sdf.format(mensaje.getFecha())));
         } catch (IOException e) {
             mostrarMensajeFlotante("Error al enviar el mensaje", Color.RED);
         }
@@ -121,11 +126,36 @@ public class Controlador implements ActionListener, Observer {
         new Timer(2000, e -> mensaje.dispose()).start();
     }
 
+    public void recibirMensaje(Mensaje mensaje){
+        this.conversacionServicio.addMensajeEntrante(mensaje);
+        String fechaFormateada = sdf.format(mensaje.getFecha());
+        if(!vista.getModeloChats().contains(mensaje.getEmisor())){
+
+            if(!vista.getModeloContactos().contains(mensaje.getEmisor())){
+                vista.getModeloChats().addElement(mensaje.getEmisor());
+                vista.getModeloContactos().addElement(mensaje.getEmisor());
+            }else {
+                vista.getModeloChats().addElement(this.agendaServicio.buscaNombreContacto(mensaje.getEmisor()));
+            }
+        }
+
+        if(mensaje.getEmisor().equals(vista.getListaChats().getSelectedValue())) {
+            //agregar el mensaje a la vista
+            vista.addMensajeBurbuja(MensajePantalla.mensajeToMensajePantalla(
+                    mensaje,
+                    true,
+                    fechaFormateada));
+
+        }
+
+    }
+
+
+
     @Override
     public void update(Observable o, Object arg) {
         Mensaje mensaje = (Mensaje) arg;
-        this.conversacionServicio.addMensajeEntrante(mensaje);
-        String fechaFormateada = sdf.format(mensaje.getFecha());
+        recibirMensaje(mensaje);
 
        // vista.addMensaje("[" + mensaje.getEmisor().getNombre() + " | " + fechaFormateada + "]: " + mensaje.getContenido());
     }

@@ -15,4 +15,14 @@ public class AgendaServicio implements IAgenda {
         usuario.getContactos().add(contacto);
         System.out.println(contacto.toString());
     }
+
+    @Override
+    public UsuarioDTO buscaNombreContacto(UsuarioDTO contacto) {
+        for (UsuarioDTO c : usuario.getContactos()) {
+            if (c.equals(contacto)) {
+                return c;
+            }
+        }
+        return null;
+    }
 }
