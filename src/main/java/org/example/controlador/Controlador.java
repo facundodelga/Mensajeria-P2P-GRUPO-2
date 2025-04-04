@@ -12,9 +12,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
-import java.net.Inet4Address;
-import java.net.Socket;
 import java.text.SimpleDateFormat;
 import java.util.Observable;
 import java.util.Observer;
@@ -48,8 +45,8 @@ public class Controlador implements ActionListener, Observer {
         if(e.getActionCommand().equalsIgnoreCase("Iniciar")) {
             iniciarServidor();
         }else if(e.getActionCommand().equalsIgnoreCase("botonAgregarContacto")) {
-            mostrarDialogoAgregarContacto();
-            nuevoContacto();
+            agregarNuevoContacto();
+
         }
     }
 
@@ -75,20 +72,20 @@ public class Controlador implements ActionListener, Observer {
     }
 
     private void nuevoContacto() {
-
-        UsuarioDTO usuarioDTO = new UsuarioDTO(
-                vistaAgregarContacto.getNombre(),
-                vistaAgregarContacto.getIP(),
-                Integer.parseInt(vistaAgregarContacto.getPuerto()));
-
-        agendaServicio.addContacto(usuarioDTO);
+//
+//        UsuarioDTO usuarioDTO = new UsuarioDTO(
+//                vistaAgregarContacto.getNombre(),
+//                vistaAgregarContacto.getIP(),
+//                Integer.parseInt(vistaAgregarContacto.getPuerto()));
+//
+//        agendaServicio.addContacto(usuarioDTO);
 
     }
 
-    private void mostrarDialogoAgregarContacto() {
+    private void agregarNuevoContacto() {
 
         UsuarioDTO nuevoContacto = vista.mostrarAgregarContacto();
-
+        agendaServicio.addContacto(nuevoContacto);
 
 /*
         if (nombre.isEmpty() || ip.isEmpty() || puerto.isEmpty()) {

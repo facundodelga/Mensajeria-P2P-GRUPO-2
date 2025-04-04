@@ -50,7 +50,7 @@ public class VentanaAgregarContacto extends JDialog implements IVistaAgregarCont
         lblPuerto.setBounds(20, 130, 200, 20);
         getContentPane().add(lblPuerto);
 
-        campoPuerto = new JTextField();
+        campoPuerto = new JTextField(PLACEHOLDER_PUERTO);
         campoPuerto.setBounds(20, 150, 200, 25);
         agregarPlaceholder(campoPuerto, PLACEHOLDER_PUERTO);
         getContentPane().add(campoPuerto);
@@ -97,7 +97,7 @@ public class VentanaAgregarContacto extends JDialog implements IVistaAgregarCont
             @Override
             public void focusLost(FocusEvent e) {
                 if (campo.getText().isEmpty()) {
-                    campo.setText(placeholder);
+                    campo.putClientProperty(placeholder, true);
                     campo.setForeground(Color.GRAY);
                 }
             }
