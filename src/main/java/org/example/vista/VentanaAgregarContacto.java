@@ -63,10 +63,16 @@ public class VentanaAgregarContacto extends JDialog implements IVistaAgregarCont
 
         botonAceptar.addActionListener(e -> {
                     if (getNombre().isEmpty() || getIP().isEmpty() || getPuerto().isEmpty()) {
+                        System.out.println("Todos los campos deben estar llenos");
                         JOptionPane.showMessageDialog(this, "Todos los campos deben estar llenos", "Error", JOptionPane.ERROR_MESSAGE);
                     } else if (!getIP().matches("\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b")) {
+                        System.out.println("La IP no es válida");
                         JOptionPane.showMessageDialog(this, "La IP no es válida", "Error", JOptionPane.ERROR_MESSAGE);
                     } else {
+                        System.out.println("Nombre: " + getNombre());
+                        System.out.println("IP: " + getIP());
+                        System.out.println("Puerto: " + getPuerto());
+
                         try {
                             int puerto = Integer.parseInt(getPuerto());
                             if (puerto < 0 || puerto > 65535) {

@@ -137,9 +137,15 @@ public class Controlador implements ActionListener, Observer {
      * Agrega un nuevo contacto a la agenda y a la vista.
      */
     public void agregarNuevoContacto() {
-        UsuarioDTO nuevoContacto = vista.mostrarAgregarContacto();
-        agendaServicio.addContacto(nuevoContacto);
-        vista.getModeloContactos().addElement(nuevoContacto);
+        UsuarioDTO nuevoContacto = null;
+
+            nuevoContacto = vista.mostrarAgregarContacto();
+            if(nuevoContacto == null){
+                return;
+            }
+            agendaServicio.addContacto(nuevoContacto);
+            vista.getModeloContactos().addElement(nuevoContacto);
+
     }
 
     /**
@@ -231,12 +237,7 @@ public class Controlador implements ActionListener, Observer {
      */
     public void setVistaPrincipal(IVistaPrincipal vista) {
         this.vista = vista;
-        this.vista.addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) {
-                cerrarSistema();
-            }
-        });
+
     }
 
     /**
@@ -269,7 +270,5 @@ public class Controlador implements ActionListener, Observer {
         }
     }
 
-    public void cerrarSistema(){
-        conexion.cerrarConexiones();
-    }
+
 }

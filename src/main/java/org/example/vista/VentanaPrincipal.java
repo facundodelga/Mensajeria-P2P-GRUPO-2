@@ -274,6 +274,9 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
     public UsuarioDTO mostrarAgregarContacto() {
         VentanaAgregarContacto dialog = new VentanaAgregarContacto(this);
         dialog.setVisible(true);
+        if(dialog.getIP().isEmpty() || dialog.getNombre().isEmpty() || dialog.getPuerto().isEmpty()){
+            return null;
+        }
         return new UsuarioDTO(dialog.getNombre(), dialog.getIP(), Integer.parseInt(dialog.getPuerto()));
     }
 

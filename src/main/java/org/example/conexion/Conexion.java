@@ -79,7 +79,10 @@ public class Conexion implements IConexion {
     @Override
     public void cerrarConexiones(){
         try {
-            this.socket.close();
+            if(socket != null) {
+                socket.close();
+            }
+            
             this.socketServer.close();
         } catch (IOException e) {
             e.printStackTrace();
