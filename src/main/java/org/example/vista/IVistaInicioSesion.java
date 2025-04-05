@@ -8,4 +8,6 @@ public interface IVistaInicioSesion {
     public String getPuerto();
 
     void ocultar();
+
+    void mostrar();
 }

@@ -86,4 +86,9 @@ public class VentanaInicioSesion extends JFrame implements IVistaInicioSesion {
     public String getPuerto() {
         return TextField_CampoPuerto.getText().trim();
     }
+
+    @Override
+    public void mostrar() {
+        setVisible(true);
+    }
 }

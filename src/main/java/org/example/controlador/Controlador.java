@@ -117,7 +117,10 @@ public class Controlador implements ActionListener, Observer {
      */
     public void iniciarServidor() {
         String nombre = vistaInicioSesion.getNombre();
-
+        if(nombre.isEmpty()){
+            mostrarMensajeFlotante("El nombre no puede estar vacío", Color.RED);
+            return;
+        }
         try {
             int puerto = Integer.parseInt(vistaInicioSesion.getPuerto());
             vistaInicioSesion.ocultar();
@@ -138,6 +141,7 @@ public class Controlador implements ActionListener, Observer {
 
         }catch (PuertoEnUsoException e){
             mostrarMensajeFlotante(e.getMessage(), Color.RED);
+            vistaInicioSesion.mostrar();
         }
 
 
