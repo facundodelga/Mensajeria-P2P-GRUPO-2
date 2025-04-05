@@ -17,6 +17,14 @@ public class ConversacionServicio implements IConversacion {
     public List<Mensaje> getMensajes(UsuarioDTO contacto){
         return usuario.getConversaciones().get(contacto).getMensajes();
     }
+
+    @Override
+    public void agregarConversacion(UsuarioDTO contacto) {
+        System.out.println("Agregando conversacion");
+        usuario.getConversaciones().put(contacto, new Conversacion());
+
+    }
+
     @Override
     public void addMensajeEntrante(Mensaje mensaje) {
         //Me fijo si la conversacion ya existe y si no, la creo (La linea me la recomendo IntelliJ jajaja)

@@ -103,20 +103,12 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         panel_Izquierda.add(scrollPanel_Contactos);
 
         // Add a button to add a new chat from the selected contact
-        botonAgregarChat = new JButton("Agregar Chat");
+        botonAgregarChat = new JButton("Iniciar Chat");
         botonAgregarChat.setBounds(10, 245, 198, 25);
         panel_Izquierda.add(botonAgregarChat);
+        botonAgregarChat.setActionCommand("IniciarChat");
+        botonAgregarChat.addActionListener(Controlador.getInstancia());
 
-        // Add action listener to the 'agregar chat' button
-        botonAgregarChat.addActionListener(e -> {
-            UsuarioDTO selectedContact = listaContactos.getSelectedValue();
-            if (selectedContact != null && !modeloContainsUsuario(modeloChats, selectedContact)) {
-                modeloChats.addElement(selectedContact);
-                listaChats.setSelectedValue(selectedContact, true);
-                lblContactoChatActual.setText(selectedContact.getNombre());
-                panel_ChatActual.setVisible(true);
-            }
-        });
 
         // Label for Chats section
         JPanel panel_TituloChats = new JPanel();
@@ -134,6 +126,9 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         // Create and add the Chats list (bottom section)
         modeloChats = new DefaultListModel<>();
         listaChats = new JList<>(modeloChats);
+        listaChats.addListSelectionListener(e->{
+            Controlador.getInstancia().cargarConversacion(listaChats.getSelectedValue());
+        });
         listaChats.setBackground(new Color(61, 61, 61));
         listaChats.setForeground(Color.WHITE);
         listaChats.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
@@ -241,6 +236,11 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
     @Override
     public void mostrar() {
         setVisible(true);
+    }
+
+    public void titulo(String texto) {
+        setTitle("App de Mensajeria - " + texto);
+
     }
 
     // Getters

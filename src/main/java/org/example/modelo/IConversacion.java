@@ -9,5 +9,6 @@ public interface IConversacion {
     void addMensajeEntrante(Mensaje mensaje);
     void addMensajeSaliente(UsuarioDTO contacto, Mensaje mensaje);
     List<Mensaje> getMensajes(UsuarioDTO contacto);
+    void agregarConversacion(UsuarioDTO contacto);
     void setConversacionPendiente(UsuarioDTO contacto);
 }

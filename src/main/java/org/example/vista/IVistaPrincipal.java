@@ -21,6 +21,6 @@ public interface IVistaPrincipal {
 
     void setAccionAgregarContacto(Runnable accion);
     public void addMensajeBurbuja(MensajePantalla mensaje);
-
+    public void titulo(String texto);
     void mostrar();
 }

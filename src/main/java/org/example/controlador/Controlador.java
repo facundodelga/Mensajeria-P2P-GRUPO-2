@@ -16,6 +16,7 @@ import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
 
@@ -51,12 +52,27 @@ public class Controlador implements ActionListener, Observer {
             agregarNuevoContacto();
         } else if(e.getActionCommand().equalsIgnoreCase("Enviar")) {
             enviarMensaje();
-        } else if(e.getActionCommand().equalsIgnoreCase("botonIniciarChat")) {
+        } else if(e.getActionCommand().equalsIgnoreCase("IniciarChat")) {
             iniciarChat();
         }
     }
 
     private void iniciarChat() {
+        System.out.println("Inicio de chat");
+        UsuarioDTO selectedValue = vista.getListaContactos().getSelectedValue();
+
+        if (selectedValue != null) {
+
+            System.out.println("inicio de chat "+selectedValue);
+            this.conversacionServicio.agregarConversacion(selectedValue);
+
+            vista.getModeloChats().addElement(selectedValue);
+            vista.getListaChats().setSelectedValue(selectedValue, true);
+            vista.getPanelMensajes().revalidate();
+            vista.getPanelMensajes().repaint();
+        } else {
+            mostrarMensajeFlotante("Seleccione un contacto", Color.RED);
+        }
     }
 
     private void enviarMensaje()  {
@@ -95,7 +111,7 @@ public class Controlador implements ActionListener, Observer {
         conexion.iniciarServidor(puerto);
         new Thread(conexion).start();
         vista.mostrar();
-
+        vista.titulo("Usuario: " + nombre + " | Ip: "+ "127.0.0.1" + " | Puerto: " + puerto);
     }
 
     public void agregarNuevoContacto() {
@@ -143,7 +159,7 @@ public class Controlador implements ActionListener, Observer {
             //agregar el mensaje a la vista
             vista.addMensajeBurbuja(MensajePantalla.mensajeToMensajePantalla(
                     mensaje,
-                    true,
+                    false,
                     fechaFormateada));
 
         }
@@ -166,5 +182,25 @@ public class Controlador implements ActionListener, Observer {
 
     public void setVistaPrincipal(IVistaPrincipal vista) {
         this.vista = vista;
+    }
+
+    public void cargarConversacion(UsuarioDTO selectedValue) {
+        ArrayList<Mensaje> mensajes = (ArrayList<Mensaje>) this.conversacionServicio.getMensajes(selectedValue);
+        // Limpiar el panel de mensajes
+        vista.getPanelMensajes().removeAll();
+
+        for(Mensaje mensaje : mensajes) {
+            String fechaFormateada = sdf.format(mensaje.getFecha());
+            // Agregar el mensaje a la vista
+            vista.addMensajeBurbuja(MensajePantalla.mensajeToMensajePantalla(
+                    mensaje,
+                    mensaje.getEmisor().equals(usuarioDTO),
+                    fechaFormateada));
+        }
+
+
+        // Actualizar la vista
+        vista.getPanelMensajes().revalidate();
+        vista.getPanelMensajes().repaint();
     }
 }
