@@ -162,6 +162,14 @@ public class Controlador implements ActionListener, Observer {
                     false,
                     fechaFormateada));
 
+        }else{
+            // Notificar visualmente que hay un nuevo mensaje
+            int index = vista.getModeloChats().indexOf(mensaje.getEmisor());
+            if (index >= 0) {
+                UsuarioDTO chatConNotificacion = vista.getModeloChats().get(index);
+//                chatConNotificacion.tieneNotificacion();
+                vista.getModeloChats().set(index, chatConNotificacion);
+            }
         }
 
     }
@@ -185,6 +193,12 @@ public class Controlador implements ActionListener, Observer {
     }
 
     public void cargarConversacion(UsuarioDTO selectedValue) {
+        int index = vista.getModeloChats().indexOf(selectedValue);
+        if (index >= 0) {
+            UsuarioDTO chatConNotificacion = vista.getModeloChats().get(index);
+//            chatConNotificacion.leido();
+            vista.getModeloChats().set(index, chatConNotificacion);
+        }
         ArrayList<Mensaje> mensajes = (ArrayList<Mensaje>) this.conversacionServicio.getMensajes(selectedValue);
         // Limpiar el panel de mensajes
         vista.getPanelMensajes().removeAll();
