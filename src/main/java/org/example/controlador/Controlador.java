@@ -156,11 +156,12 @@ public class Controlador implements ActionListener, Observer {
         }
         try {
             agendaServicio.addContacto(nuevoContacto);
+            vista.getModeloContactos().addElement(nuevoContacto);
+            mostrarMensajeFlotante("Contacto agregado: " + nuevoContacto.getNombre(), Color.GREEN);
         } catch (ContactoRepetidoException e) {
             mostrarMensajeFlotante(e.getMessage(), Color.RED);
         }
-        vista.getModeloContactos().addElement(nuevoContacto);
-        mostrarMensajeFlotante("Contacto agregado: " + nuevoContacto.getNombre(), Color.GREEN);
+
 
     }
 

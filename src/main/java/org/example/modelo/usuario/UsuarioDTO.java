@@ -42,12 +42,15 @@ public class UsuarioDTO implements Serializable {
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (o == null || getClass() != o.getClass())
+
+            return false;
+
         UsuarioDTO that = (UsuarioDTO) o;
         System.out.println("equals");
         System.out.println("this: " + this);
         System.out.println("that: " + that);
-        return puerto == that.puerto && Objects.equals(ip, that.ip);
+        return puerto == that.puerto && ip.equals(that.ip);
     }
 
     @Override
