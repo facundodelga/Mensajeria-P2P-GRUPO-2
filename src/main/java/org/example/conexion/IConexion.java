@@ -11,9 +11,7 @@ public interface IConexion extends Runnable {
 
     void esperarMensajes();
 
-    void enviarMensaje(UsuarioDTO usuarioDTO, Mensaje mensaje) throws IOException;
-
-    void agregarConexionDeSalida(String nombre, Socket socket);
+    void enviarMensaje(UsuarioDTO usuarioDTO, Mensaje mensaje) throws IOException, EnviarMensajeException;
 
     void cerrarConexiones();
 }

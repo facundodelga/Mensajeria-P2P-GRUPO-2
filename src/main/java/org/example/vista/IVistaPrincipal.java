@@ -3,6 +3,7 @@ package org.example.vista;
 import org.example.modelo.usuario.UsuarioDTO;
 
 import javax.swing.*;
+import java.awt.event.WindowAdapter;
 
 public interface IVistaPrincipal {
 
@@ -23,4 +24,6 @@ public interface IVistaPrincipal {
     public void addMensajeBurbuja(MensajePantalla mensaje);
     public void titulo(String texto);
     void mostrar();
+
+    void addWindowListener(WindowAdapter windowAdapter);
 }

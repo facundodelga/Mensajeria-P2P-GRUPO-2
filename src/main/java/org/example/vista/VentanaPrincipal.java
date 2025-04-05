@@ -4,6 +4,7 @@ import org.example.controlador.Controlador;
 import org.example.modelo.usuario.UsuarioDTO;
 
 import java.awt.*;
+import java.awt.event.WindowAdapter;
 import javax.swing.*;
 
 public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
@@ -237,9 +238,17 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         return false;
     }
 
+
+
     @Override
     public void mostrar() {
         setVisible(true);
+    }
+
+    @Override
+    public void addWindowListener(WindowAdapter listener) {
+        super.addWindowListener(listener);
+
     }
 
     public void titulo(String texto) {
