@@ -2,6 +2,7 @@ package org.example.controlador;
 
 import org.example.conexion.EnviarMensajeException;
 import org.example.conexion.IConexion;
+import org.example.conexion.PuertoEnUsoException;
 import org.example.modelo.*;
 import org.example.modelo.mensaje.Mensaje;
 import org.example.conexion.Conexion;
@@ -116,21 +117,31 @@ public class Controlador implements ActionListener, Observer {
      */
     public void iniciarServidor() {
         String nombre = vistaInicioSesion.getNombre();
-        int puerto = Integer.parseInt(vistaInicioSesion.getPuerto());
 
-        vistaInicioSesion.ocultar();
+        try {
+            int puerto = Integer.parseInt(vistaInicioSesion.getPuerto());
+            vistaInicioSesion.ocultar();
 
-        Usuario usuario = new Usuario(nombre, "127.0.0.1", puerto);
-        this.usuarioServicio = new UsuarioServicio(usuario);
-        this.agendaServicio = new AgendaServicio(usuario);
-        this.conversacionServicio = new ConversacionServicio(usuario);
-        this.conexion = new Conexion();
-        this.usuarioDTO = new UsuarioDTO(usuario);
+            Usuario usuario = new Usuario(nombre, "127.0.0.1", puerto);
+            this.usuarioServicio = new UsuarioServicio(usuario);
+            this.agendaServicio = new AgendaServicio(usuario);
+            this.conversacionServicio = new ConversacionServicio(usuario);
+            this.conexion = new Conexion();
+            this.usuarioDTO = new UsuarioDTO(usuario);
 
-        conexion.iniciarServidor(puerto);
-        new Thread(conexion).start();
-        vista.mostrar();
-        vista.titulo("Usuario: " + nombre + " | Ip: "+ "127.0.0.1" + " | Puerto: " + puerto);
+            conexion.iniciarServidor(puerto);
+            new Thread(conexion).start();
+            vista.mostrar();
+            vista.titulo("Usuario: " + nombre + " | Ip: "+ "127.0.0.1" + " | Puerto: " + puerto);
+        }catch (NumberFormatException e) {
+            mostrarMensajeFlotante("El puerto debe ser un número entre 0 y 65535", Color.RED);
+
+        }catch (PuertoEnUsoException e){
+            mostrarMensajeFlotante(e.getMessage(), Color.RED);
+        }
+
+
+
     }
 
     /**

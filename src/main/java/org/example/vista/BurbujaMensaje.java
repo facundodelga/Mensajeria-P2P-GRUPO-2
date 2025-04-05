@@ -80,8 +80,8 @@ public class BurbujaMensaje extends JPanel {
 
         // Hora
         g2.setFont(g2.getFont().deriveFont(10f));
-        g2.setColor(Color.LIGHT_GRAY);
-        g2.drawString(mensaje.getHora(), x + burbujaAncho - 50, y + burbujaAlto - 8);
+        g2.setColor(Color.WHITE);
+        g2.drawString(mensaje.getHora(), x + burbujaAncho - 120, y + burbujaAlto - 8);
     }
 
     /**

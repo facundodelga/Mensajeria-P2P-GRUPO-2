@@ -52,7 +52,7 @@ public class UsuarioDTO implements Serializable {
 
     @Override
     public int hashCode() {
-        return Objects.hash(nombre, ip, puerto);
+        return Objects.hash(ip, puerto);
     }
 
     @Override

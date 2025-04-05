@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.net.Socket;
 
 public interface IConexion extends Runnable {
-    void iniciarServidor(int puerto);
+    void iniciarServidor(int puerto) throws PuertoEnUsoException;
 
     void esperarMensajes();
 

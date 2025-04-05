@@ -22,11 +22,29 @@ public class Conexion implements IConexion {
     }
 
     /**
+     * Verifica si un puerto está en uso.
+     * @param puerto El puerto a verificar.
+     * @return true si el puerto está en uso, false en caso contrario.
+     */
+    private boolean isPortInUse(int puerto) {
+        try (ServerSocket ignored = new ServerSocket(puerto)) {
+            return false;
+        } catch (IOException e) {
+            return true;
+        }
+    }
+
+    /**
      * Inicia el servidor en el puerto especificado.
      * @param puerto El puerto en el que se configurará el servidor.
      */
     @Override
-    public void iniciarServidor(int puerto) {
+    public void iniciarServidor(int puerto) throws PuertoEnUsoException {
+        if (isPortInUse(puerto)) {
+            throw new PuertoEnUsoException("El puerto " + puerto + " ya está en uso.");
+            
+        }
+
         try {
             this.socketServer = new ServerSocket(puerto);
             System.out.println("Servidor configurado en el puerto: " + puerto);
@@ -82,7 +100,7 @@ public class Conexion implements IConexion {
             if(socket != null) {
                 socket.close();
             }
-            
+
             this.socketServer.close();
         } catch (IOException e) {
             e.printStackTrace();

@@ -5,7 +5,10 @@ import org.example.modelo.usuario.UsuarioDTO;
 
 import java.awt.*;
 import java.awt.event.WindowAdapter;
+import java.util.ArrayList;
 import javax.swing.*;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 /**
  * Clase que representa la ventana principal de la aplicación de mensajería.
@@ -85,6 +88,38 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         textField_BarraBusqueda.setBounds(10, 40, 198, 25);
         textField_BarraBusqueda.setBackground(new Color(44, 44, 44));
         textField_BarraBusqueda.setForeground(Color.WHITE);
+        textField_BarraBusqueda.getDocument().addDocumentListener(new DocumentListener() {
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                filtrarContactos();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                filtrarContactos();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                filtrarContactos();
+            }
+
+            private void filtrarContactos() {
+                String filtro = textField_BarraBusqueda.getText().toLowerCase();
+                ArrayList<UsuarioDTO> contactosFiltrados = new ArrayList<>();
+                for (int i = 0; i < modeloContactos.getSize(); i++) {
+                    UsuarioDTO usuario = modeloContactos.getElementAt(i);
+                    if (usuario.getNombre().toLowerCase().contains(filtro)) {
+                        contactosFiltrados.add(usuario);
+                    }
+                }
+                DefaultListModel<UsuarioDTO> modeloFiltrado = new DefaultListModel<>();
+                for (UsuarioDTO usuario : contactosFiltrados) {
+                    modeloFiltrado.addElement(usuario);
+                }
+                listaContactos.setModel(modeloFiltrado);
+            }
+        });
         panel_Izquierda.add(textField_BarraBusqueda);
 
         // Crear renderizador de celdas personalizado para mostrar solo el nombre
