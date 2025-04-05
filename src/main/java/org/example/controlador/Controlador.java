@@ -150,12 +150,17 @@ public class Controlador implements ActionListener, Observer {
     public void agregarNuevoContacto() {
         UsuarioDTO nuevoContacto = null;
 
-            nuevoContacto = vista.mostrarAgregarContacto();
-            if(nuevoContacto == null){
-                return;
-            }
+        nuevoContacto = vista.mostrarAgregarContacto();
+        if(nuevoContacto == null){
+            return;
+        }
+        try {
             agendaServicio.addContacto(nuevoContacto);
-            vista.getModeloContactos().addElement(nuevoContacto);
+        } catch (ContactoRepetidoException e) {
+            mostrarMensajeFlotante(e.getMessage(), Color.RED);
+        }
+        vista.getModeloContactos().addElement(nuevoContacto);
+        mostrarMensajeFlotante("Contacto agregado: " + nuevoContacto.getNombre(), Color.GREEN);
 
     }
 

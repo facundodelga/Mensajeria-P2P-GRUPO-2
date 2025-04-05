@@ -23,7 +23,10 @@ public class AgendaServicio implements IAgenda {
      * @param contacto El contacto que se añadirá.
      */
     @Override
-    public void addContacto(UsuarioDTO contacto) {
+    public void addContacto(UsuarioDTO contacto) throws ContactoRepetidoException {
+        if(usuario.getContactos().contains(contacto)){
+            throw new ContactoRepetidoException("El contacto "+contacto.getNombre()+" ya existe.");
+        }
         usuario.getContactos().add(contacto);
         System.out.println(contacto.toString());
     }

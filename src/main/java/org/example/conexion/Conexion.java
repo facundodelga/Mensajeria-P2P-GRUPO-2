@@ -42,7 +42,7 @@ public class Conexion implements IConexion {
     public void iniciarServidor(int puerto) throws PuertoEnUsoException {
         if (isPortInUse(puerto)) {
             throw new PuertoEnUsoException("El puerto " + puerto + " ya está en uso.");
-            
+
         }
 
         try {
