@@ -7,6 +7,10 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import javax.swing.*;
 
+/**
+ * Clase que representa la ventana principal de la aplicación de mensajería.
+ * Extiende JFrame e implementa la interfaz IVistaPrincipal.
+ */
 public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
 
     private JTextField textField_BarraBusqueda;
@@ -23,6 +27,10 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
     private JButton botonAgregarChat;
     private JMenuItem itemAgregarContacto;
 
+    /**
+     * Constructor de la clase VentanaPrincipal.
+     * Configura la interfaz gráfica de la ventana principal.
+     */
     public VentanaPrincipal() {
         getContentPane().setBackground(new Color(32, 32, 32));
         setTitle("App de Mensajeria");
@@ -43,7 +51,7 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         panel_Izquierda.setLayout(null);
         panel_Inicio.add(panel_Izquierda);
 
-        // Panel for Contacts section
+        // Panel para la sección de Contactos
         JPanel panel_TituloContactos = new JPanel();
         panel_TituloContactos.setBounds(0, 0, 218, 30);
         panel_TituloContactos.setBackground(new Color(61, 61, 61));
@@ -64,7 +72,7 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         botonMenu.setBorderPainted(false);
         panel_TituloContactos.add(botonMenu);
 
-        // Crear menu emergente
+        // Crear menú emergente
         JPopupMenu menuOpciones = new JPopupMenu();
         itemAgregarContacto = new JMenuItem("Agregar contacto");  // se usa en el controlador
         itemAgregarContacto.addActionListener(Controlador.getInstancia());
@@ -79,7 +87,7 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         textField_BarraBusqueda.setForeground(Color.WHITE);
         panel_Izquierda.add(textField_BarraBusqueda);
 
-        // Create custom cell renderer to display only the name
+        // Crear renderizador de celdas personalizado para mostrar solo el nombre
         DefaultListCellRenderer userRenderer = new DefaultListCellRenderer() {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
@@ -94,7 +102,7 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
             }
         };
 
-        // Create and add the Contacts list (top section)
+        // Crear y agregar la lista de Contactos (sección superior)
         modeloContactos = new DefaultListModel<>();
         listaContactos = new JList<>(modeloContactos);
         listaContactos.setBackground(new Color(61, 61, 61));
@@ -106,15 +114,14 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         scrollPanel_Contactos.setBounds(10, 75, 198, 160);
         panel_Izquierda.add(scrollPanel_Contactos);
 
-        // Add a button to add a new chat from the selected contact
+        // Agregar un botón para iniciar un nuevo chat desde el contacto seleccionado
         botonAgregarChat = new JButton("Iniciar Chat");
         botonAgregarChat.setBounds(10, 245, 198, 25);
         panel_Izquierda.add(botonAgregarChat);
         botonAgregarChat.setActionCommand("IniciarChat");
         botonAgregarChat.addActionListener(Controlador.getInstancia());
 
-
-        // Label for Chats section
+        // Etiqueta para la sección de Chats
         JPanel panel_TituloChats = new JPanel();
         panel_TituloChats.setBounds(0, 280, 218, 30);
         panel_TituloChats.setBackground(new Color(61, 61, 61));
@@ -127,10 +134,10 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         labelChats.setForeground(Color.WHITE);
         panel_TituloChats.add(labelChats);
 
-        // Create and add the Chats list (bottom section)
+        // Crear y agregar la lista de Chats (sección inferior)
         modeloChats = new DefaultListModel<>();
         listaChats = new JList<>(modeloChats);
-        listaChats.addListSelectionListener(e->{
+        listaChats.addListSelectionListener(e -> {
             Controlador.getInstancia().cargarConversacion(listaChats.getSelectedValue());
         });
         listaChats.setBackground(new Color(61, 61, 61));
@@ -138,7 +145,7 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         listaChats.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         listaChats.setCellRenderer(userRenderer);
 
-        // Add selection listener to open the chat when selected
+        // Agregar listener de selección para abrir el chat cuando se selecciona
         listaChats.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting() && listaChats.getSelectedValue() != null) {
                 ChatPantalla selectedUser = listaChats.getSelectedValue();
@@ -224,11 +231,16 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         panel_TextoChatActual.add(botonEnviar);
     }
 
-    // Helper method to check if a UsuarioDTO exists in the model
+    /**
+     * Método auxiliar para verificar si un UsuarioDTO existe en el modelo.
+     * @param modelo El modelo de lista de usuarios.
+     * @param usuario El usuario a verificar.
+     * @return true si el usuario existe en el modelo, false en caso contrario.
+     */
     private boolean modeloContainsUsuario(DefaultListModel<UsuarioDTO> modelo, UsuarioDTO usuario) {
         for (int i = 0; i < modelo.getSize(); i++) {
             UsuarioDTO item = modelo.getElementAt(i);
-            // Check if they have the same name, IP and port
+            // Verificar si tienen el mismo nombre, IP y puerto
             if (item.getNombre().equals(usuario.getNombre()) &&
                     item.getIp().equals(usuario.getIp()) &&
                     item.getPuerto() == usuario.getPuerto()) {
@@ -238,22 +250,29 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         return false;
     }
 
-
-
+    /**
+     * Muestra la ventana principal.
+     */
     @Override
     public void mostrar() {
         setVisible(true);
     }
 
+    /**
+     * Agrega un listener de ventana.
+     * @param listener El listener de ventana a agregar.
+     */
     @Override
     public void addWindowListener(WindowAdapter listener) {
         super.addWindowListener(listener);
-
     }
 
+    /**
+     * Establece el título de la ventana.
+     * @param texto El texto a agregar al título.
+     */
     public void titulo(String texto) {
         setTitle("App de Mensajeria - " + texto);
-
     }
 
     // Getters
@@ -269,7 +288,10 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
     public JList<UsuarioDTO> getListaContactos() { return listaContactos; }
     public DefaultListModel<UsuarioDTO> getModeloContactos() { return modeloContactos; }
 
-
+    /**
+     * Muestra la ventana para agregar un nuevo contacto.
+     * @return El nuevo contacto agregado.
+     */
     @Override
     public UsuarioDTO mostrarAgregarContacto() {
         VentanaAgregarContacto dialog = new VentanaAgregarContacto(this);
@@ -280,18 +302,22 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         return new UsuarioDTO(dialog.getNombre(), dialog.getIP(), Integer.parseInt(dialog.getPuerto()));
     }
 
-    // Metodo para que el controlador registre accion de Agregar contacto
+    /**
+     * Método para que el controlador registre la acción de agregar contacto.
+     * @param accion La acción a ejecutar.
+     */
     public void setAccionAgregarContacto(Runnable accion) {
         itemAgregarContacto.addActionListener(e -> accion.run());
     }
 
-    // Method to add a message bubble to the chat panel
+    /**
+     * Método para agregar una burbuja de mensaje al panel de chat.
+     * @param mensaje El mensaje a agregar.
+     */
     public void addMensajeBurbuja(MensajePantalla mensaje) {
         BurbujaMensaje burbuja = new BurbujaMensaje(mensaje);
         panelMensajes.add(burbuja);
         panelMensajes.revalidate();
         panelMensajes.repaint();
     }
-
-
 }

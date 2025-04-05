@@ -11,9 +11,17 @@ import java.awt.RenderingHints;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 
+/**
+ * Clase que representa una burbuja de mensaje en la interfaz gráfica.
+ * Extiende JPanel para personalizar la apariencia del mensaje.
+ */
 public class BurbujaMensaje extends JPanel {
     private final MensajePantalla mensaje;
 
+    /**
+     * Constructor de la clase BurbujaMensaje.
+     * @param mensaje El mensaje que se mostrará en la burbuja.
+     */
     public BurbujaMensaje(MensajePantalla mensaje) {
         this.mensaje = mensaje;
         setOpaque(false);
@@ -21,6 +29,10 @@ public class BurbujaMensaje extends JPanel {
         setBorder(BorderFactory.createEmptyBorder(5, 10, 5, 10));
     }
 
+    /**
+     * Sobrescribe el método paintComponent para dibujar la burbuja de mensaje.
+     * @param g El objeto Graphics que se utilizará para dibujar.
+     */
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -72,6 +84,10 @@ public class BurbujaMensaje extends JPanel {
         g2.drawString(mensaje.getHora(), x + burbujaAncho - 50, y + burbujaAlto - 8);
     }
 
+    /**
+     * Sobrescribe el método getPreferredSize para calcular el tamaño preferido del componente.
+     * @return Las dimensiones preferidas del componente.
+     */
     @Override
     public Dimension getPreferredSize() {
         FontMetrics fm = getFontMetrics(getFont());
@@ -95,4 +111,3 @@ public class BurbujaMensaje extends JPanel {
         return new Dimension(maxAncho, altura);
     }
 }
-

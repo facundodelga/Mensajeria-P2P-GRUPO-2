@@ -1,6 +1,8 @@
-package org.example.vista;
+package org.example;
 
 import org.example.controlador.*;
+import org.example.vista.VentanaInicioSesion;
+import org.example.vista.VentanaPrincipal;
 
 public class AppInicio {
     public static void main(String[] args) {

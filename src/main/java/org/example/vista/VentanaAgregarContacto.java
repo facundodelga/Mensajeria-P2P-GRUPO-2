@@ -4,6 +4,10 @@ import java.awt.*;
 import java.awt.event.*;
 import javax.swing.*;
 
+/**
+ * Clase que representa la ventana para agregar un nuevo contacto.
+ * Extiende JDialog e implementa la interfaz IVistaAgregarContacto.
+ */
 public class VentanaAgregarContacto extends JDialog implements IVistaAgregarContacto {
 
     private final JTextField campoNombre;
@@ -16,12 +20,16 @@ public class VentanaAgregarContacto extends JDialog implements IVistaAgregarCont
     private final String PLACEHOLDER_IP = "192.168.0.1";
     private final String PLACEHOLDER_PUERTO = "8009";
 
+    /**
+     * Constructor de la clase VentanaAgregarContacto.
+     * @param parent El JFrame padre de esta ventana de diálogo.
+     */
     public VentanaAgregarContacto(JFrame parent) {
         super(parent, "Nuevo contacto", true);
         setSize(250, 280);
         setLocationRelativeTo(parent);
         getContentPane().setLayout(null);
-        getContentPane().setBackground(new Color(32, 32, 32)); 
+        getContentPane().setBackground(new Color(32, 32, 32));
 
         Color colorTexto = Color.WHITE;
 
@@ -60,31 +68,30 @@ public class VentanaAgregarContacto extends JDialog implements IVistaAgregarCont
         botonAceptar.setBounds(70, 200, 100, 30);
         getContentPane().add(botonAceptar);
 
-
         botonAceptar.addActionListener(e -> {
-                    if (getNombre().isEmpty() || getIP().isEmpty() || getPuerto().isEmpty()) {
-                        System.out.println("Todos los campos deben estar llenos");
-                        JOptionPane.showMessageDialog(this, "Todos los campos deben estar llenos", "Error", JOptionPane.ERROR_MESSAGE);
-                    } else if (!getIP().matches("\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b")) {
-                        System.out.println("La IP no es válida");
-                        JOptionPane.showMessageDialog(this, "La IP no es válida", "Error", JOptionPane.ERROR_MESSAGE);
-                    } else {
-                        System.out.println("Nombre: " + getNombre());
-                        System.out.println("IP: " + getIP());
-                        System.out.println("Puerto: " + getPuerto());
+            if (getNombre().isEmpty() || getIP().isEmpty() || getPuerto().isEmpty()) {
+                System.out.println("Todos los campos deben estar llenos");
+                JOptionPane.showMessageDialog(this, "Todos los campos deben estar llenos", "Error", JOptionPane.ERROR_MESSAGE);
+            } else if (!getIP().matches("\\b(?:\\d{1,3}\\.){3}\\d{1,3}\\b")) {
+                System.out.println("La IP no es válida");
+                JOptionPane.showMessageDialog(this, "La IP no es válida", "Error", JOptionPane.ERROR_MESSAGE);
+            } else {
+                System.out.println("Nombre: " + getNombre());
+                System.out.println("IP: " + getIP());
+                System.out.println("Puerto: " + getPuerto());
 
-                        try {
-                            int puerto = Integer.parseInt(getPuerto());
-                            if (puerto < 0 || puerto > 65535) {
-                                JOptionPane.showMessageDialog(this, "El puerto debe estar entre 0 y 65535", "Error", JOptionPane.ERROR_MESSAGE);
-                            } else {
-                                dispose();
-                            }
-                        } catch (NumberFormatException ex) {
-                            JOptionPane.showMessageDialog(this, "El puerto debe ser un número", "Error", JOptionPane.ERROR_MESSAGE);
-                        }
+                try {
+                    int puerto = Integer.parseInt(getPuerto());
+                    if (puerto < 0 || puerto > 65535) {
+                        JOptionPane.showMessageDialog(this, "El puerto debe estar entre 0 y 65535", "Error", JOptionPane.ERROR_MESSAGE);
+                    } else {
+                        dispose();
                     }
-                });
+                } catch (NumberFormatException ex) {
+                    JOptionPane.showMessageDialog(this, "El puerto debe ser un número", "Error", JOptionPane.ERROR_MESSAGE);
+                }
+            }
+        });
 
         // Dentro del constructor de VentanaAgregarContacto
         addWindowListener(new WindowAdapter() {
@@ -95,13 +102,21 @@ public class VentanaAgregarContacto extends JDialog implements IVistaAgregarCont
         });
     }
 
-    // Método para limpiar los campos. Cuando se cerraba la ventana, los campos se quedaban con el placeholder
+    /**
+     * Método para limpiar los campos de texto.
+     * Se llama cuando se cierra la ventana para restablecer los placeholders.
+     */
     private void limpiarCampos() {
         campoNombre.setText("");
         campoIP.setText("");
         campoPuerto.setText("");
     }
 
+    /**
+     * Método para agregar un placeholder a un campo de texto.
+     * @param campo El campo de texto al que se le agregará el placeholder.
+     * @param placeholder El texto del placeholder.
+     */
     private void agregarPlaceholder(JTextField campo, String placeholder) {
         campo.setForeground(Color.GRAY);
         campo.setText(placeholder);
@@ -125,25 +140,33 @@ public class VentanaAgregarContacto extends JDialog implements IVistaAgregarCont
         });
     }
 
-    // Getters para acceder a los campos (sin tomar los placeholders)
+    /**
+     * Obtiene el nombre ingresado en el campo de texto.
+     * @return El nombre ingresado.
+     */
     @Override
     public String getNombre() {
         String texto = campoNombre.getText().trim();
-        //return texto.equals(PLACEHOLDER_NOMBRE) ? "" : texto;
         return texto;
     }
 
+    /**
+     * Obtiene la dirección IP ingresada en el campo de texto.
+     * @return La dirección IP ingresada.
+     */
     @Override
     public String getIP() {
         String texto = campoIP.getText().trim();
         return texto;
     }
 
+    /**
+     * Obtiene el puerto ingresado en el campo de texto.
+     * @return El puerto ingresado.
+     */
     @Override
     public String getPuerto() {
         String texto = campoPuerto.getText().trim();
-        //return texto.equals(PLACEHOLDER_PUERTO) ? "" : texto;
         return texto;
     }
-
 }

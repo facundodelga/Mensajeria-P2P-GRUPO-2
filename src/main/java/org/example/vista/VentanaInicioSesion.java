@@ -5,14 +5,22 @@ import org.example.controlador.Controlador;
 import java.awt.*;
 import javax.swing.*;
 
+/**
+ * Clase que representa la ventana de inicio de sesión.
+ * Extiende JFrame e implementa la interfaz IVistaInicioSesion.
+ */
 public class VentanaInicioSesion extends JFrame implements IVistaInicioSesion {
 
     private JTextField textField_CampoNombre;
     private JTextField TextField_CampoPuerto;
     private JButton botonLogin;
 
+    /**
+     * Constructor de la clase VentanaInicioSesion.
+     * Configura la interfaz gráfica de la ventana de inicio de sesión.
+     */
     public VentanaInicioSesion() {
-    	setBackground(new Color(32, 32, 32));
+        setBackground(new Color(32, 32, 32));
         setTitle("Inicio de Sesión");
         setSize(350, 400);
         setLocationRelativeTo(null);
@@ -45,47 +53,37 @@ public class VentanaInicioSesion extends JFrame implements IVistaInicioSesion {
         getContentPane().add(botonLogin);
         botonLogin.setActionCommand("Iniciar");
         botonLogin.addActionListener(Controlador.getInstancia());
-        
+
         JLabel Label_ConfigurarUsuario = new JLabel("Configurar Usuario");
         Label_ConfigurarUsuario.setBounds(91, 31, 171, 25);
         Label_ConfigurarUsuario.setForeground(new Color(255, 255, 255));
         Label_ConfigurarUsuario.setFont(new Font("Tahoma", Font.PLAIN, 20));
         getContentPane().add(Label_ConfigurarUsuario);
-        /*
-        botonLogin.addActionListener(e -> {
-            String nickname = textField_CampoNombre.getText().trim();
-            String puerto = TextField_CampoPuerto.getText().trim();
 
-            if (!nickname.isEmpty() && !puerto.isEmpty() && puerto.matches("\\d+")) {
-                if (onLoginExitoso != null) {
-                    dispose();
-                    onLoginExitoso.run();
-                }
-            } else {
-                JOptionPane.showMessageDialog(this, "Debes ingresar un nickname y un puerto válido.", "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        });
-        */
         setVisible(true);
     }
 
-
-
+    /**
+     * Oculta la ventana de inicio de sesión.
+     */
     @Override
     public void ocultar() {
         dispose();
-
     }
 
+    /**
+     * Obtiene el nombre de usuario ingresado.
+     * @return El nombre de usuario.
+     */
     public String getNombre() {
         return textField_CampoNombre.getText().trim();
     }
 
+    /**
+     * Obtiene el puerto ingresado.
+     * @return El puerto.
+     */
     public String getPuerto() {
         return TextField_CampoPuerto.getText().trim();
     }
-} 
-
-
-
-
+}
