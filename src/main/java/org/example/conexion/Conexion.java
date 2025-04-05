@@ -26,7 +26,7 @@ public class Conexion implements IConexion {
      * @param puerto El puerto a verificar.
      * @return true si el puerto está en uso, false en caso contrario.
      */
-    private boolean isPortInUse(int puerto) {
+    private boolean elPuertoEstaEnUso(int puerto) {
         try (ServerSocket ignored = new ServerSocket(puerto)) {
             return false;
         } catch (IOException e) {
@@ -40,7 +40,7 @@ public class Conexion implements IConexion {
      */
     @Override
     public void iniciarServidor(int puerto) throws PuertoEnUsoException {
-        if (isPortInUse(puerto)) {
+        if (elPuertoEstaEnUso(puerto)) {
             throw new PuertoEnUsoException("El puerto " + puerto + " ya está en uso.");
 
         }
