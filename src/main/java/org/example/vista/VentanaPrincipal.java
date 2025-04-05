@@ -11,8 +11,8 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
     private JTextField textField_BarraBusqueda;
     private JTextField textField_Mensaje;
     private JButton botonEnviar;
-    private JList<UsuarioDTO> listaChats;
-    private DefaultListModel<UsuarioDTO> modeloChats;
+    private JList<ChatPantalla> listaChats;
+    private DefaultListModel<ChatPantalla> modeloChats;
     private JList<UsuarioDTO> listaContactos;
     private DefaultListModel<UsuarioDTO> modeloContactos;
     private JLabel lblContactoChatActual;
@@ -86,6 +86,9 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
                 if (value instanceof UsuarioDTO) {
                     setText(((UsuarioDTO) value).getNombre());
                 }
+                if (value instanceof ChatPantalla) {
+                    setText(((ChatPantalla) value).getNombre());
+                }
                 return this;
             }
         };
@@ -137,7 +140,7 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         // Add selection listener to open the chat when selected
         listaChats.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting() && listaChats.getSelectedValue() != null) {
-                UsuarioDTO selectedUser = listaChats.getSelectedValue();
+                ChatPantalla selectedUser = listaChats.getSelectedValue();
                 lblContactoChatActual.setText(selectedUser.getNombre());
                 panel_ChatActual.setVisible(true);
                 Controlador.getInstancia().cargarConversacion(selectedUser);
@@ -248,8 +251,8 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
     public JTextField getCampoBusqueda() { return textField_BarraBusqueda; }
     public JTextField getCampoMensaje() { return textField_Mensaje; }
     public JButton getBotonEnviar() { return botonEnviar; }
-    public JList<UsuarioDTO> getListaChats() { return listaChats; }
-    public DefaultListModel<UsuarioDTO> getModeloChats() { return modeloChats; }
+    public JList<ChatPantalla> getListaChats() { return listaChats; }
+    public DefaultListModel<ChatPantalla> getModeloChats() { return modeloChats; }
     public JLabel getEtiquetaContacto() { return lblContactoChatActual; }
     public JPanel getPanelMensajes() { return panelMensajes; }
     public JPanel getPanelChatActual() { return panel_ChatActual; }

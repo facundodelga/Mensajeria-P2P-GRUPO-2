@@ -24,7 +24,6 @@ public class Controlador implements ActionListener, Observer {
     private static Controlador instancia = null;
     private IVistaPrincipal vista;
     private IVistaInicioSesion vistaInicioSesion;
-    private IVistaAgregarContacto vistaAgregarContacto;
     private IUsuario usuarioServicio;
     private IAgenda agendaServicio;
     private IConversacion conversacionServicio;
@@ -66,7 +65,7 @@ public class Controlador implements ActionListener, Observer {
             System.out.println("inicio de chat "+selectedValue);
             this.conversacionServicio.agregarConversacion(selectedValue);
 
-            vista.getModeloChats().addElement(selectedValue);
+            vista.getModeloChats().addElement(new ChatPantalla(selectedValue));
             vista.getListaChats().setSelectedValue(selectedValue, true);
             vista.getPanelMensajes().revalidate();
             vista.getPanelMensajes().repaint();
@@ -80,8 +79,8 @@ public class Controlador implements ActionListener, Observer {
         Mensaje mensaje = new Mensaje(vista.getCampoMensaje().getText(),this.usuarioDTO);
 
         try {
-            conexion.enviarMensaje(vista.getListaChats().getSelectedValue(),mensaje);
-            this.conversacionServicio.addMensajeSaliente(vista.getListaChats().getSelectedValue(),mensaje);
+            conexion.enviarMensaje(vista.getListaChats().getSelectedValue().getContacto(),mensaje);
+            this.conversacionServicio.addMensajeSaliente(vista.getListaChats().getSelectedValue().getContacto(),mensaje);
             vista.getCampoMensaje().setText("");
 
             //agregar el mensaje a la vista
@@ -145,17 +144,22 @@ public class Controlador implements ActionListener, Observer {
     public void recibirMensaje(Mensaje mensaje){
         this.conversacionServicio.addMensajeEntrante(mensaje);
         String fechaFormateada = sdf.format(mensaje.getFecha());
-        if(!vista.getModeloChats().contains(mensaje.getEmisor())){
 
-            if(!vista.getModeloContactos().contains(mensaje.getEmisor())){
-                vista.getModeloChats().addElement(mensaje.getEmisor());
+        //Creo un chat para el mensaje si no existe opero
+        ChatPantalla chatPantalla = new ChatPantalla(mensaje.getEmisor());
+
+        if(!vista.getModeloChats().contains(chatPantalla)){
+            // Si el contacto no existe en la lista de contactos, lo agrego
+            if(!vista.getModeloContactos().contains(chatPantalla.getContacto())){
+                vista.getModeloChats().addElement(chatPantalla);
                 vista.getModeloContactos().addElement(mensaje.getEmisor());
             }else {
-                vista.getModeloChats().addElement(this.agendaServicio.buscaNombreContacto(mensaje.getEmisor()));
+                vista.getModeloChats().addElement(new ChatPantalla(this.agendaServicio.buscaNombreContacto(mensaje.getEmisor())));
             }
         }
 
-        if(mensaje.getEmisor().equals(vista.getListaChats().getSelectedValue())) {
+        if(vista.getListaChats().getSelectedValue() != null
+                && mensaje.getEmisor().equals(vista.getListaChats().getSelectedValue().getContacto())) {
             //agregar el mensaje a la vista
             vista.addMensajeBurbuja(MensajePantalla.mensajeToMensajePantalla(
                     mensaje,
@@ -164,10 +168,10 @@ public class Controlador implements ActionListener, Observer {
 
         }else{
             // Notificar visualmente que hay un nuevo mensaje
-            int index = vista.getModeloChats().indexOf(mensaje.getEmisor());
+            int index = vista.getModeloChats().indexOf(chatPantalla);
             if (index >= 0) {
-                UsuarioDTO chatConNotificacion = vista.getModeloChats().get(index);
-//                chatConNotificacion.tieneNotificacion();
+                ChatPantalla chatConNotificacion = vista.getModeloChats().get(index);
+                chatConNotificacion.setPendiente();
                 vista.getModeloChats().set(index, chatConNotificacion);
             }
         }
@@ -192,29 +196,32 @@ public class Controlador implements ActionListener, Observer {
         this.vista = vista;
     }
 
-    public void cargarConversacion(UsuarioDTO selectedValue) {
+    public void cargarConversacion(ChatPantalla selectedValue) {
+
         int index = vista.getModeloChats().indexOf(selectedValue);
+
         if (index >= 0) {
-            UsuarioDTO chatConNotificacion = vista.getModeloChats().get(index);
-//            chatConNotificacion.leido();
+            ChatPantalla chatConNotificacion = vista.getModeloChats().get(index);
+            chatConNotificacion.setLeido();
             vista.getModeloChats().set(index, chatConNotificacion);
+            ArrayList<Mensaje> mensajes = (ArrayList<Mensaje>) this.conversacionServicio.getMensajes(chatConNotificacion.getContacto());
+            // Limpiar el panel de mensajes
+            vista.getPanelMensajes().removeAll();
+
+            for(Mensaje mensaje : mensajes) {
+                String fechaFormateada = sdf.format(mensaje.getFecha());
+                // Agregar el mensaje a la vista
+                vista.addMensajeBurbuja(MensajePantalla.mensajeToMensajePantalla(
+                        mensaje,
+                        mensaje.getEmisor().equals(usuarioDTO),
+                        fechaFormateada));
+            }
+
+
+            // Actualizar la vista
+            vista.getPanelMensajes().revalidate();
+            vista.getPanelMensajes().repaint();
         }
-        ArrayList<Mensaje> mensajes = (ArrayList<Mensaje>) this.conversacionServicio.getMensajes(selectedValue);
-        // Limpiar el panel de mensajes
-        vista.getPanelMensajes().removeAll();
 
-        for(Mensaje mensaje : mensajes) {
-            String fechaFormateada = sdf.format(mensaje.getFecha());
-            // Agregar el mensaje a la vista
-            vista.addMensajeBurbuja(MensajePantalla.mensajeToMensajePantalla(
-                    mensaje,
-                    mensaje.getEmisor().equals(usuarioDTO),
-                    fechaFormateada));
-        }
-
-
-        // Actualizar la vista
-        vista.getPanelMensajes().revalidate();
-        vista.getPanelMensajes().repaint();
     }
 }

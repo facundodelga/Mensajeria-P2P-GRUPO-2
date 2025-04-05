@@ -9,8 +9,8 @@ public interface IVistaPrincipal {
     JTextField getCampoBusqueda();
     JTextField getCampoMensaje();
     JButton getBotonEnviar();
-    JList<UsuarioDTO> getListaChats();
-    DefaultListModel<UsuarioDTO> getModeloChats();
+    JList<ChatPantalla> getListaChats();
+    DefaultListModel<ChatPantalla> getModeloChats();
     JLabel getEtiquetaContacto();
     JPanel getPanelMensajes();
     JPanel getPanelChatActual();
