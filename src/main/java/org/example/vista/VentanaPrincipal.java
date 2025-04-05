@@ -140,6 +140,7 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
                 UsuarioDTO selectedUser = listaChats.getSelectedValue();
                 lblContactoChatActual.setText(selectedUser.getNombre());
                 panel_ChatActual.setVisible(true);
+                Controlador.getInstancia().cargarConversacion(selectedUser);
             }
         });
 
