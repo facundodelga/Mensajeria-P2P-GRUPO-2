@@ -13,11 +13,15 @@ import org.example.vista.*;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.io.IOException;
+import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
+
+import java.net.Socket;
+
+import static org.example.AppInicio.PUERTO_SERVIDOR_DIRECTORIO;
 
 /**
  * Clase Controlador que implementa ActionListener y Observer.
@@ -57,14 +61,19 @@ public class Controlador implements ActionListener, Observer {
      */
     @Override
     public void actionPerformed(ActionEvent e) {
-        if(e.getActionCommand().equalsIgnoreCase("Iniciar")) {
-            iniciarServidor();
-        }else if(e.getActionCommand().equalsIgnoreCase("botonAgregarContacto")) {
-            agregarNuevoContacto();
-        } else if(e.getActionCommand().equalsIgnoreCase("Enviar")) {
-            enviarMensaje();
-        } else if(e.getActionCommand().equalsIgnoreCase("IniciarChat")) {
-            iniciarChat();
+        switch (e.getActionCommand()) {
+            case "Iniciar":
+                iniciarServidor();
+                break;
+            case "botonAgregarContacto":
+                agregarNuevoContacto();
+                break;
+            case "Enviar":
+                enviarMensaje();
+                break;
+            case "IniciarChat":
+                iniciarChat();
+                break;
         }
     }
 
@@ -132,6 +141,9 @@ public class Controlador implements ActionListener, Observer {
             this.conexion = new Conexion();
             this.usuarioDTO = new UsuarioDTO(usuario);
 
+            // Registrar en el servidor de directorios
+            registrarEnServidorDirectorio(usuario);
+
             conexion.iniciarServidor(puerto);
             new Thread(conexion).start();
             vista.mostrar();
@@ -143,10 +155,25 @@ public class Controlador implements ActionListener, Observer {
             mostrarMensajeFlotante(e.getMessage(), Color.RED);
             vistaInicioSesion.mostrar();
         }
-
-
-
     }
+
+    private void registrarEnServidorDirectorio(Usuario usuario) {
+        try (Socket socket = new Socket("127.0.0.1", PUERTO_SERVIDOR_DIRECTORIO);
+             ObjectOutputStream salida = new ObjectOutputStream(socket.getOutputStream());
+             ObjectInputStream entrada = new ObjectInputStream(socket.getInputStream())) {
+
+            UsuarioDTO usuarioDTO = new UsuarioDTO(usuario);
+            salida.writeObject(usuarioDTO);
+            String respuesta = (String) entrada.readObject();
+            System.out.println(respuesta); // Mostrar respuesta del servidor de directorios
+
+        } catch (IOException | ClassNotFoundException e) {
+            mostrarMensajeFlotante("Error al registrar en el servidor de directorios", Color.RED);
+        }
+        }
+        
+
+
 
     /**
      * Agrega un nuevo contacto a la agenda y a la vista.
@@ -155,15 +182,14 @@ public class Controlador implements ActionListener, Observer {
         UsuarioDTO nuevoContacto = null;
 
         nuevoContacto = vista.mostrarAgregarContacto();
-        if(nuevoContacto == null){
-            return;
-        }
-        try {
-            agendaServicio.addContacto(nuevoContacto);
-            vista.getModeloContactos().addElement(nuevoContacto);
-            mostrarMensajeFlotante("Contacto agregado: " + nuevoContacto.getNombre(), Color.GREEN);
-        } catch (ContactoRepetidoException e) {
-            mostrarMensajeFlotante(e.getMessage(), Color.RED);
+        if(nuevoContacto != null) {
+            try {
+                agendaServicio.addContacto(nuevoContacto);
+                vista.getModeloContactos().addElement(nuevoContacto);
+                mostrarMensajeFlotante("Contacto agregado: " + nuevoContacto.getNombre(), Color.GREEN);
+            } catch (ContactoRepetidoException e) {
+                mostrarMensajeFlotante(e.getMessage(), Color.RED);
+            }
         }
 
 
