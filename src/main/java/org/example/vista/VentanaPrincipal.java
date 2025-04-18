@@ -1,7 +1,7 @@
 package org.example.vista;
 
 import org.example.controlador.Controlador;
-import org.example.modelo.usuario.UsuarioDTO;
+import org.example.modelo.usuario.Contacto;
 
 import java.awt.*;
 import java.awt.event.WindowAdapter;
@@ -21,8 +21,8 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
     private JButton botonEnviar;
     private JList<ChatPantalla> listaChats;
     private DefaultListModel<ChatPantalla> modeloChats;
-    private JList<UsuarioDTO> listaContactos;
-    private DefaultListModel<UsuarioDTO> modeloContactos;
+    private JList<Contacto> listaContactos;
+    private DefaultListModel<Contacto> modeloContactos;
     private JLabel lblContactoChatActual;
     private JPanel panelMensajes;
     private JPanel panel_ChatActual;
@@ -106,15 +106,15 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
 
             private void filtrarContactos() {
                 String filtro = textField_BarraBusqueda.getText().toLowerCase();
-                ArrayList<UsuarioDTO> contactosFiltrados = new ArrayList<>();
+                ArrayList<Contacto> contactosFiltrados = new ArrayList<>();
                 for (int i = 0; i < modeloContactos.getSize(); i++) {
-                    UsuarioDTO usuario = modeloContactos.getElementAt(i);
+                    Contacto usuario = modeloContactos.getElementAt(i);
                     if (usuario.getNombre().toLowerCase().contains(filtro)) {
                         contactosFiltrados.add(usuario);
                     }
                 }
-                DefaultListModel<UsuarioDTO> modeloFiltrado = new DefaultListModel<>();
-                for (UsuarioDTO usuario : contactosFiltrados) {
+                DefaultListModel<Contacto> modeloFiltrado = new DefaultListModel<>();
+                for (Contacto usuario : contactosFiltrados) {
                     modeloFiltrado.addElement(usuario);
                 }
                 listaContactos.setModel(modeloFiltrado);
@@ -127,8 +127,8 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
             @Override
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                if (value instanceof UsuarioDTO) {
-                    setText(((UsuarioDTO) value).getNombre());
+                if (value instanceof Contacto) {
+                    setText(((Contacto) value).getNombre());
                 }
                 if (value instanceof ChatPantalla) {
                     setText(((ChatPantalla) value).getNombre());
@@ -272,9 +272,9 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
      * @param usuario El usuario a verificar.
      * @return true si el usuario existe en el modelo, false en caso contrario.
      */
-    private boolean modeloContainsUsuario(DefaultListModel<UsuarioDTO> modelo, UsuarioDTO usuario) {
+    private boolean modeloContainsUsuario(DefaultListModel<Contacto> modelo, Contacto usuario) {
         for (int i = 0; i < modelo.getSize(); i++) {
-            UsuarioDTO item = modelo.getElementAt(i);
+            Contacto item = modelo.getElementAt(i);
             // Verificar si tienen el mismo nombre, IP y puerto
             if (item.getNombre().equals(usuario.getNombre()) &&
                     item.getIp().equals(usuario.getIp()) &&
@@ -320,21 +320,21 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
     public JPanel getPanelMensajes() { return panelMensajes; }
     public JPanel getPanelChatActual() { return panel_ChatActual; }
     public JScrollPane getScrollMensajes() { return scrollPane_MensajesChatActual; }
-    public JList<UsuarioDTO> getListaContactos() { return listaContactos; }
-    public DefaultListModel<UsuarioDTO> getModeloContactos() { return modeloContactos; }
+    public JList<Contacto> getListaContactos() { return listaContactos; }
+    public DefaultListModel<Contacto> getModeloContactos() { return modeloContactos; }
 
     /**
      * Muestra la ventana para agregar un nuevo contacto.
      * @return El nuevo contacto agregado.
      */
     @Override
-    public UsuarioDTO mostrarAgregarContacto() {
+    public Contacto mostrarAgregarContacto() {
         VentanaAgregarContacto dialog = new VentanaAgregarContacto(this);
         dialog.setVisible(true);
         if(dialog.getIP().isEmpty() || dialog.getNombre().isEmpty() || dialog.getPuerto().isEmpty()){
             return null;
         }
-        return new UsuarioDTO(dialog.getNombre(), dialog.getIP(), Integer.parseInt(dialog.getPuerto()));
+        return new Contacto(dialog.getNombre(), dialog.getIP(), Integer.parseInt(dialog.getPuerto()));
     }
 
     /**

@@ -1,14 +1,14 @@
 package org.example.modelo;
 
 import org.example.modelo.mensaje.Mensaje;
-import org.example.modelo.usuario.UsuarioDTO;
+import org.example.modelo.usuario.Contacto;
 
 import java.util.List;
 
 public interface IConversacion {
     void addMensajeEntrante(Mensaje mensaje);
-    void addMensajeSaliente(UsuarioDTO contacto, Mensaje mensaje);
-    List<Mensaje> getMensajes(UsuarioDTO contacto);
-    void agregarConversacion(UsuarioDTO contacto);
-    void setConversacionPendiente(UsuarioDTO contacto);
+    void addMensajeSaliente(Contacto contacto, Mensaje mensaje);
+    List<Mensaje> getMensajes(Contacto contacto);
+    void agregarConversacion(Contacto contacto);
+    void setConversacionPendiente(Contacto contacto);
 }

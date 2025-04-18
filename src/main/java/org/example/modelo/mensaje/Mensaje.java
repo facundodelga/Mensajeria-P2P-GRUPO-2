@@ -1,6 +1,6 @@
 package org.example.modelo.mensaje;
 
-import org.example.modelo.usuario.UsuarioDTO;
+import org.example.modelo.usuario.Contacto;
 
 import java.io.Serializable;
 import java.util.Date;
@@ -8,9 +8,9 @@ import java.util.Date;
 public class Mensaje implements Serializable {
     private Date fecha = new Date();
     private String contenido;
-    private UsuarioDTO emisor;
+    private Contacto emisor;
 
-    public Mensaje(String contenido, UsuarioDTO usuario) {
+    public Mensaje(String contenido, Contacto usuario) {
         this.contenido = contenido;
         this.emisor = usuario;
 
@@ -24,7 +24,7 @@ public class Mensaje implements Serializable {
         return contenido;
     }
 
-    public UsuarioDTO getEmisor() {
+    public Contacto getEmisor() {
         return emisor;
     }
 

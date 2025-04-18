@@ -7,7 +7,7 @@ import org.example.modelo.*;
 import org.example.modelo.mensaje.Mensaje;
 import org.example.conexion.Conexion;
 import org.example.modelo.usuario.Usuario;
-import org.example.modelo.usuario.UsuarioDTO;
+import org.example.modelo.usuario.Contacto;
 import org.example.vista.*;
 
 import javax.swing.*;
@@ -34,7 +34,7 @@ public class Controlador implements ActionListener, Observer {
     private IAgenda agendaServicio;
     private IConversacion conversacionServicio;
     private IConexion conexion;
-    private UsuarioDTO usuarioDTO;
+    private Contacto usuarioDTO;
     private final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
     private UsuarioServicio usuarioServicio;
 
@@ -82,7 +82,7 @@ public class Controlador implements ActionListener, Observer {
      */
     private void iniciarChat() {
         System.out.println("Inicio de chat");
-        UsuarioDTO selectedValue = vista.getListaContactos().getSelectedValue();
+        Contacto selectedValue = vista.getListaContactos().getSelectedValue();
 
         if (selectedValue != null && !vista.getModeloChats().contains(new ChatPantalla(selectedValue))) {
             System.out.println("inicio de chat "+selectedValue);
@@ -139,7 +139,7 @@ public class Controlador implements ActionListener, Observer {
             this.agendaServicio = new AgendaServicio(usuario);
             this.conversacionServicio = new ConversacionServicio(usuario);
             this.conexion = new Conexion();
-            this.usuarioDTO = new UsuarioDTO(usuario);
+            this.usuarioDTO = new Contacto(usuario);
 
             // Registrar en el servidor de directorios
             registrarEnServidorDirectorio(usuario);
@@ -162,7 +162,7 @@ public class Controlador implements ActionListener, Observer {
              ObjectOutputStream salida = new ObjectOutputStream(socket.getOutputStream());
              ObjectInputStream entrada = new ObjectInputStream(socket.getInputStream())) {
 
-            UsuarioDTO usuarioDTO = new UsuarioDTO(usuario);
+            Contacto usuarioDTO = new Contacto(usuario);
             salida.writeObject(usuarioDTO);
             String respuesta = (String) entrada.readObject();
             System.out.println(respuesta); // Mostrar respuesta del servidor de directorios
@@ -179,7 +179,7 @@ public class Controlador implements ActionListener, Observer {
      * Agrega un nuevo contacto a la agenda y a la vista.
      */
     public void agregarNuevoContacto() {
-        UsuarioDTO nuevoContacto = null;
+        Contacto nuevoContacto = null;
 
         nuevoContacto = vista.mostrarAgregarContacto();
         if(nuevoContacto != null) {

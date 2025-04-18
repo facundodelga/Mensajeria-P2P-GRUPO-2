@@ -1,7 +1,7 @@
 package org.example.modelo;
 
 import org.example.modelo.usuario.Usuario;
-import org.example.modelo.usuario.UsuarioDTO;
+import org.example.modelo.usuario.Contacto;
 
 /**
  * Clase que proporciona servicios relacionados con la agenda de contactos de un usuario.
@@ -23,7 +23,7 @@ public class AgendaServicio implements IAgenda {
      * @param contacto El contacto que se añadirá.
      */
     @Override
-    public void addContacto(UsuarioDTO contacto) throws ContactoRepetidoException {
+    public void addContacto(Contacto contacto) throws ContactoRepetidoException {
         if(usuario.getContactos().contains(contacto)){
 
             throw new ContactoRepetidoException("El contacto "+contacto.getNombre()+" ya existe.");
@@ -38,8 +38,8 @@ public class AgendaServicio implements IAgenda {
      * @return El contacto encontrado, o null si no se encuentra.
      */
     @Override
-    public UsuarioDTO buscaNombreContacto(UsuarioDTO contacto) {
-        for (UsuarioDTO c : usuario.getContactos()) {
+    public Contacto buscaNombreContacto(Contacto contacto) {
+        for (Contacto c : usuario.getContactos()) {
             if (c.equals(contacto)) {
                 return c;
             }

@@ -1,6 +1,6 @@
 package org.example.servidor;
 
-import org.example.modelo.usuario.UsuarioDTO;
+import org.example.modelo.usuario.Contacto;
 
 import java.io.*;
 import java.net.Socket;
@@ -13,7 +13,7 @@ import java.util.Map;
 
 public class ManejadorRegistro implements Runnable {
     private Socket socket;
-    private Map<String, UsuarioDTO> usuarios;
+    private Map<String, Contacto> usuarios;
 
     /**
      * Constructor para ManejadorRegistro.
@@ -22,7 +22,7 @@ public class ManejadorRegistro implements Runnable {
      * @param socket   El socket para la comunicación con el cliente.
      * @param usuarios Un mapa que contiene los usuarios registrados, indexados por su nickname.
      */
-    public ManejadorRegistro(Socket socket, Map<String, UsuarioDTO> usuarios) {
+    public ManejadorRegistro(Socket socket, Map<String, Contacto> usuarios) {
         this.socket = socket;
         this.usuarios = usuarios;
     }
@@ -38,7 +38,7 @@ public class ManejadorRegistro implements Runnable {
         try (ObjectInputStream entrada = new ObjectInputStream(socket.getInputStream());
              ObjectOutputStream salida = new ObjectOutputStream(socket.getOutputStream())) {
 
-            UsuarioDTO usuarioDTO = (UsuarioDTO) entrada.readObject();
+            Contacto usuarioDTO = (Contacto) entrada.readObject();
 
             // Verificar si el nickname ya está en uso
             if (usuarios.containsKey(usuarioDTO.getNombre())) {

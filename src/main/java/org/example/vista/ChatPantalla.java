@@ -1,6 +1,6 @@
 package org.example.vista;
 
-    import org.example.modelo.usuario.UsuarioDTO;
+    import org.example.modelo.usuario.Contacto;
 
     import java.util.Objects;
 
@@ -8,14 +8,14 @@ package org.example.vista;
      * Clase que representa la pantalla de chat para un contacto específico.
      */
     public class ChatPantalla {
-        private UsuarioDTO contacto;
+        private Contacto contacto;
         private String nombre;
 
         /**
          * Constructor de la clase ChatPantalla.
          * @param contacto El contacto asociado a esta pantalla de chat.
          */
-        public ChatPantalla(UsuarioDTO contacto) {
+        public ChatPantalla(Contacto contacto) {
             this.contacto = contacto;
             this.nombre = contacto.getNombre();
         }
@@ -32,7 +32,7 @@ package org.example.vista;
          * Obtiene el contacto asociado a esta pantalla de chat.
          * @return El contacto asociado.
          */
-        public UsuarioDTO getContacto() {
+        public Contacto getContacto() {
             return contacto;
         }
 
@@ -67,8 +67,8 @@ package org.example.vista;
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
-            UsuarioDTO that = ((ChatPantalla) o).contacto;
-            UsuarioDTO esteContacto = this.contacto;
+            Contacto that = ((ChatPantalla) o).contacto;
+            Contacto esteContacto = this.contacto;
             System.out.println(esteContacto);
             System.out.println(that);
             System.out.println("equals CHAT PANTALLA" + esteContacto.equals(that));

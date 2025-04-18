@@ -3,7 +3,7 @@ package org.example.modelo;
 import org.example.modelo.conversacion.Conversacion;
 import org.example.modelo.mensaje.Mensaje;
 import org.example.modelo.usuario.Usuario;
-import org.example.modelo.usuario.UsuarioDTO;
+import org.example.modelo.usuario.Contacto;
 
 import java.util.List;
 
@@ -28,7 +28,7 @@ public class ConversacionServicio implements IConversacion {
      * @return Una lista de mensajes de la conversación con el contacto.
      */
     @Override
-    public List<Mensaje> getMensajes(UsuarioDTO contacto){
+    public List<Mensaje> getMensajes(Contacto contacto){
         return usuario.getConversaciones().get(contacto).getMensajes();
     }
 
@@ -37,7 +37,7 @@ public class ConversacionServicio implements IConversacion {
      * @param contacto El contacto con el que se desea iniciar una conversación.
      */
     @Override
-    public void agregarConversacion(UsuarioDTO contacto) {
+    public void agregarConversacion(Contacto contacto) {
         System.out.println("Agregando conversacion");
         usuario.getConversaciones().put(contacto, new Conversacion());
     }
@@ -63,7 +63,7 @@ public class ConversacionServicio implements IConversacion {
      * @param mensaje El mensaje saliente que se desea añadir.
      */
     @Override
-    public void addMensajeSaliente(UsuarioDTO contacto, Mensaje mensaje) {
+    public void addMensajeSaliente(Contacto contacto, Mensaje mensaje) {
         // Me fijo si la conversacion ya existe y si no, la creo (La linea me la recomendo IntelliJ jajaja)
         usuario.getConversaciones().computeIfAbsent(contacto, k -> new Conversacion());
         // agrego el mensaje a la conversacion
@@ -76,7 +76,7 @@ public class ConversacionServicio implements IConversacion {
      * @param contacto El contacto cuya conversación se desea marcar como no pendiente.
      */
     @Override
-    public void setConversacionPendiente(UsuarioDTO contacto) {
+    public void setConversacionPendiente(Contacto contacto) {
         if(usuario.getConversaciones().get(contacto).isPendiente()){
             usuario.getConversaciones().get(contacto).setPendiente(false);
         }

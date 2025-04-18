@@ -1,7 +1,7 @@
 package org.example.conexion;
 
 import org.example.modelo.mensaje.Mensaje;
-import org.example.modelo.usuario.UsuarioDTO;
+import org.example.modelo.usuario.Contacto;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -78,7 +78,7 @@ public class Conexion implements IConexion {
      * @throws EnviarMensajeException Si ocurre un error al enviar el mensaje.
      */
     @Override
-    public void enviarMensaje(UsuarioDTO usuarioDTO, Mensaje mensaje) throws EnviarMensajeException {
+    public void enviarMensaje(Contacto usuarioDTO, Mensaje mensaje) throws EnviarMensajeException {
         System.out.println("Intentando enviar mensaje a " + usuarioDTO);
         try {
             Socket socketSalida = new Socket(usuarioDTO.getIp(), usuarioDTO.getPuerto());

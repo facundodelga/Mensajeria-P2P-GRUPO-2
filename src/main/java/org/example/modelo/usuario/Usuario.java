@@ -12,8 +12,8 @@ public class Usuario {
     private String nombre;
     private String ip;
     private int puerto;
-    private List<UsuarioDTO> contactos = new ArrayList<>();
-    private Map<UsuarioDTO, Conversacion> conversaciones = new ConcurrentHashMap<>();
+    private List<Contacto> contactos = new ArrayList<>();
+    private Map<Contacto, Conversacion> conversaciones = new ConcurrentHashMap<>();
 
     /**
      * Constructor de la clase Usuario.
@@ -55,7 +55,7 @@ public class Usuario {
      * Obtiene las conversaciones del usuario.
      * @return Un mapa de las conversaciones del usuario.
      */
-    public Map<UsuarioDTO, Conversacion> getConversaciones() {
+    public Map<Contacto, Conversacion> getConversaciones() {
         return conversaciones;
     }
 
@@ -63,7 +63,7 @@ public class Usuario {
      * Obtiene la lista de contactos del usuario.
      * @return Una lista de los contactos del usuario.
      */
-    public List<UsuarioDTO> getContactos() {
+    public List<Contacto> getContactos() {
         return contactos;
     }
 

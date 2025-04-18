@@ -3,27 +3,27 @@ package org.example.modelo.usuario;
 import java.io.Serializable;
 import java.util.Objects;
 
-public class UsuarioDTO implements Serializable {
+public class Contacto implements Serializable {
     private String nombre;
     private String ip;
     private int puerto;
 
-    public UsuarioDTO(Usuario usuario) {
+    public Contacto(Usuario usuario) {
         this.nombre = usuario.getNombre();
         this.ip = usuario.getIp();
         this.puerto = usuario.getPuerto();
     }
 
-    public UsuarioDTO(String nombre, String ip, int puerto) {
+    public Contacto(String nombre, String ip, int puerto) {
         this.nombre = nombre;
         this.ip = ip;
         this.puerto = puerto;
     }
-    public static UsuarioDTO fromUsuario(Usuario usuario) {
-        return new UsuarioDTO(usuario);
+    public static Contacto fromUsuario(Usuario usuario) {
+        return new Contacto(usuario);
     }
 
-    public static Usuario toUsuario(UsuarioDTO usuarioDTO) {
+    public static Usuario toUsuario(Contacto usuarioDTO) {
         return new Usuario(usuarioDTO.getNombre(), usuarioDTO.getIp(), usuarioDTO.getPuerto());
     }
 
@@ -46,7 +46,7 @@ public class UsuarioDTO implements Serializable {
 
             return false;
 
-        UsuarioDTO that = (UsuarioDTO) o;
+        Contacto that = (Contacto) o;
         System.out.println("equals");
         System.out.println("this: " + this);
         System.out.println("that: " + that);

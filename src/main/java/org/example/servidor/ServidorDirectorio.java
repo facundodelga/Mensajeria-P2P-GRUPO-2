@@ -1,6 +1,6 @@
 package org.example.servidor;
 
-import org.example.modelo.usuario.UsuarioDTO;
+import org.example.modelo.usuario.Contacto;
 
 import java.io.*;
 import java.net.ServerSocket;
@@ -15,7 +15,7 @@ import java.util.Map;
 
 public class ServidorDirectorio {
     private ServerSocket serverSocket;
-    private Map<String, UsuarioDTO> usuarios; // Almacena los usuarios registrados
+    private Map<String, Contacto> usuarios; // Almacena los usuarios registrados
 
     /**
      * Constructor para ServidorDirectorio.
