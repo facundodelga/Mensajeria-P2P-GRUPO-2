@@ -13,18 +13,18 @@ import java.util.Map;
 
 public class ManejadorRegistro implements Runnable {
     private Socket socket;
-    private Map<String, Contacto> usuarios;
+    private ServidorDirectorio servidorDirectorio;
 
     /**
      * Constructor para ManejadorRegistro.
      * Inicializa el socket y el mapa de usuarios para manejar el registro de usuarios.
      *
      * @param socket   El socket para la comunicación con el cliente.
-     * @param usuarios Un mapa que contiene los usuarios registrados, indexados por su nickname.
+     * @param servidorDirectorio El servidor de directorio que gestiona los usuarios registrados.
      */
-    public ManejadorRegistro(Socket socket, Map<String, Contacto> usuarios) {
+    public ManejadorRegistro(Socket socket, ServidorDirectorio servidorDirectorio) {
         this.socket = socket;
-        this.usuarios = usuarios;
+        this.servidorDirectorio = servidorDirectorio;
     }
 
 
@@ -41,11 +41,12 @@ public class ManejadorRegistro implements Runnable {
             Contacto usuarioDTO = (Contacto) entrada.readObject();
 
             // Verificar si el nickname ya está en uso
-            if (usuarios.containsKey(usuarioDTO.getNombre())) {
+            if (this.servidorDirectorio.getUsuarios().containsKey(usuarioDTO.getNombre())) {
                 salida.writeObject("El nickname ya está en uso.");
             } else {
                 // Registrar el nuevo usuario en el mapa
-                usuarios.put(usuarioDTO.getNombre(), usuarioDTO);
+                this.servidorDirectorio.getUsuarios().put(usuarioDTO.getNombre(), usuarioDTO);
+
                 salida.writeObject("Registro exitoso.");
             }
 

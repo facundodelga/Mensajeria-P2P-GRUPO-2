@@ -1,11 +1,14 @@
 package org.example.servidor;
 
+import org.example.modelo.mensaje.Mensaje;
 import org.example.modelo.usuario.Contacto;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -15,7 +18,9 @@ import java.util.Map;
 
 public class ServidorDirectorio {
     private ServerSocket serverSocket;
+    private ArrayList<Mensaje> mensajesRecibidos; // Almacena los mensajes recibidos
     private Map<String, Contacto> usuarios; // Almacena los usuarios registrados
+    private Map<Contacto, Socket> sockets; // Almacena los sockets de los usuarios registrados
 
     /**
      * Constructor para ServidorDirectorio.
@@ -27,6 +32,8 @@ public class ServidorDirectorio {
     public ServidorDirectorio(int puerto) throws IOException {
         this.serverSocket = new ServerSocket(puerto);
         this.usuarios = new HashMap<>();
+        this.mensajesRecibidos = new ArrayList<>();
+        this.sockets = new HashMap<>();
         System.out.println("Servidor de directorio iniciado en el puerto: " + puerto);
     }
 
@@ -39,7 +46,7 @@ public class ServidorDirectorio {
             try {
                 Socket socket = serverSocket.accept();
                 // Iniciar un nuevo hilo para manejar el registro del usuario
-                new Thread(new ManejadorRegistro(socket, usuarios)).start();
+                new Thread(new ManejadorRegistro(socket, this)).start();
             } catch (IOException e) {
                 e.printStackTrace();
             }
@@ -53,5 +60,17 @@ public class ServidorDirectorio {
 
     public void cerrar() throws IOException {
         serverSocket.close();
+    }
+
+    public ArrayList<Mensaje> getMensajesRecibidos() {
+        return mensajesRecibidos;
+    }
+
+    public Map<String, Contacto> getUsuarios() {
+        return usuarios;
+    }
+
+    public Map<Contacto, Socket> getSockets() {
+        return sockets;
     }
 }
