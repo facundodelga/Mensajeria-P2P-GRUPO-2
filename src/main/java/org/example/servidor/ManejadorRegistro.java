@@ -34,13 +34,17 @@ public class ManejadorRegistro implements Runnable {
 
             Contacto usuarioDTO = (Contacto) entrada.readObject();
 
+
             // Verificar si el nickname ya está en uso
             if (this.servidorDirectorio.getUsuarios().containsKey(usuarioDTO.getNombre())) {
                 salida.writeObject("El nickname ya está en uso.");
             } else {
                 // Registrar el nuevo usuario en el mapa
                 this.servidorDirectorio.getUsuarios().put(usuarioDTO.getNombre(), usuarioDTO);
+                // Guardar el socket del usuario en el mapa
+                this.servidorDirectorio.getSockets().put(usuarioDTO, socket);
 
+                this.usuario = usuarioDTO;
                 salida.writeObject("Registro exitoso.");
             }
             salida.flush();
