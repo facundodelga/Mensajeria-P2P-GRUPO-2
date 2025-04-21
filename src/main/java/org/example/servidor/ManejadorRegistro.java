@@ -1,10 +1,9 @@
 package org.example.servidor;
 
-import org.example.modelo.usuario.Contacto;
+import org.example.cliente.modelo.usuario.Contacto;
 
 import java.io.*;
 import java.net.Socket;
-import java.util.Map;
 
 /**
  * Clase que maneja el registro de usuarios en el servidor.

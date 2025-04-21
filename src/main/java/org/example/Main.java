@@ -1,6 +1,6 @@
 package org.example;
 
-import org.example.controlador.Controlador;
+import org.example.cliente.controlador.Controlador;
 
 public class Main {
     public static void main(String[] args) {

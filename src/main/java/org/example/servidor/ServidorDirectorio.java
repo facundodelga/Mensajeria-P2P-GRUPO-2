@@ -1,14 +1,13 @@
 package org.example.servidor;
 
-import org.example.modelo.mensaje.Mensaje;
-import org.example.modelo.usuario.Contacto;
+import org.example.cliente.modelo.mensaje.Mensaje;
+import org.example.cliente.modelo.usuario.Contacto;
 
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
