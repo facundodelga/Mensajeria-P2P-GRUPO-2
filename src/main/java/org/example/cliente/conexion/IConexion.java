@@ -4,6 +4,7 @@ import org.example.cliente.modelo.mensaje.Mensaje;
 import org.example.cliente.modelo.usuario.Contacto;
 
 import java.io.IOException;
+import java.util.ArrayList;
 
 public interface IConexion extends Runnable {
     void conectarServidor(int puerto) throws PuertoEnUsoException;
@@ -13,4 +14,7 @@ public interface IConexion extends Runnable {
     void enviarMensaje(Contacto usuarioDTO, Mensaje mensaje) throws IOException, EnviarMensajeException;
 
     void cerrarConexiones();
+    void obtenerMensajesPendientes();
+
+    public ArrayList<Contacto> obtenerContactos();
 }
