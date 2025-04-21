@@ -5,6 +5,7 @@ import org.example.cliente.modelo.usuario.Contacto;
 
 import java.io.*;
 import java.net.Socket;
+import java.util.ArrayList;
 
 import static java.lang.Thread.sleep;
 
@@ -88,17 +89,14 @@ public class ManejadorRegistro implements Runnable {
                         System.out.println("No se pudo enviar el mensaje a " + mensaje.getReceptor());
                         this.servidorDirectorio.getMensajesRecibidos().add(mensaje);
                     }
-                } else {
-                    System.out.println("No es un mensaje");
-                }
-                if (msg instanceof String) {
+                } else if (msg instanceof String) {
                     String mensajeOperacion = (String) msg;
-                    if(mensajeOperacion.equals("MensajesPendientes")) {
+                    if (mensajeOperacion.equals("MensajesPendientes")) {
                         System.out.println("Enviando mensajes pendientes...");
                         // Enviar mensajes pendientes al cliente
                         ObjectOutputStream salida = new ObjectOutputStream(socket.getOutputStream());
                         for (Mensaje mensaje : this.servidorDirectorio.getMensajesRecibidos()) {
-                            if(mensaje.getReceptor().equals(usuario)) {
+                            if (mensaje.getReceptor().equals(usuario)) {
                                 salida.writeObject(mensaje);
 
                             }
@@ -109,7 +107,38 @@ public class ManejadorRegistro implements Runnable {
                         // Limpiar la lista de mensajes pendientes
                         this.servidorDirectorio.getMensajesRecibidos().removeIf(mensaje -> mensaje.getReceptor().equals(usuario));
 
+                    } else if (mensajeOperacion.equals("Contactos")) {
+                        System.out.println("Enviando contactos...");
+                        // Enviar contactos al cliente
+                        ObjectOutputStream salida = new ObjectOutputStream(socket.getOutputStream());
+                        ArrayList<Contacto> contactos = new ArrayList<>(this.servidorDirectorio.getUsuarios().values());
+                        // Enviar todos los contactos registrados en el servidor
+                        salida.writeObject(contactos);
+                        salida.flush();
+                    } else {
+                        System.out.println("Comando no reconocido: " + mensajeOperacion);
+
                     }
+                }else if (msg instanceof Contacto) { //busco un contacto
+                    Contacto contacto = (Contacto) msg;
+                    System.out.println("Contacto recibido: " + contacto.getNombre());
+                    Contacto contactoEncontrado = this.servidorDirectorio.getUsuarios().get(contacto.getNombre());
+                    if (contactoEncontrado != null) {
+                        System.out.println("Contacto encontrado: " + contactoEncontrado.getNombre());
+
+                        // Aquí puedes enviar el contacto encontrado al cliente
+                        ObjectOutputStream salida = new ObjectOutputStream(socket.getOutputStream());
+                        salida.writeObject(contactoEncontrado);
+                        salida.flush();
+
+                    } else {
+                        System.out.println("Contacto no encontrado");
+                        ObjectOutputStream salida = new ObjectOutputStream(socket.getOutputStream());
+                        salida.writeObject("Contacto no encontrado");
+                        salida.flush();
+                    }
+                    // Aquí puedes manejar el contacto recibido
+
 
                 } else {
                     System.out.println("No es un mensaje");

@@ -2,6 +2,7 @@ package org.example.cliente.conexion;
 
 import org.example.cliente.controlador.Controlador;
 import org.example.cliente.modelo.mensaje.Mensaje;
+import org.example.cliente.modelo.usuario.Contacto;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -34,12 +35,22 @@ public class ManejadorEntradas extends Observable implements Runnable {
         try {
             while(true) {
                 ObjectInputStream entrada = new ObjectInputStream(socket.getInputStream());
-                Mensaje mensaje = (Mensaje) entrada.readObject();
+                Object msg = entrada.readObject();
+                if (msg instanceof Mensaje) {
+                    Mensaje mensaje = (Mensaje) entrada.readObject();
 
-                System.out.println("Mensaje recibido de " + mensaje.getEmisor() + ": " + mensaje.getContenido());
+                    System.out.println("Mensaje recibido de " + mensaje.getEmisor() + ": " + mensaje.getContenido());
 
-                setChanged();
-                notifyObservers(mensaje);
+                    setChanged();
+                    notifyObservers(mensaje);
+
+                } /*else if(msg instanceof ArrayList<?>) {
+                    ArrayList<Contacto> mensaje = (ArrayList<Contacto>) entrada.readObject();
+                    System.out.println("Mensaje recibido: " + mensaje);
+                    setChanged();
+                    notifyObservers(mensaje);
+                }*/
+
             }
 
         } catch (IOException | ClassNotFoundException e) {

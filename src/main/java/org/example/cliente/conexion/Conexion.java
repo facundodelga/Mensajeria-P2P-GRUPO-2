@@ -6,6 +6,7 @@ import org.example.cliente.modelo.usuario.Contacto;
 import java.io.*;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 
 /**
  * Clase que representa una conexión de servidor.
@@ -88,6 +89,23 @@ public class Conexion implements IConexion {
         }
     }
 
+    public ArrayList<Contacto> obtenerContactos(){
+        try{
+            this.salida = new ObjectOutputStream(socket.getOutputStream());
+            this.salida.writeObject("Contactos");
+            this.salida.flush();
+
+            this.entrada = new ObjectInputStream(socket.getInputStream());
+
+            ArrayList<Contacto> contactos;
+            contactos = (ArrayList<Contacto>) this.entrada.readObject();
+            return contactos;
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+        return null;
+    }
+
     /**
      * Espera conexiones entrantes y maneja los mensajes recibidos.
      */
@@ -116,6 +134,7 @@ public class Conexion implements IConexion {
             System.out.println("Enviando mensaje a " + usuarioDTO + ": " + mensaje.getContenido());
             salida.writeObject(mensaje);
             salida.flush();
+
         } catch (IOException e) {
             throw new EnviarMensajeException("Error al enviar el mensaje a " + usuarioDTO, e);
         }
