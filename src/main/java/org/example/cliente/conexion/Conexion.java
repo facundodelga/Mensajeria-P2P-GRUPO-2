@@ -79,6 +79,15 @@ public class Conexion implements IConexion {
         }
     }
 
+    public void obtenerMensajesPendientes(){
+        try {
+            this.salida.writeObject("MensajesPendientes");
+            this.salida.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
     /**
      * Espera conexiones entrantes y maneja los mensajes recibidos.
      */
