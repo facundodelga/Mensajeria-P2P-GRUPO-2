@@ -15,6 +15,7 @@ import java.util.Observable;
 public class ManejadorEntradas extends Observable implements Runnable {
     private Socket socket;
 
+
     /**
      * Constructor de la clase ManejadorEntradas.
      * @param socket El socket desde el cual se recibirán los mensajes.
@@ -31,13 +32,16 @@ public class ManejadorEntradas extends Observable implements Runnable {
     @Override
     public void run() {
         try {
-            ObjectInputStream entrada = new ObjectInputStream(socket.getInputStream());
-            Mensaje mensaje = (Mensaje) entrada.readObject();
+            while(true) {
+                ObjectInputStream entrada = new ObjectInputStream(socket.getInputStream());
+                Mensaje mensaje = (Mensaje) entrada.readObject();
 
-            System.out.println("Mensaje recibido de " + mensaje.getEmisor() + ": " + mensaje.getContenido());
+                System.out.println("Mensaje recibido de " + mensaje.getEmisor() + ": " + mensaje.getContenido());
 
-            setChanged();
-            notifyObservers(mensaje);
+                setChanged();
+                notifyObservers(mensaje);
+            }
+
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }

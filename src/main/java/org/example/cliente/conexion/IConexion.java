@@ -6,7 +6,7 @@ import org.example.cliente.modelo.usuario.Contacto;
 import java.io.IOException;
 
 public interface IConexion extends Runnable {
-    void iniciarServidor(int puerto) throws PuertoEnUsoException;
+    void conectarServidor(int puerto) throws PuertoEnUsoException;
 
     void esperarMensajes();
 

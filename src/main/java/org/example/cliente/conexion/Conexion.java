@@ -12,8 +12,10 @@ import java.net.Socket;
  * Implementa la interfaz IConexion.
  */
 public class Conexion implements IConexion {
-    private ServerSocket socketServer;
+
     private Socket socket;
+    private ObjectInputStream entrada;
+    private ObjectOutputStream salida;
 
     /**
      * Constructor de la clase Conexion.
@@ -39,16 +41,39 @@ public class Conexion implements IConexion {
      * @param puerto El puerto en el que se configurará el servidor.
      */
     @Override
-    public void iniciarServidor(int puerto) throws PuertoEnUsoException {
+    public void conectarServidor(int puerto) throws PuertoEnUsoException {
         if (elPuertoEstaEnUso(puerto)) {
             throw new PuertoEnUsoException("El puerto " + puerto + " ya está en uso.");
-
         }
+        try{
+            this.socket = new Socket("localhost", puerto);
+            this.salida = new ObjectOutputStream(socket.getOutputStream());
+            this.entrada = new ObjectInputStream(socket.getInputStream());
 
-        try {
-            this.socketServer = new ServerSocket(puerto);
+            try {
+                Thread.sleep(50);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            Contacto usuario = new Contacto("Usuario", "localhost", puerto);
+
+            this.salida.writeObject(usuario);
+            this.salida.flush();
+
+            String estaOcupado = (String) this.entrada.readObject(); // Espera la confirmación del servidor
+
+            if(estaOcupado.equals("El nickname ya está en uso.")){
+                //queda provisorio esto
+                throw new PuertoEnUsoException("El nickname ya está en uso.");
+            } else {
+                System.out.println(estaOcupado);
+                System.out.println("Conexión establecida con el servidor en el puerto: " + puerto);
+            }
+
             System.out.println("Servidor configurado en el puerto: " + puerto);
             System.out.println("Servidor iniciado...");
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -60,11 +85,9 @@ public class Conexion implements IConexion {
     @Override
     public void esperarMensajes() {
         try {
-            while(true){
-                System.out.println("Esperando conexiones...");
-                this.socket = this.socketServer.accept();
+                //this.socket = this.socketServer.accept();
                 new Thread(new ManejadorEntradas(this.socket)).start();
-            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -81,8 +104,6 @@ public class Conexion implements IConexion {
     public void enviarMensaje(Contacto usuarioDTO, Mensaje mensaje) throws EnviarMensajeException {
         System.out.println("Intentando enviar mensaje a " + usuarioDTO);
         try {
-            Socket socketSalida = new Socket(usuarioDTO.getIp(), usuarioDTO.getPuerto());
-            ObjectOutputStream salida = new ObjectOutputStream(socketSalida.getOutputStream());
             System.out.println("Enviando mensaje a " + usuarioDTO + ": " + mensaje.getContenido());
             salida.writeObject(mensaje);
             salida.flush();
@@ -101,7 +122,6 @@ public class Conexion implements IConexion {
                 socket.close();
             }
 
-            this.socketServer.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -113,14 +133,6 @@ public class Conexion implements IConexion {
     @Override
     public void run() {
         esperarMensajes();
-    }
-
-    /**
-     * Obtiene el ServerSocket del servidor.
-     * @return El ServerSocket del servidor.
-     */
-    public ServerSocket getSocketServer() {
-        return socketServer;
     }
 
     /**

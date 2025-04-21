@@ -1,5 +1,6 @@
 package org.example.servidor;
 
+import org.example.cliente.modelo.mensaje.Mensaje;
 import org.example.cliente.modelo.usuario.Contacto;
 
 import java.io.*;
@@ -13,6 +14,7 @@ import java.net.Socket;
 public class ManejadorRegistro implements Runnable {
     private Socket socket;
     private ServidorDirectorio servidorDirectorio;
+    private boolean corriendo = false;
 
     /**
      * Constructor para ManejadorRegistro.
@@ -24,16 +26,6 @@ public class ManejadorRegistro implements Runnable {
     public ManejadorRegistro(Socket socket, ServidorDirectorio servidorDirectorio) {
         this.socket = socket;
         this.servidorDirectorio = servidorDirectorio;
-    }
-
-
-    /**
-     * Ejecuta el proceso de registro en un hilo separado.
-     * Lee un objeto UsuarioDTO del flujo de entrada, verifica si el nickname ya está en uso,
-     * y envía una respuesta al cliente indicando el éxito o fracaso del registro.
-     */
-    @Override
-    public void run() {
         try (ObjectInputStream entrada = new ObjectInputStream(socket.getInputStream());
              ObjectOutputStream salida = new ObjectOutputStream(socket.getOutputStream())) {
 
@@ -48,6 +40,7 @@ public class ManejadorRegistro implements Runnable {
 
                 salida.writeObject("Registro exitoso.");
             }
+            salida.flush();
 
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
@@ -58,5 +51,39 @@ public class ManejadorRegistro implements Runnable {
                 e.printStackTrace();
             }
         }
+
+    }
+
+
+    /**
+     * Ejecuta el proceso de registro en un hilo separado.
+     * Lee un objeto UsuarioDTO del flujo de entrada, verifica si el nickname ya está en uso,
+     * y envía una respuesta al cliente indicando el éxito o fracaso del registro.
+     */
+    @Override
+    public void run() {
+
+        try {
+            while(corriendo) {
+                ObjectInputStream entrada = new ObjectInputStream(socket.getInputStream());
+                Object msg = entrada.readObject();
+                if (msg instanceof Mensaje) {
+                    Mensaje mensaje = (Mensaje) msg;
+                    System.out.println("Mensaje recibido de " + mensaje.getEmisor() + ": " + mensaje.getContenido());
+                } else {
+                    System.out.println("No es un mensaje");
+                }
+            }
+
+        } catch (IOException | ClassNotFoundException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+
     }
 }
