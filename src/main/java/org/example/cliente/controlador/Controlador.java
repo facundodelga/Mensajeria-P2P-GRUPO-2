@@ -130,6 +130,7 @@ public class Controlador implements ActionListener, Observer {
      * Inicia el servidor con los datos proporcionados por la vista de inicio de sesión.
      */
     public void iniciarServidor() {
+        vistaInicioSesion.mostrar();
         String nombre = vistaInicioSesion.getNombre();
         if(nombre.isEmpty()){
             mostrarMensajeFlotante("El nombre no puede estar vacío", Color.RED);
@@ -323,4 +324,7 @@ public class Controlador implements ActionListener, Observer {
     }
 
 
+    public ArrayList<Contacto> obtenerContactos() {
+        return null;
+    }
 }

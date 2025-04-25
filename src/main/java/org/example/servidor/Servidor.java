@@ -31,7 +31,7 @@ public class Servidor {
     public Servidor() throws IOException {
         // Leer el puerto desde un archivo de configuración
         int puerto;
-        try (BufferedReader reader = new BufferedReader(new FileReader("C:\\Users\\Facundo\\Dropbox\\Mensajeria-P2P-GRUPO-2\\src\\main\\java\\org\\example\\servidor\\serverConfig.txt"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("serverConfig.txt"))) {
             puerto = Integer.parseInt(reader.readLine().trim());
             this.serverSocket = new ServerSocket( puerto);
 
