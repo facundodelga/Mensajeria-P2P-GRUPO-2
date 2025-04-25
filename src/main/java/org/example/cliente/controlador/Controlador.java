@@ -131,37 +131,36 @@ public class Controlador implements ActionListener, Observer {
      */
     public void iniciarServidor() {
         vistaInicioSesion.mostrar();
-        vista.mostrar();
-//        String nombre = vistaInicioSesion.getNombre();
-//        if(nombre.isEmpty()){
-//            mostrarMensajeFlotante("El nombre no puede estar vacío", Color.RED);
-//            return;
-//        }
-//        try {
-//            int puerto = Integer.parseInt(vistaInicioSesion.getPuerto());
-//            vistaInicioSesion.ocultar();
-//
-//            Usuario usuario = new Usuario(nombre, "127.0.0.1", puerto);
-//            this.usuarioServicio = new UsuarioServicio(usuario);
-//            this.agendaServicio = new AgendaServicio(usuario);
-//            this.conversacionServicio = new ConversacionServicio(usuario);
-//            this.conexion = new Conexion();
-//            this.usuarioDTO = new Contacto(usuario);
-//
-//            // Registrar en el servidor de directorios
-//           // registrarEnServidorDirectorio(usuario);
-//
-//            conexion.conectarServidor(usuarioDTO,8080);
-//            new Thread(conexion).start();
-//            vista.mostrar();
-//            vista.titulo("Usuario: " + nombre + " | Ip: "+ "127.0.0.1" + " | Puerto: " + puerto);
-//        }catch (NumberFormatException e) {
-//            mostrarMensajeFlotante("El puerto debe ser un número entre 0 y 65535", Color.RED);
-//
-//        }catch (PuertoEnUsoException e){
-//            mostrarMensajeFlotante(e.getMessage(), Color.RED);
-//            vistaInicioSesion.mostrar();
-//        }
+        String nombre = vistaInicioSesion.getNombre();
+        if(nombre.isEmpty()){
+            mostrarMensajeFlotante("El nombre no puede estar vacío", Color.RED);
+            return;
+        }
+        try {
+            int puerto = Integer.parseInt(vistaInicioSesion.getPuerto());
+            vistaInicioSesion.ocultar();
+
+            Usuario usuario = new Usuario(nombre, "127.0.0.1", puerto);
+            this.usuarioServicio = new UsuarioServicio(usuario);
+            this.agendaServicio = new AgendaServicio(usuario);
+            this.conversacionServicio = new ConversacionServicio(usuario);
+            this.conexion = new Conexion();
+            this.usuarioDTO = new Contacto(usuario);
+
+            // Registrar en el servidor de directorios
+           // registrarEnServidorDirectorio(usuario);
+
+            conexion.conectarServidor(usuarioDTO,8080);
+            new Thread(conexion).start();
+            vista.mostrar();
+            vista.titulo("Usuario: " + nombre + " | Ip: "+ "127.0.0.1" + " | Puerto: " + puerto);
+        }catch (NumberFormatException e) {
+            mostrarMensajeFlotante("El puerto debe ser un número entre 0 y 65535", Color.RED);
+
+        }catch (PuertoEnUsoException e){
+            mostrarMensajeFlotante(e.getMessage(), Color.RED);
+            vistaInicioSesion.mostrar();
+        }
     }
 
     private void registrarEnServidorDirectorio(Usuario usuario) {
