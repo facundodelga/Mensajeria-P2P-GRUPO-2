@@ -61,6 +61,9 @@ public class ManejadorRegistro implements Runnable {
             salida.writeObject("Registro exitoso.");
             salida.flush();
 
+            // Enviar mensajes pendientes
+            enviarMensajesPendientes(salida);
+
             this.corriendo = true;
             while(corriendo) {
                 Object msg = entrada.readObject();
@@ -73,16 +76,23 @@ public class ManejadorRegistro implements Runnable {
                 if (msg instanceof Mensaje) {
                     Mensaje mensaje = (Mensaje) msg;
                     System.out.println("Mensaje recibido de " + mensaje.getEmisor() + ": " + mensaje.getContenido());
+                    // Verifica si el receptor está conectado
                     Socket socketDestino = servidorDirectorio.getSockets().get(mensaje.getReceptor());
-                    salida.writeObject("Mensaje recibido");
-                    try{ //intento enviar el mensaje
-                        salida = new ObjectOutputStream(socketDestino.getOutputStream());
-                        salida.writeObject(mensaje);
-                        salida.flush();
-
-                    }catch (IOException e){
-                        System.out.println("No se pudo enviar el mensaje a " + mensaje.getReceptor());
+                    if (socketDestino != null) {
+                        // Si el receptor está conectado, enviar el mensaje
+                        try {
+                            salida = new ObjectOutputStream(socketDestino.getOutputStream());
+                            salida.writeObject(mensaje);
+                            salida.flush();
+                        } catch (IOException e) {
+                            System.out.println("No se pudo enviar el mensaje a " + mensaje.getReceptor());
+                            // Si no se pudo enviar, almacenamos el mensaje
+                            this.servidorDirectorio.getMensajesRecibidos().add(mensaje);
+                        }
+                    } else {
+                        // Si el receptor está desconectado, se guarda el mensaje para su posterior entrega
                         this.servidorDirectorio.getMensajesRecibidos().add(mensaje);
+                        System.out.println("El receptor no está conectado. El mensaje se almacenará para su posterior entrega.");
                     }
                 } else if (msg instanceof String) {
                     String mensajeOperacion = (String) msg;
@@ -93,9 +103,7 @@ public class ManejadorRegistro implements Runnable {
                         for (Mensaje mensaje : this.servidorDirectorio.getMensajesRecibidos()) {
                             if (mensaje.getReceptor().equals(usuario)) {
                                 salida.writeObject(mensaje);
-
                             }
-
                             salida.flush();
                             sleep(50); // Espera un poco para evitar congestión
                         }
@@ -152,5 +160,15 @@ public class ManejadorRegistro implements Runnable {
             }
         }
 
+    }
+
+    private void enviarMensajesPendientes(ObjectOutputStream salida) throws IOException {
+        // Enviar mensajes pendientes al cliente al reconectarse
+        for (Mensaje mensaje : this.servidorDirectorio.getMensajesRecibidos()) {
+            if (mensaje.getReceptor().equals(usuario)) {
+                salida.writeObject(mensaje);
+            }
+        }
+        salida.flush();
     }
 }
