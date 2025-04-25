@@ -8,12 +8,12 @@ import org.example.cliente.vista.ChatPantalla;
 import org.example.cliente.vista.IVistaInicioSesion;
 import org.example.cliente.vista.IVistaPrincipal;
 import org.example.cliente.vista.MensajePantalla;
-import org.example.modelo.*;
+
 import org.example.cliente.modelo.mensaje.Mensaje;
 import org.example.cliente.conexion.Conexion;
 import org.example.cliente.modelo.usuario.Usuario;
 import org.example.cliente.modelo.usuario.Contacto;
-import org.example.vista.*;
+
 
 import javax.swing.*;
 import java.awt.*;
@@ -147,9 +147,9 @@ public class Controlador implements ActionListener, Observer {
             this.usuarioDTO = new Contacto(usuario);
 
             // Registrar en el servidor de directorios
-            registrarEnServidorDirectorio(usuario);
+           // registrarEnServidorDirectorio(usuario);
 
-            conexion.iniciarServidor(puerto);
+            conexion.conectarServidor(8080);
             new Thread(conexion).start();
             vista.mostrar();
             vista.titulo("Usuario: " + nombre + " | Ip: "+ "127.0.0.1" + " | Puerto: " + puerto);
@@ -175,7 +175,7 @@ public class Controlador implements ActionListener, Observer {
         } catch (IOException | ClassNotFoundException e) {
             mostrarMensajeFlotante("Error al registrar en el servidor de directorios", Color.RED);
         }
-        }
+    }
         
 
 

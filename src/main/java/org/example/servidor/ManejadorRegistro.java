@@ -16,7 +16,7 @@ import static java.lang.Thread.sleep;
 
 public class ManejadorRegistro implements Runnable {
     private Socket socket;
-    private ServidorDirectorio servidorDirectorio;
+    private Servidor servidorDirectorio;
     private boolean corriendo = false;
     private Contacto usuario; // Almacena el usuario registrado con este hilo
 
@@ -27,38 +27,9 @@ public class ManejadorRegistro implements Runnable {
      * @param socket   El socket para la comunicación con el cliente.
      * @param servidorDirectorio El servidor de directorio que gestiona los usuarios registrados.
      */
-    public ManejadorRegistro(Socket socket, ServidorDirectorio servidorDirectorio) {
+    public ManejadorRegistro(Socket socket, Servidor servidorDirectorio) {
         this.socket = socket;
         this.servidorDirectorio = servidorDirectorio;
-        try (ObjectInputStream entrada = new ObjectInputStream(socket.getInputStream());
-             ObjectOutputStream salida = new ObjectOutputStream(socket.getOutputStream())) {
-
-            Contacto usuarioDTO = (Contacto) entrada.readObject();
-
-
-            // Verificar si el nickname ya está en uso
-            if (this.servidorDirectorio.getUsuarios().containsKey(usuarioDTO.getNombre())) {
-                salida.writeObject("El nickname ya está en uso.");
-            } else {
-                // Registrar el nuevo usuario en el mapa
-                this.servidorDirectorio.getUsuarios().put(usuarioDTO.getNombre(), usuarioDTO);
-                // Guardar el socket del usuario en el mapa
-                this.servidorDirectorio.getSockets().put(usuarioDTO, socket);
-
-                this.usuario = usuarioDTO;
-                salida.writeObject("Registro exitoso.");
-            }
-            salida.flush();
-
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                socket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
 
     }
 
@@ -70,10 +41,29 @@ public class ManejadorRegistro implements Runnable {
      */
     @Override
     public void run() {
-
         try {
+            ObjectInputStream entrada = new ObjectInputStream(socket.getInputStream());
+            ObjectOutputStream salida = new ObjectOutputStream(socket.getOutputStream());
+
+            Contacto usuarioDTO = (Contacto) entrada.readObject();
+
+            if (this.servidorDirectorio.getUsuarios().containsKey(usuarioDTO.getNombre())) {
+                salida.writeObject("El nickname ya está en uso.");
+                salida.flush();
+                socket.close();
+                return;
+            }
+
+            // Registro exitoso
+            this.usuario = usuarioDTO;
+            this.servidorDirectorio.getUsuarios().put(usuarioDTO.getNombre(), usuarioDTO);
+            this.servidorDirectorio.getSockets().put(usuarioDTO, socket);
+            salida.writeObject("Registro exitoso.");
+            salida.flush();
+
+            this.corriendo = true;
             while(corriendo) {
-                ObjectInputStream entrada = new ObjectInputStream(socket.getInputStream());
+                entrada = new ObjectInputStream(socket.getInputStream());
                 Object msg = entrada.readObject();
                 if (msg instanceof Mensaje) {
                     Mensaje mensaje = (Mensaje) msg;
@@ -81,7 +71,7 @@ public class ManejadorRegistro implements Runnable {
                     Socket socketDestino = servidorDirectorio.getSockets().get(mensaje.getReceptor());
 
                     try{ //intento enviar el mensaje
-                        ObjectOutputStream salida = new ObjectOutputStream(socketDestino.getOutputStream());
+                        salida = new ObjectOutputStream(socketDestino.getOutputStream());
                         salida.writeObject(mensaje);
                         salida.flush();
 
@@ -94,7 +84,7 @@ public class ManejadorRegistro implements Runnable {
                     if (mensajeOperacion.equals("MensajesPendientes")) {
                         System.out.println("Enviando mensajes pendientes...");
                         // Enviar mensajes pendientes al cliente
-                        ObjectOutputStream salida = new ObjectOutputStream(socket.getOutputStream());
+                        salida = new ObjectOutputStream(socket.getOutputStream());
                         for (Mensaje mensaje : this.servidorDirectorio.getMensajesRecibidos()) {
                             if (mensaje.getReceptor().equals(usuario)) {
                                 salida.writeObject(mensaje);
@@ -110,7 +100,7 @@ public class ManejadorRegistro implements Runnable {
                     } else if (mensajeOperacion.equals("Contactos")) {
                         System.out.println("Enviando contactos...");
                         // Enviar contactos al cliente
-                        ObjectOutputStream salida = new ObjectOutputStream(socket.getOutputStream());
+                        salida = new ObjectOutputStream(socket.getOutputStream());
                         ArrayList<Contacto> contactos = new ArrayList<>(this.servidorDirectorio.getUsuarios().values());
                         // Enviar todos los contactos registrados en el servidor
                         salida.writeObject(contactos);
@@ -127,13 +117,13 @@ public class ManejadorRegistro implements Runnable {
                         System.out.println("Contacto encontrado: " + contactoEncontrado.getNombre());
 
                         // Aquí puedes enviar el contacto encontrado al cliente
-                        ObjectOutputStream salida = new ObjectOutputStream(socket.getOutputStream());
+                        salida = new ObjectOutputStream(socket.getOutputStream());
                         salida.writeObject(contactoEncontrado);
                         salida.flush();
 
                     } else {
                         System.out.println("Contacto no encontrado");
-                        ObjectOutputStream salida = new ObjectOutputStream(socket.getOutputStream());
+                        salida = new ObjectOutputStream(socket.getOutputStream());
                         salida.writeObject("Contacto no encontrado");
                         salida.flush();
                     }

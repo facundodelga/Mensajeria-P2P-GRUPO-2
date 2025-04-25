@@ -4,8 +4,10 @@ import org.example.cliente.modelo.mensaje.Mensaje;
 import org.example.cliente.modelo.usuario.Contacto;
 
 import java.io.*;
+import java.net.ConnectException;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 
 /**
@@ -43,38 +45,33 @@ public class Conexion implements IConexion {
      */
     @Override
     public void conectarServidor(int puerto) throws PuertoEnUsoException {
-        if (elPuertoEstaEnUso(puerto)) {
-            throw new PuertoEnUsoException("El puerto " + puerto + " ya está en uso.");
-        }
-        try{
-            this.socket = new Socket("localhost", puerto);
+//        if (elPuertoEstaEnUso(puerto)) {
+//            throw new PuertoEnUsoException("El puerto " + puerto + " ya está en uso.");
+//        }
+        try {
+            this.socket = new Socket("127.0.0.1", puerto);
             this.salida = new ObjectOutputStream(socket.getOutputStream());
             this.entrada = new ObjectInputStream(socket.getInputStream());
 
-            try {
-                Thread.sleep(50);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            Thread.sleep(50);
 
             Contacto usuario = new Contacto("Usuario", "localhost", puerto);
-
             this.salida.writeObject(usuario);
             this.salida.flush();
 
-            String estaOcupado = (String) this.entrada.readObject(); // Espera la confirmación del servidor
+            String estaOcupado = (String) this.entrada.readObject();
 
-            if(estaOcupado.equals("El nickname ya está en uso.")){
-                //queda provisorio esto
+            if ("El nickname ya está en uso.".equals(estaOcupado)) {
                 throw new PuertoEnUsoException("El nickname ya está en uso.");
             } else {
-                System.out.println(estaOcupado);
                 System.out.println("Conexión establecida con el servidor en el puerto: " + puerto);
             }
-
-            System.out.println("Servidor configurado en el puerto: " + puerto);
-            System.out.println("Servidor iniciado...");
-
+        } catch (ConnectException e) {
+            System.err.println("Error: No se pudo conectar al servidor en el puerto " + puerto + ". Asegúrese de que el servidor esté en ejecución.");
+        } catch (UnknownHostException e) {
+            System.err.println("Error: Host desconocido.");
+        } catch (IOException e) {
+            System.err.println("Error de E/S: " + e.getMessage());
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -111,14 +108,9 @@ public class Conexion implements IConexion {
      */
     @Override
     public void esperarMensajes() {
-        try {
-                //this.socket = this.socketServer.accept();
-                new Thread(new ManejadorEntradas(this.socket)).start();
 
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        cerrarConexiones();
+        new Thread(new ManejadorEntradas(socket, entrada)).start();
+
     }
 
     /**

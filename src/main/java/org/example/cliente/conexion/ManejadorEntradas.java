@@ -5,7 +5,9 @@ import org.example.cliente.modelo.mensaje.Mensaje;
 import org.example.cliente.modelo.usuario.Contacto;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Observable;
 
@@ -15,14 +17,16 @@ import java.util.Observable;
  */
 public class ManejadorEntradas extends Observable implements Runnable {
     private Socket socket;
+    private ObjectInputStream entrada;
 
 
     /**
      * Constructor de la clase ManejadorEntradas.
      * @param socket El socket desde el cual se recibirán los mensajes.
      */
-    public ManejadorEntradas(Socket socket) {
+    public ManejadorEntradas(Socket socket, ObjectInputStream entrada) {
         this.socket = socket;
+        this.entrada = entrada;
         addObserver(Controlador.getInstancia());
     }
 
@@ -34,10 +38,10 @@ public class ManejadorEntradas extends Observable implements Runnable {
     public void run() {
         try {
             while(true) {
-                ObjectInputStream entrada = new ObjectInputStream(socket.getInputStream());
+
                 Object msg = entrada.readObject();
                 if (msg instanceof Mensaje) {
-                    Mensaje mensaje = (Mensaje) entrada.readObject();
+                    Mensaje mensaje = (Mensaje) msg;
 
                     System.out.println("Mensaje recibido de " + mensaje.getEmisor() + ": " + mensaje.getContenido());
 

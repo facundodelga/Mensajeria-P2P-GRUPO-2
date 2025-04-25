@@ -15,7 +15,7 @@ import java.util.Map;
  * Escucha conexiones entrantes y delega el manejo de cada conexión a un hilo separado.
  */
 
-public class ServidorDirectorio {
+public class Servidor {
     private ServerSocket serverSocket;
     private ArrayList<Mensaje> mensajesRecibidos; // Almacena los mensajes recibidos
     private Map<String, Contacto> usuarios; // Almacena los usuarios registrados
@@ -28,8 +28,22 @@ public class ServidorDirectorio {
      * @param puerto El puerto en el que el servidor escuchará las conexiones entrantes.
      * @throws IOException Si hay un error al abrir el puerto.
      */
-    public ServidorDirectorio(int puerto) throws IOException {
-        this.serverSocket = new ServerSocket(puerto);
+    public Servidor() throws IOException {
+        // Leer el puerto desde un archivo de configuración
+        int puerto;
+        try (BufferedReader reader = new BufferedReader(new FileReader("C:\\Users\\Facundo\\Dropbox\\Mensajeria-P2P-GRUPO-2\\src\\main\\java\\org\\example\\servidor\\serverConfig.txt"))) {
+            puerto = Integer.parseInt(reader.readLine().trim());
+            this.serverSocket = new ServerSocket( puerto);
+
+        } catch (NumberFormatException e) {
+            throw new RuntimeException("Error al leer el puerto desde el archivo de configuracion");
+        }catch (IOException e){
+            System.out.println("Working Directory = " + System.getProperty("user.dir"));
+            throw new RuntimeException("Error al abrir el archivo de configuracion");
+        } catch (Exception e) {
+            throw new RuntimeException("Error inesperado: " + e.getMessage());
+        }
+
         this.usuarios = new HashMap<>();
         this.mensajesRecibidos = new ArrayList<>();
         this.sockets = new HashMap<>();
@@ -43,7 +57,9 @@ public class ServidorDirectorio {
     public void iniciar() {
         while (true) {
             try {
+                System.out.println("SERVIDOR: Esperando conexiones...");
                 Socket socket = serverSocket.accept();
+                System.out.println("Cliente conectado desde: " + socket.getInetAddress() + ":" + socket.getPort());
                 // Iniciar un nuevo hilo para manejar el registro del usuario
                 new Thread(new ManejadorRegistro(socket, this)).start();
             } catch (IOException e) {
