@@ -63,13 +63,18 @@ public class ManejadorRegistro implements Runnable {
 
             this.corriendo = true;
             while(corriendo) {
-                entrada = new ObjectInputStream(socket.getInputStream());
                 Object msg = entrada.readObject();
+                if (msg == null) {
+                    System.out.println("El cliente se ha desconectado.");
+                    this.corriendo = false;
+                    break;
+                }
+
                 if (msg instanceof Mensaje) {
                     Mensaje mensaje = (Mensaje) msg;
                     System.out.println("Mensaje recibido de " + mensaje.getEmisor() + ": " + mensaje.getContenido());
                     Socket socketDestino = servidorDirectorio.getSockets().get(mensaje.getReceptor());
-
+                    salida.writeObject("Mensaje recibido");
                     try{ //intento enviar el mensaje
                         salida = new ObjectOutputStream(socketDestino.getOutputStream());
                         salida.writeObject(mensaje);

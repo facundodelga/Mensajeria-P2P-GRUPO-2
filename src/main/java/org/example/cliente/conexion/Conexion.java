@@ -44,7 +44,7 @@ public class Conexion implements IConexion {
      * @param puerto El puerto en el que se configurará el servidor.
      */
     @Override
-    public void conectarServidor(int puerto) throws PuertoEnUsoException {
+    public void conectarServidor(Contacto usuario, int puerto) throws PuertoEnUsoException {
 //        if (elPuertoEstaEnUso(puerto)) {
 //            throw new PuertoEnUsoException("El puerto " + puerto + " ya está en uso.");
 //        }
@@ -55,7 +55,7 @@ public class Conexion implements IConexion {
 
             Thread.sleep(50);
 
-            Contacto usuario = new Contacto("Usuario", "localhost", puerto);
+            // Enviar el objeto UsuarioDTO al servidor
             this.salida.writeObject(usuario);
             this.salida.flush();
 
