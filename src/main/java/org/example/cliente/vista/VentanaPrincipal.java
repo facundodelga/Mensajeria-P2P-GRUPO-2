@@ -7,8 +7,6 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.util.ArrayList;
 import javax.swing.*;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
 
 /**
  * Clase que representa la ventana principal de la aplicación de mensajería.
@@ -16,7 +14,6 @@ import javax.swing.event.DocumentListener;
  */
 public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
 
-    private JTextField textField_BarraBusqueda;
     private JTextField textField_Mensaje;
     private JButton botonEnviar;
     private JList<ChatPantalla> listaChats;
@@ -29,6 +26,12 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
     private JScrollPane scrollPane_MensajesChatActual;
     private JButton botonAgregarChat;
     private JMenuItem itemAgregarContacto;
+
+    // Nuevos componentes para mostrar datos del usuario
+    private JLabel lblNombreUsuario;
+    private JLabel lblIpUsuario;
+    private JLabel lblPuertoUsuario;
+    private JButton botonCerrarSesion;
 
     /**
      * Constructor de la clase VentanaPrincipal.
@@ -84,43 +87,40 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
 
         botonMenu.addActionListener(e -> menuOpciones.show(botonMenu, 0, botonMenu.getHeight()));
 
-        textField_BarraBusqueda = new JTextField();
-        textField_BarraBusqueda.setBounds(10, 40, 198, 25);
-        textField_BarraBusqueda.setBackground(new Color(44, 44, 44));
-        textField_BarraBusqueda.setForeground(Color.WHITE);
-        textField_BarraBusqueda.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent e) {
-                filtrarContactos();
-            }
+        // Panel para mostrar datos del usuario conectado
+        JPanel panelDatosUsuario = new JPanel();
+        panelDatosUsuario.setBounds(10, 40, 198, 80);
+        panelDatosUsuario.setBackground(new Color(50, 50, 50));
+        panelDatosUsuario.setLayout(null);
+        panel_Izquierda.add(panelDatosUsuario);
 
-            @Override
-            public void removeUpdate(DocumentEvent e) {
-                filtrarContactos();
-            }
+        JLabel lblTituloUsuario = new JLabel("Datos del Usuario:");
+        lblTituloUsuario.setBounds(10, 5, 180, 14);
+        lblTituloUsuario.setFont(new Font("Tahoma", Font.BOLD, 12));
+        lblTituloUsuario.setForeground(Color.WHITE);
+        panelDatosUsuario.add(lblTituloUsuario);
 
-            @Override
-            public void changedUpdate(DocumentEvent e) {
-                filtrarContactos();
-            }
+        lblNombreUsuario = new JLabel("Nombre: ");
+        lblNombreUsuario.setBounds(10, 25, 180, 14);
+        lblNombreUsuario.setForeground(Color.WHITE);
+        panelDatosUsuario.add(lblNombreUsuario);
 
-            private void filtrarContactos() {
-                String filtro = textField_BarraBusqueda.getText().toLowerCase();
-                ArrayList<Contacto> contactosFiltrados = new ArrayList<>();
-                for (int i = 0; i < modeloContactos.getSize(); i++) {
-                    Contacto usuario = modeloContactos.getElementAt(i);
-                    if (usuario.getNombre().toLowerCase().contains(filtro)) {
-                        contactosFiltrados.add(usuario);
-                    }
-                }
-                DefaultListModel<Contacto> modeloFiltrado = new DefaultListModel<>();
-                for (Contacto usuario : contactosFiltrados) {
-                    modeloFiltrado.addElement(usuario);
-                }
-                listaContactos.setModel(modeloFiltrado);
-            }
-        });
-        panel_Izquierda.add(textField_BarraBusqueda);
+        lblIpUsuario = new JLabel("IP: ");
+        lblIpUsuario.setBounds(10, 40, 180, 14);
+        lblIpUsuario.setForeground(Color.WHITE);
+        panelDatosUsuario.add(lblIpUsuario);
+
+        lblPuertoUsuario = new JLabel("Puerto: ");
+        lblPuertoUsuario.setBounds(10, 55, 180, 14);
+        lblPuertoUsuario.setForeground(Color.WHITE);
+        panelDatosUsuario.add(lblPuertoUsuario);
+
+        // Botón para cerrar sesión
+        botonCerrarSesion = new JButton("Cerrar Sesión");
+        botonCerrarSesion.setBounds(10, 130, 198, 25);
+        botonCerrarSesion.setActionCommand("CerrarSesion");
+        botonCerrarSesion.addActionListener(Controlador.getInstancia());
+        panel_Izquierda.add(botonCerrarSesion);
 
         // Crear renderizador de celdas personalizado para mostrar solo el nombre
         DefaultListCellRenderer userRenderer = new DefaultListCellRenderer() {
@@ -146,7 +146,7 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         listaContactos.setCellRenderer(userRenderer);
 
         JScrollPane scrollPanel_Contactos = new JScrollPane(listaContactos);
-        scrollPanel_Contactos.setBounds(10, 75, 198, 160);
+        scrollPanel_Contactos.setBounds(10, 165, 198, 70);
         panel_Izquierda.add(scrollPanel_Contactos);
 
         // Agregar un botón para iniciar un nuevo chat desde el contacto seleccionado
@@ -173,7 +173,9 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         modeloChats = new DefaultListModel<>();
         listaChats = new JList<>(modeloChats);
         listaChats.addListSelectionListener(e -> {
-            Controlador.getInstancia().cargarConversacion(listaChats.getSelectedValue());
+            if (!e.getValueIsAdjusting() && listaChats.getSelectedValue() != null) {
+                Controlador.getInstancia().cargarConversacion(listaChats.getSelectedValue());
+            }
         });
         listaChats.setBackground(new Color(61, 61, 61));
         listaChats.setForeground(Color.WHITE);
@@ -267,6 +269,18 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
     }
 
     /**
+     * Establece los datos del usuario conectado
+     * @param nombre Nombre del usuario
+     * @param ip IP del usuario
+     * @param puerto Puerto del usuario
+     */
+    public void setDatosUsuario(String nombre, String ip, int puerto) {
+        lblNombreUsuario.setText("Nombre: " + nombre);
+        lblIpUsuario.setText("IP: " + ip);
+        lblPuertoUsuario.setText("Puerto: " + puerto);
+    }
+
+    /**
      * Método auxiliar para verificar si un UsuarioDTO existe en el modelo.
      * @param modelo El modelo de lista de usuarios.
      * @param usuario El usuario a verificar.
@@ -283,6 +297,19 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
             }
         }
         return false;
+    }
+
+    /**
+     * Actualiza la lista de contactos con los contactos proporcionados por el controlador
+     */
+    public void actualizarListaContactos() {
+        modeloContactos.clear();
+        ArrayList<Contacto> contactos = Controlador.getInstancia().obtenerContactos();
+        for (Contacto contacto : contactos) {
+            if (!modeloContainsUsuario(modeloContactos, contacto)) {
+                modeloContactos.addElement(contacto);
+            }
+        }
     }
 
     /**
@@ -311,7 +338,6 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
     }
 
     // Getters
-    public JTextField getCampoBusqueda() { return textField_BarraBusqueda; }
     public JTextField getCampoMensaje() { return textField_Mensaje; }
     public JButton getBotonEnviar() { return botonEnviar; }
     public JList<ChatPantalla> getListaChats() { return listaChats; }
@@ -322,6 +348,7 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
     public JScrollPane getScrollMensajes() { return scrollPane_MensajesChatActual; }
     public JList<Contacto> getListaContactos() { return listaContactos; }
     public DefaultListModel<Contacto> getModeloContactos() { return modeloContactos; }
+    public JButton getBotonCerrarSesion() { return botonCerrarSesion; }
 
     /**
      * Muestra la ventana para agregar un nuevo contacto.
