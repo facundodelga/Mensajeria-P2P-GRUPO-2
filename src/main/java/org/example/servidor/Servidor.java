@@ -87,4 +87,12 @@ public class Servidor {
     public Map<Contacto, Socket> getSockets() {
         return sockets;
     }
+
+    public void addUsuario(String nombre, Contacto usuario) {
+        usuarios.put(nombre, usuario);
+    }
+
+    public void addSocket(Contacto usuario, Socket socket) {
+        sockets.put(usuario, socket);
+    }
 }

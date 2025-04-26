@@ -29,8 +29,8 @@ public class ManejadorRegistro implements Runnable {
      */
     public ManejadorRegistro(Socket socket, Servidor servidorDirectorio) {
         this.socket = socket;
+        System.out.println(socket);
         this.servidorDirectorio = servidorDirectorio;
-
     }
 
 
@@ -56,8 +56,9 @@ public class ManejadorRegistro implements Runnable {
 
             // Registro exitoso
             this.usuario = usuarioDTO;
-            this.servidorDirectorio.getUsuarios().put(usuarioDTO.getNombre(), usuarioDTO);
-            this.servidorDirectorio.getSockets().put(usuarioDTO, socket);
+            this.servidorDirectorio.addUsuario(this.usuario.getNombre(), this.usuario);
+            this.servidorDirectorio.addSocket(this.usuario, socket);
+            System.out.println("Usuario: " + this.usuario.getNombre() + " Socket: " + socket);
             salida.writeObject("Registro exitoso.");
             salida.flush();
 
@@ -75,9 +76,10 @@ public class ManejadorRegistro implements Runnable {
 
                 if (msg instanceof Mensaje) {
                     Mensaje mensaje = (Mensaje) msg;
-                    System.out.println("Mensaje recibido de " + mensaje.getEmisor() + ": " + mensaje.getContenido());
+                    System.out.println("Soy " + this.usuario.getNombre() + ": Mensaje recibido de " + mensaje.getEmisor() + ": " + mensaje.getContenido());
                     // Verifica si el receptor está conectado
                     Socket socketDestino = servidorDirectorio.getSockets().get(mensaje.getReceptor());
+                    System.out.println("socketDestino: " + socketDestino);
                     if (socketDestino != null) {
                         // Si el receptor está conectado, enviar el mensaje
                         try {
