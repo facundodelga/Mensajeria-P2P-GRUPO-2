@@ -7,7 +7,7 @@ import java.awt.event.WindowAdapter;
 
 public interface IVistaPrincipal {
 
-    JTextField getCampoBusqueda();
+
     JTextField getCampoMensaje();
     JButton getBotonEnviar();
     JList<ChatPantalla> getListaChats();

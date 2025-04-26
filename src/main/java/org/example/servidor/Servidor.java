@@ -25,12 +25,13 @@ public class Servidor {
      * Constructor para ServidorDirectorio.
      * Inicializa el ServerSocket en el puerto especificado y crea un mapa para almacenar usuarios.
      *
+     * @param puerto El puerto en el que el servidor escuchará las conexiones entrantes.
      * @throws IOException Si hay un error al abrir el puerto.
      */
     public Servidor() throws IOException {
         // Leer el puerto desde un archivo de configuración
         int puerto;
-        try (BufferedReader reader = new BufferedReader(new FileReader("src/main/java/org/example/servidor/serverConfig.txt"))) {
+        try (BufferedReader reader = new BufferedReader(new FileReader("serverConfig.txt"))) {
             puerto = Integer.parseInt(reader.readLine().trim());
             this.serverSocket = new ServerSocket( puerto);
 
