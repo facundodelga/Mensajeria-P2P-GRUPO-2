@@ -25,7 +25,6 @@ public class Servidor {
      * Constructor para ServidorDirectorio.
      * Inicializa el ServerSocket en el puerto especificado y crea un mapa para almacenar usuarios.
      *
-     * @param puerto El puerto en el que el servidor escuchará las conexiones entrantes.
      * @throws IOException Si hay un error al abrir el puerto.
      */
     public Servidor() throws IOException {

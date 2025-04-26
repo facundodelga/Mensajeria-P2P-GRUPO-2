@@ -120,15 +120,19 @@ public class Conexion implements IConexion {
      * @throws EnviarMensajeException Si ocurre un error al enviar el mensaje.
      */
     @Override
-    public void enviarMensaje(Contacto usuarioDTO, Mensaje mensaje) throws EnviarMensajeException {
-        System.out.println("Intentando enviar mensaje a " + usuarioDTO);
-        try {
-            System.out.println("Enviando mensaje a " + usuarioDTO + ": " + mensaje.getContenido());
-            salida.writeObject(mensaje);
-            salida.flush();
+    public void enviarMensaje(Contacto usuarioDTO, Mensaje mensaje) throws EnviarMensajeException, IOException {
+        if (salida == null) {
+            throw new IOException("El canal de salida no está inicializado.");
+        } else {
+            System.out.println("Intentando enviar mensaje a " + usuarioDTO);
+            try {
+                System.out.println("Enviando mensaje a " + usuarioDTO + ": " + mensaje.getContenido());
+                salida.writeObject(mensaje);
+                salida.flush();
 
-        } catch (IOException e) {
-            throw new EnviarMensajeException("Error al enviar el mensaje a " + usuarioDTO, e);
+            } catch (IOException e) {
+                throw new EnviarMensajeException("Error al enviar el mensaje a " + usuarioDTO, e);
+            }
         }
     }
 

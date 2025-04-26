@@ -108,7 +108,9 @@ public class Controlador implements ActionListener, Observer {
      * Envía un mensaje al contacto seleccionado.
      */
     private void enviarMensaje()  {
-        Mensaje mensaje = new Mensaje(vista.getCampoMensaje().getText(),this.usuarioDTO);
+        Contacto receptor = vista.getListaChats().getSelectedValue().getContacto();
+        String contenido = vista.getCampoMensaje().getText();
+        Mensaje mensaje = new Mensaje(contenido, this.usuarioDTO, receptor);
 
         try {
 
@@ -144,6 +146,7 @@ public class Controlador implements ActionListener, Observer {
             this.agendaServicio = new AgendaServicio(usuario);
             this.conversacionServicio = new ConversacionServicio(usuario);
             this.conexion = new Conexion();
+
             this.usuarioDTO = new Contacto(usuario);
 
             // Registrar en el servidor de directorios
