@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Observable;
 
 /**
@@ -31,34 +32,44 @@ public class ManejadorEntradas extends Observable implements Runnable {
     }
 
     /**
-     * Método que se ejecuta cuando el hilo se inicia.
      * Lee mensajes desde el socket y notifica a los observadores.
      */
     @Override
     public void run() {
         try {
-            while(true) {
-
+            while (true) {
+                System.out.println("Esperando objeto en el cliente...");
                 Object msg = entrada.readObject();
-                if (msg instanceof Mensaje) {
+                System.out.println("Objeto recibido de tipo: " + msg.getClass().getName());
+
+                if (msg instanceof String) {
+                    String mensaje = (String) msg;
+                    System.out.println("Mensaje de texto recibido: " + mensaje);
+                    setChanged();
+                    notifyObservers(mensaje);
+                } else if (msg instanceof Mensaje) {
                     Mensaje mensaje = (Mensaje) msg;
-
                     System.out.println("Mensaje recibido de " + mensaje.getEmisor() + ": " + mensaje.getContenido());
-
                     setChanged();
                     notifyObservers(mensaje);
-
-                } /*else if(msg instanceof ArrayList<?>) {
-                    ArrayList<Contacto> mensaje = (ArrayList<Contacto>) entrada.readObject();
-                    System.out.println("Mensaje recibido: " + mensaje);
+                } else if (msg instanceof Contacto) {
+                    Contacto contacto = (Contacto) msg;
+                    System.out.println("Contacto recibido: " + contacto.getNombre());
                     setChanged();
-                    notifyObservers(mensaje);
-                }*/
-
+                    notifyObservers(contacto);
+                } else {
+                    System.out.println("Objeto desconocido recibido: " + msg);
+                }
             }
-
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
+        } finally {
+            try {
+                entrada.close();
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
