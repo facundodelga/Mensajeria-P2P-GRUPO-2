@@ -6,14 +6,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class ColaMensajes implements IColaMensajes {
-    private final List<Mensaje> mensajesRecibidos;
+    private final ArrayList<Mensaje> mensajesRecibidos;
 
     public ColaMensajes() {
         mensajesRecibidos = new ArrayList<>();
     }
 
     @Override
-    public List<Mensaje> getMensajesRecibidos() {
+    public ArrayList<Mensaje> getMensajesRecibidos() {
         return mensajesRecibidos;
     }
 

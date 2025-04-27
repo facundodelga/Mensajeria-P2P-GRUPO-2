@@ -56,7 +56,7 @@ public class Servidor {
                 System.out.println("SERVIDOR: Esperando conexiones...");
                 Socket socket = serverSocket.accept();
                 System.out.println("Cliente conectado desde: " + socket.getInetAddress() + ":" + socket.getPort());
-                ManejadorRegistro manejador = new ManejadorRegistro(socket, this.directorio, this.colaMensajes, this);
+                ManejadorRegistro manejador = new ManejadorRegistro(socket, this);
                 new Thread(manejador).start();
 
             } catch (IOException e) {

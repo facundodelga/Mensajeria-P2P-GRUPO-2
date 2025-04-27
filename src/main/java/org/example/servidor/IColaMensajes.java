@@ -8,7 +8,7 @@ import java.util.List;
 
 public interface IColaMensajes {
     void agregarMensajePendiente(Mensaje mensaje);
-    List<Mensaje> getMensajesRecibidos();
+    ArrayList<Mensaje> getMensajesRecibidos();
     void removeMensaje(Mensaje mensaje);
     void eliminarMensajesPorReceptor(Contacto usuario);
 }
