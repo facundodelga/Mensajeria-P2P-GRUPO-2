@@ -12,4 +12,6 @@ public interface IDirectorio {
     void addSocket(Contacto usuario, Socket socket);
 
     Map<String, Contacto> getUsuarios();
+
+    Socket getSocket(Contacto receptor);
 }

@@ -1,24 +1,32 @@
 package org.example.servidor;
 
 import org.example.cliente.modelo.mensaje.Mensaje;
-
+import org.example.cliente.modelo.usuario.Contacto;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.List;
 
 public class ColaMensajes implements IColaMensajes {
-    private ArrayList<Mensaje> mensajesRecibidos;
+    private final List<Mensaje> mensajesRecibidos;
 
-    public ColaMensajes(){
-        mensajesRecibidos=new ArrayList<>();
+    public ColaMensajes() {
+        mensajesRecibidos = new ArrayList<>();
     }
-
 
     @Override
-    public void agregarMensajePendiente() {
-
+    public List<Mensaje> getMensajesRecibidos() {
+        return mensajesRecibidos;
     }
 
-    public ArrayList<Mensaje> getMensajesRecibidos() {
-        return mensajesRecibidos;
+    public void agregarMensajePendiente(Mensaje mensaje) {
+        mensajesRecibidos.add(mensaje);
+    }
+
+    public void removeMensaje(Mensaje mensaje) {
+        mensajesRecibidos.remove(mensaje);
+    }
+
+    @Override
+    public void eliminarMensajesPorReceptor(Contacto receptor) {
+        mensajesRecibidos.removeIf(mensaje -> mensaje.getReceptor().equals(receptor));
     }
 }
