@@ -392,4 +392,30 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         panelMensajes.revalidate();
         panelMensajes.repaint();
     }
+
+    @Override
+    public void informacionDelUsuario(Contacto contacto) {
+        this.lblNombreUsuario.setText("Nombre: " + contacto.getNombre());
+        this.lblIpUsuario.setText("IP: " + contacto.getIp());
+        this.lblPuertoUsuario.setText("Puerto: " + contacto.getPuerto());
+    }
+
+    public void ocultar() {
+        setVisible(false);
+    }
+
+    @Override
+    public void limpiarCampos() {
+        textField_Mensaje.setText("");
+        panelMensajes.removeAll();
+        panelMensajes.revalidate();
+        panelMensajes.repaint();
+        lblContactoChatActual.setText("Contacto Chat Actual");
+        panel_ChatActual.setVisible(false);
+        modeloChats.clear();
+        modeloContactos.clear();
+        listaContactos.clearSelection();
+        listaChats.clearSelection();
+
+    }
 }

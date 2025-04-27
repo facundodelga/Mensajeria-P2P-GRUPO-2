@@ -47,8 +47,11 @@ public class Conexion implements IConexion {
 //        }
         try {
             this.socket = new Socket();
-            this.socket.bind(new InetSocketAddress(usuario.getPuerto())); // El puerto que eligió el usuario
+
+            //this.socket.bind(new InetSocketAddress(usuario.getPuerto())); // El puerto que eligió el usuario
             this.socket.connect(new InetSocketAddress("127.0.0.1", 8080));
+
+            this.socket.setReuseAddress(true);
 
             this.salida = new ObjectOutputStream(socket.getOutputStream());
             this.entrada = new ObjectInputStream(socket.getInputStream());
@@ -72,8 +75,12 @@ public class Conexion implements IConexion {
             System.err.println("Error: Host desconocido.");
         } catch (IOException e) {
             System.err.println("Error de E/S: " + e.getMessage());
-        } catch (Exception e) {
-            e.printStackTrace();
+        }
+        catch (InterruptedException e) {
+            System.err.println("Error: Hilo interrumpido.");
+        }
+        catch (ClassNotFoundException e) {
+            System.err.println("Error: Clase no encontrada.");
         }
     }
 
@@ -137,12 +144,24 @@ public class Conexion implements IConexion {
      * Cierra las conexiones del servidor y del socket.
      */
     @Override
-    public void cerrarConexiones(){
+    public void cerrarConexiones() {
         try {
-            if(socket != null) {
-                socket.close();
-            }
 
+            if (entrada != null) {
+                entrada.close();
+                entrada = null;
+            }
+            if (salida != null) {
+                salida.flush(); // Asegurar que todos los datos sean enviados
+                salida.close();
+                salida = null;
+            }
+            if (socket != null) {
+
+                socket.close();
+                socket = null;
+            }
+            System.gc(); // Sugerencia al recolector de basura (no garantiza nada)
         } catch (IOException e) {
             e.printStackTrace();
         }

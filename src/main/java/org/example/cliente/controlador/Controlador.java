@@ -22,10 +22,6 @@ import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
 
-import java.net.Socket;
-
-import static org.example.cliente.AppInicio.PUERTO_SERVIDOR_DIRECTORIO;
-
 /**
  * Clase Controlador que implementa ActionListener y Observer.
  * Maneja la lógica de la aplicación y la interacción entre la vista y el modelo.
@@ -94,6 +90,20 @@ public class Controlador implements ActionListener, Observer {
         if (conexion != null) {
             conexion.cerrarConexiones();
         }
+        vista.ocultar();
+        vista.limpiarCampos();
+        // Esperar un tiempo para que el sistema libere el puerto
+        try {
+            Thread.sleep(1000); // Esperar 1 segundo
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        vistaInicioSesion.mostrar();
+
+
+        conexion = null;
+
 
     }
 
@@ -172,6 +182,7 @@ public class Controlador implements ActionListener, Observer {
             new Thread(conexion).start();
             vista.mostrar();
             vista.titulo("Usuario: " + nombre + " | Ip: "+ "127.0.0.1" + " | Puerto: " + puerto);
+            vista.informacionDelUsuario(usuarioDTO);
         }catch (NumberFormatException e) {
             mostrarMensajeFlotante("El puerto debe ser un número entre 0 y 65535", Color.RED);
 

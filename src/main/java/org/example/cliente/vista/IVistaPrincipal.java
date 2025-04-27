@@ -1,7 +1,6 @@
 package org.example.cliente.vista;
 
 import org.example.cliente.modelo.usuario.Contacto;
-import org.example.servidor.DirectorioDTO;
 
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
@@ -25,6 +24,10 @@ public interface IVistaPrincipal {
     public void addMensajeBurbuja(MensajePantalla mensaje);
     public void titulo(String texto);
     void mostrar();
+    void ocultar();
+    void limpiarCampos();
+
+    void informacionDelUsuario(Contacto contacto);
 
     void addWindowListener(WindowAdapter windowAdapter);
 }

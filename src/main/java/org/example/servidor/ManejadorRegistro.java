@@ -99,10 +99,12 @@ public class ManejadorRegistro implements Runnable {
             System.out.println("El cliente se ha desconectado.");
             //se elimina del mapa de sockets
             servidorDirectorio.getSockets().remove(usuario);
-
+            servidorDirectorio.getUsuarios().remove(usuario.getNombre());
             this.corriendo = false;
         } catch (EOFException e) {
             System.out.println("El cliente se ha desconectado.");
+            servidorDirectorio.getSockets().remove(usuario);
+            servidorDirectorio.getUsuarios().remove(usuario.getNombre());
             this.corriendo = false;
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();

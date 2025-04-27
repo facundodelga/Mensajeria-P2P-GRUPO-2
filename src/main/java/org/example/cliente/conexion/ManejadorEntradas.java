@@ -70,7 +70,10 @@ public class ManejadorEntradas extends Observable implements Runnable {
             e.printStackTrace();
         } finally {
             try {
-                entrada.close();
+                if (entrada != null) {
+                    entrada.close();
+
+                }
                 socket.close();
             } catch (IOException e) {
                 e.printStackTrace();

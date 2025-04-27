@@ -4,6 +4,7 @@ import org.example.cliente.modelo.mensaje.Mensaje;
 import org.example.cliente.modelo.usuario.Contacto;
 
 import java.io.*;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
@@ -32,6 +33,8 @@ public class Servidor {
         try (BufferedReader reader = new BufferedReader(new FileReader("serverConfig.txt"))) {
             puerto = Integer.parseInt(reader.readLine().trim());
             this.serverSocket = new ServerSocket(puerto);
+            serverSocket.setReuseAddress(true);
+            //serverSocket.bind(new InetSocketAddress(puerto));
         } catch (NumberFormatException e) {
             throw new RuntimeException("Error al leer el puerto desde el archivo de configuración");
         } catch (IOException e) {
@@ -58,6 +61,7 @@ public class Servidor {
                 new Thread(new ManejadorRegistro(socket, this)).start();
                 
             } catch (IOException e) {
+
                 e.printStackTrace();
             }
         }
