@@ -210,8 +210,6 @@ public class Controlador implements ActionListener, Observer {
                 mostrarMensajeFlotante(e.getMessage(), Color.RED);
             }
         }
-
-
     }
 
     /**
