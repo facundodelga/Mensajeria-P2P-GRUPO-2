@@ -4,10 +4,7 @@ import org.example.cliente.modelo.mensaje.Mensaje;
 import org.example.cliente.modelo.usuario.Contacto;
 
 import java.io.*;
-import java.net.ConnectException;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.UnknownHostException;
+import java.net.*;
 import java.util.ArrayList;
 
 /**
@@ -49,12 +46,15 @@ public class Conexion implements IConexion {
 //            throw new PuertoEnUsoException("El puerto " + puerto + " ya está en uso.");
 //        }
         try {
-            this.socket = new Socket("127.0.0.1", puerto);
+            this.socket = new Socket();
+            this.socket.bind(new InetSocketAddress(usuario.getPuerto())); // El puerto que eligió el usuario
+            this.socket.connect(new InetSocketAddress("127.0.0.1", 8080));
+
             this.salida = new ObjectOutputStream(socket.getOutputStream());
             this.entrada = new ObjectInputStream(socket.getInputStream());
 
             Thread.sleep(50);
-
+            System.out.println(usuario.toString());
             // Enviar el objeto UsuarioDTO al servidor
             this.salida.writeObject(usuario);
             this.salida.flush();
