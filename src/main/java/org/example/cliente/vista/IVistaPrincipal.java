@@ -1,6 +1,7 @@
 package org.example.cliente.vista;
 
 import org.example.cliente.modelo.usuario.Contacto;
+import org.example.servidor.DirectorioDTO;
 
 import javax.swing.*;
 import java.awt.event.WindowAdapter;

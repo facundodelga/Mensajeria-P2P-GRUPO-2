@@ -2,6 +2,7 @@ package org.example.cliente.vista;
 
 import org.example.cliente.controlador.Controlador;
 import org.example.cliente.modelo.usuario.Contacto;
+import org.example.servidor.DirectorioDTO;
 
 import java.awt.*;
 import java.awt.event.WindowAdapter;
@@ -25,6 +26,7 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
     private JPanel panel_ChatActual;
     private JScrollPane scrollPane_MensajesChatActual;
     private JButton botonAgregarChat;
+    IVistaAgregarContacto dialog;
     private JMenuItem itemAgregarContacto;
 
     // Nuevos componentes para mostrar datos del usuario
@@ -266,6 +268,8 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         botonEnviar.setBounds(512, 12, 89, 34);
         botonEnviar.addActionListener(Controlador.getInstancia());
         panel_TextoChatActual.add(botonEnviar);
+
+
     }
 
     /**
@@ -299,18 +303,7 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         return false;
     }
 
-    /**
-     * Actualiza la lista de contactos con los contactos proporcionados por el controlador
-     */
-    public void actualizarListaContactos(ArrayList<Contacto> contactos) {
-        modeloContactos.clear();
 
-        for (Contacto contacto : contactos) {
-            if (!modeloContainsUsuario(modeloContactos, contacto)) {
-                modeloContactos.addElement(contacto);
-            }
-        }
-    }
 
     /**
      * Muestra la ventana principal.
@@ -319,6 +312,8 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
     public void mostrar() {
         setVisible(true);
     }
+
+
 
     /**
      * Agrega un listener de ventana.
@@ -356,13 +351,28 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
      */
     @Override
     public Contacto mostrarAgregarContacto() {
-        VentanaAgregarContacto dialog = new VentanaAgregarContacto(this);
-        dialog.setVisible(true);
+
+        try {
+            Controlador.getInstancia().obtenerContactos();
+            Thread.sleep(500);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        dialog = new VentanaAgregarContacto(this, Controlador.getInstancia().getDirectorioDTO());
+
+        dialog.mostrar();
+
+
         if(dialog.getIP().isEmpty() || dialog.getNombre().isEmpty() || dialog.getPuerto().isEmpty()){
             return null;
         }
         return new Contacto(dialog.getNombre(), dialog.getIP(), Integer.parseInt(dialog.getPuerto()));
     }
+
+
+
+
 
     /**
      * Método para que el controlador registre la acción de agregar contacto.

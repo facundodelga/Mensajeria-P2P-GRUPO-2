@@ -56,6 +56,7 @@ public class Servidor {
                 Socket socket = serverSocket.accept();
                 System.out.println("Cliente conectado desde: " + socket.getInetAddress() + ":" + socket.getPort());
                 new Thread(new ManejadorRegistro(socket, this)).start();
+                
             } catch (IOException e) {
                 e.printStackTrace();
             }

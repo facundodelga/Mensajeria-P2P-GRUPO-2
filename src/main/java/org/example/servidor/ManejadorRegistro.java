@@ -68,30 +68,29 @@ public class ManejadorRegistro implements Runnable {
                     Mensaje mensaje = (Mensaje) msg;
                     System.out.println("Soy " + usuario.getNombre() + ": Mensaje recibido de " + mensaje.getEmisor() + ": " + mensaje.getContenido());
                     enviarMensaje(mensaje);
-                } else if (msg instanceof String) {
-                    String mensajeOperacion = (String) msg;
-                    if (mensajeOperacion.equals("MensajesPendientes")) {
-                        System.out.println("Enviando mensajes pendientes...");
-                        enviarMensajesPendientes();
-                    } else if (mensajeOperacion.equals("Contactos")) {
-                        System.out.println("Enviando contactos...");
-                        enviarContactos();
-                    } else {
-                        System.out.println("Comando no reconocido: " + mensajeOperacion);
-                    }
                 } else if (msg instanceof Contacto) {
                     Contacto contacto = (Contacto) msg;
-                    System.out.println("Contacto recibido: " + contacto.getNombre());
-                    Contacto contactoEncontrado = servidorDirectorio.getUsuarios().get(contacto.getNombre());
-                    if (contactoEncontrado != null) {
-                        System.out.println("Contacto encontrado: " + contactoEncontrado.getNombre());
-                        salida.writeObject(contactoEncontrado);
-                        salida.flush();
+                    System.out.println("Soy " + usuario.getNombre() + ": Contacto recibido: " + contacto.getNombre());
+                    if (contacto.getNombre().equals("Contactos")) {
+                        enviarContactos();
                     } else {
-                        System.out.println("Contacto no encontrado");
+                        System.out.println("Soy " + usuario.getNombre() + ": Contacto no encontrado");
                         salida.writeObject("Contacto no encontrado");
                         salida.flush();
                     }
+//                } else if (msg instanceof Contacto) {
+//                    Contacto contacto = (Contacto) msg;
+//                    System.out.println("Contacto recibido: " + contacto.getNombre());
+//                    Contacto contactoEncontrado = servidorDirectorio.getUsuarios().get(contacto.getNombre());
+//                    if (contactoEncontrado != null) {
+//                        System.out.println("Contacto encontrado: " + contactoEncontrado.getNombre());
+//                        salida.writeObject(contactoEncontrado);
+//                        salida.flush();
+//                    } else {
+//                        System.out.println("Contacto no encontrado");
+//                        salida.writeObject("Contacto no encontrado");
+//                        salida.flush();
+//                    }
                 } else {
                     System.out.println("Objeto desconocido recibido: " + msg);
                 }
@@ -137,7 +136,8 @@ public class ManejadorRegistro implements Runnable {
     }
 
     private void enviarContactos() throws IOException {
-        ArrayList<Contacto> contactos = new ArrayList<>(servidorDirectorio.getUsuarios().values());
+        ArrayList<Contacto> contactosList = new ArrayList<>(servidorDirectorio.getUsuarios().values());
+        DirectorioDTO contactos = new DirectorioDTO(contactosList);
         System.out.println("Enviando lista de contactos: " + contactos);
         salida.writeObject(contactos);
         salida.flush();

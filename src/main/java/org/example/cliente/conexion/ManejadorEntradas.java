@@ -3,6 +3,7 @@ package org.example.cliente.conexion;
 import org.example.cliente.controlador.Controlador;
 import org.example.cliente.modelo.mensaje.Mensaje;
 import org.example.cliente.modelo.usuario.Contacto;
+import org.example.servidor.DirectorioDTO;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -53,11 +54,11 @@ public class ManejadorEntradas extends Observable implements Runnable {
                     System.out.println("Mensaje recibido de " + mensaje.getEmisor() + ": " + mensaje.getContenido());
                     setChanged();
                     notifyObservers(mensaje);
-                } else if (msg instanceof Contacto) {
-                    Contacto contacto = (Contacto) msg;
-                    System.out.println("Contacto recibido: " + contacto.getNombre());
+                } else if (msg instanceof DirectorioDTO) {
+                    DirectorioDTO contactos = (DirectorioDTO) msg;
+                    System.out.println("Contacto recibido: " + contactos);
                     setChanged();
-                    notifyObservers(contacto);
+                    notifyObservers(contactos);
                 } else {
                     System.out.println("Objeto desconocido recibido: " + msg);
                 }

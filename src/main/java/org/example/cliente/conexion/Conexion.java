@@ -88,15 +88,12 @@ public class Conexion implements IConexion {
 
     public ArrayList<Contacto> obtenerContactos(){
         try{
-            this.salida = new ObjectOutputStream(socket.getOutputStream());
-            this.salida.writeObject("Contactos");
+
+            Contacto c = new Contacto("Contactos","111", 0);
+            this.salida.writeObject(c);
             this.salida.flush();
 
-            this.entrada = new ObjectInputStream(socket.getInputStream());
-
-            ArrayList<Contacto> contactos;
-            contactos = (ArrayList<Contacto>) this.entrada.readObject();
-            return contactos;
+            return null;
         }catch (Exception e){
             e.printStackTrace();
         }

@@ -4,15 +4,13 @@ import org.example.cliente.conexion.EnviarMensajeException;
 import org.example.cliente.conexion.IConexion;
 import org.example.cliente.conexion.PuertoEnUsoException;
 import org.example.cliente.modelo.*;
-import org.example.cliente.vista.ChatPantalla;
-import org.example.cliente.vista.IVistaInicioSesion;
-import org.example.cliente.vista.IVistaPrincipal;
-import org.example.cliente.vista.MensajePantalla;
+import org.example.cliente.vista.*;
 
 import org.example.cliente.modelo.mensaje.Mensaje;
 import org.example.cliente.conexion.Conexion;
 import org.example.cliente.modelo.usuario.Usuario;
 import org.example.cliente.modelo.usuario.Contacto;
+import org.example.servidor.DirectorioDTO;
 
 
 import javax.swing.*;
@@ -36,10 +34,12 @@ public class Controlador implements ActionListener, Observer {
     private static Controlador instancia = null;
     private IVistaPrincipal vista;
     private IVistaInicioSesion vistaInicioSesion;
+
     private IAgenda agendaServicio;
     private IConversacion conversacionServicio;
     private IConexion conexion;
     private Contacto usuarioDTO;
+    private DirectorioDTO directorioDTO;
     private final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
     private UsuarioServicio usuarioServicio;
 
@@ -189,6 +189,7 @@ public class Controlador implements ActionListener, Observer {
 
         nuevoContacto = vista.mostrarAgregarContacto();
 
+
         if(nuevoContacto != null) {
             try {
                 agendaServicio.addContacto(nuevoContacto);
@@ -273,8 +274,27 @@ public class Controlador implements ActionListener, Observer {
      */
     @Override
     public void update(Observable o, Object arg) {
-        Mensaje mensaje = (Mensaje) arg;
-        recibirMensaje(mensaje);
+        if(arg instanceof Mensaje) {
+            Mensaje mensaje = (Mensaje) arg;
+            System.out.println("Mensaje recibido: " + mensaje);
+            recibirMensaje(mensaje);
+            // Aquí puedes manejar el mensaje de texto recibido
+        } else if (arg instanceof Contacto) {
+            Contacto contacto = (Contacto) arg;
+            System.out.println("Contacto recibido: " + contacto);
+            // Aquí puedes manejar el contacto recibido
+        } else if (arg instanceof DirectorioDTO) {
+            DirectorioDTO contactos = (DirectorioDTO) arg;
+            System.out.println("Contactos recibidos: " + contactos);
+            this.directorioDTO = contactos;
+
+        }
+
+
+    }
+
+    public DirectorioDTO getDirectorioDTO() {
+        return directorioDTO;
     }
 
     /**
@@ -293,6 +313,8 @@ public class Controlador implements ActionListener, Observer {
         this.vista = vista;
 
     }
+
+
 
     /**
      * Carga la conversación seleccionada en la vista.
@@ -326,10 +348,10 @@ public class Controlador implements ActionListener, Observer {
 
 
     public ArrayList<Contacto> obtenerContactos() {
-
-
             return this.conexion.obtenerContactos();
-
-
     }
+
+
+
+
 }
