@@ -187,13 +187,17 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         // Agregar listener de selección para abrir el chat cuando se selecciona
         listaChats.addListSelectionListener(e -> {
             if (!e.getValueIsAdjusting() && listaChats.getSelectedValue() != null) {
-                ChatPantalla selectedUser = listaChats.getSelectedValue();
-                lblContactoChatActual.setText(selectedUser.getNombre());
+                ChatPantalla chatSeleccionado = listaChats.getSelectedValue();
+                // Actualizar la cabecera del chat con el nombre sin el asterisco
+                lblContactoChatActual.setText(chatSeleccionado.getContacto().getNombre());
                 panel_ChatActual.setVisible(true);
-                Controlador.getInstancia().cargarConversacion(selectedUser);
+                Controlador.getInstancia().cargarConversacion(chatSeleccionado);
+                // Marcar como leído al seleccionar el chat
+                chatSeleccionado.setLeido();
+                // Notificar al modelo de la lista que el elemento ha cambiado para que se redibuje
+                modeloChats.setElementAt(chatSeleccionado, modeloChats.indexOf(chatSeleccionado));
             }
         });
-
         JScrollPane scrollPanel_Chats = new JScrollPane(listaChats);
         scrollPanel_Chats.setBounds(10, 320, 198, 188);
         panel_Izquierda.add(scrollPanel_Chats);
