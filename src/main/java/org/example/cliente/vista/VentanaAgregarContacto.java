@@ -2,6 +2,7 @@ package org.example.cliente.vista;
 
 import org.example.cliente.controlador.Controlador;
 import org.example.cliente.modelo.usuario.Contacto;
+import org.example.servidor.DirectorioDTO;
 
 import javax.swing.*;
 import java.awt.*;
@@ -29,7 +30,7 @@ public class VentanaAgregarContacto extends JDialog implements IVistaAgregarCont
      * Constructor de la clase VentanaAgregarContacto.
      * @param parent El JFrame padre de esta ventana de diálogo.
      */
-    public VentanaAgregarContacto(JFrame parent) {
+    public VentanaAgregarContacto(JFrame parent, DirectorioDTO directorio) {
         super(parent, "Nuevo contacto", true);
         setSize(500, 400);
         setLocationRelativeTo(parent);
@@ -174,7 +175,7 @@ public class VentanaAgregarContacto extends JDialog implements IVistaAgregarCont
         panelListaContactos.add(botonSeleccionar, BorderLayout.SOUTH);
 
         // Cargar la lista de contactos disponibles desde el controlador
-        cargarContactosDisponibles();
+        cargarContactosDisponibles(directorio);
 
         // Agregar los paneles al contenedor principal
         getContentPane().add(panelFormulario, BorderLayout.WEST);
@@ -192,15 +193,16 @@ public class VentanaAgregarContacto extends JDialog implements IVistaAgregarCont
     /**
      * Carga la lista de contactos disponibles desde el controlador
      */
-    private void cargarContactosDisponibles() {
+    private void cargarContactosDisponibles(DirectorioDTO directorio) {
         modeloContactos.clear();
-        ArrayList<Contacto> contactos = Controlador.getInstancia().obtenerContactos();
-        if (contactos != null && !contactos.isEmpty()) {
-            for (Contacto contacto : contactos) {
-                modeloContactos.addElement(contacto);
-            }
+        for (Contacto contacto : directorio.getContactos()) {
+            modeloContactos.addElement(contacto);
         }
     }
+
+
+
+
 
     /**
      * Método para limpiar los campos de texto.
@@ -278,6 +280,25 @@ public class VentanaAgregarContacto extends JDialog implements IVistaAgregarCont
             return "";
         }
         return texto;
+    }
+
+    @Override
+    public void mostrar() {
+        setVisible(true);
+    }
+
+    @Override
+    public void ocultar() {
+        setVisible(false);
+    }
+
+    @Override
+    public void actualizarDirectorio(ArrayList<Contacto> contactos) {
+        modeloContactos.clear();
+        for (Contacto contacto : contactos) {
+            modeloContactos.addElement(contacto);
+        }
+        listaContactosDisponibles.setModel(modeloContactos);
     }
 
     /**

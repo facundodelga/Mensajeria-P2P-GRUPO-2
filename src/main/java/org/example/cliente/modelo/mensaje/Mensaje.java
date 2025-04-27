@@ -17,6 +17,13 @@ public class Mensaje implements Serializable {
 
     }
 
+    public Mensaje(String contenido, Contacto emisor,Contacto receptor) {
+        this.contenido = contenido;
+        this.receptor=receptor;
+        this.emisor=emisor;
+    }
+
+
     public Date getFecha() {
         return fecha;
     }

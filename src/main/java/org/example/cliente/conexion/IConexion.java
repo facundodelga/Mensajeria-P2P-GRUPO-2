@@ -16,5 +16,5 @@ public interface IConexion extends Runnable {
     void cerrarConexiones();
     void obtenerMensajesPendientes();
 
-    public ArrayList<Contacto> obtenerContactos();
+    ArrayList<Contacto> obtenerContactos();
 }

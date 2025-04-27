@@ -24,6 +24,10 @@ public interface IVistaPrincipal {
     public void addMensajeBurbuja(MensajePantalla mensaje);
     public void titulo(String texto);
     void mostrar();
+    void ocultar();
+    void limpiarCampos();
+
+    void informacionDelUsuario(Contacto contacto);
 
     void addWindowListener(WindowAdapter windowAdapter);
 }

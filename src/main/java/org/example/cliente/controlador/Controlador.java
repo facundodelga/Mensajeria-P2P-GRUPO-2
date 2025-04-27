@@ -4,15 +4,13 @@ import org.example.cliente.conexion.EnviarMensajeException;
 import org.example.cliente.conexion.IConexion;
 import org.example.cliente.conexion.PuertoEnUsoException;
 import org.example.cliente.modelo.*;
-import org.example.cliente.vista.ChatPantalla;
-import org.example.cliente.vista.IVistaInicioSesion;
-import org.example.cliente.vista.IVistaPrincipal;
-import org.example.cliente.vista.MensajePantalla;
+import org.example.cliente.vista.*;
 
 import org.example.cliente.modelo.mensaje.Mensaje;
 import org.example.cliente.conexion.Conexion;
 import org.example.cliente.modelo.usuario.Usuario;
 import org.example.cliente.modelo.usuario.Contacto;
+import org.example.servidor.DirectorioDTO;
 
 
 import javax.swing.*;
@@ -24,10 +22,6 @@ import java.util.ArrayList;
 import java.util.Observable;
 import java.util.Observer;
 
-import java.net.Socket;
-
-import static org.example.cliente.AppInicio.PUERTO_SERVIDOR_DIRECTORIO;
-
 /**
  * Clase Controlador que implementa ActionListener y Observer.
  * Maneja la lógica de la aplicación y la interacción entre la vista y el modelo.
@@ -36,10 +30,12 @@ public class Controlador implements ActionListener, Observer {
     private static Controlador instancia = null;
     private IVistaPrincipal vista;
     private IVistaInicioSesion vistaInicioSesion;
+
     private IAgenda agendaServicio;
     private IConversacion conversacionServicio;
     private IConexion conexion;
     private Contacto usuarioDTO;
+    private DirectorioDTO directorioDTO;
     private final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
     private UsuarioServicio usuarioServicio;
 
@@ -79,7 +75,36 @@ public class Controlador implements ActionListener, Observer {
             case "IniciarChat":
                 iniciarChat();
                 break;
+            case "CerrarSesion":
+                cerrarSesion();
+                break;
+            case "ObtenerContactos":
+                obtenerContactos();
+                break;
+
         }
+    }
+
+    private void cerrarSesion() {
+        // Cerrar la conexión y limpiar la vista
+        if (conexion != null) {
+            conexion.cerrarConexiones();
+        }
+        vista.ocultar();
+        vista.limpiarCampos();
+        // Esperar un tiempo para que el sistema libere el puerto
+        try {
+            Thread.sleep(1000); // Esperar 1 segundo
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+
+        vistaInicioSesion.mostrar();
+
+
+        conexion = null;
+
+
     }
 
     /**
@@ -108,7 +133,9 @@ public class Controlador implements ActionListener, Observer {
      * Envía un mensaje al contacto seleccionado.
      */
     private void enviarMensaje()  {
-        Mensaje mensaje = new Mensaje(vista.getCampoMensaje().getText(),this.usuarioDTO);
+        Contacto receptor = vista.getListaChats().getSelectedValue().getContacto();
+        String contenido = vista.getCampoMensaje().getText();
+        Mensaje mensaje = new Mensaje(contenido, this.usuarioDTO, receptor);
 
         try {
 
@@ -145,6 +172,7 @@ public class Controlador implements ActionListener, Observer {
             this.agendaServicio = new AgendaServicio(usuario);
             this.conversacionServicio = new ConversacionServicio(usuario);
             this.conexion = new Conexion();
+
             this.usuarioDTO = new Contacto(usuario);
 
             // Registrar en el servidor de directorios
@@ -154,6 +182,7 @@ public class Controlador implements ActionListener, Observer {
             new Thread(conexion).start();
             vista.mostrar();
             vista.titulo("Usuario: " + nombre + " | Ip: "+ "127.0.0.1" + " | Puerto: " + puerto);
+            vista.informacionDelUsuario(usuarioDTO);
         }catch (NumberFormatException e) {
             mostrarMensajeFlotante("El puerto debe ser un número entre 0 y 65535", Color.RED);
 
@@ -163,24 +192,6 @@ public class Controlador implements ActionListener, Observer {
         }
     }
 
-    private void registrarEnServidorDirectorio(Usuario usuario) {
-        try (Socket socket = new Socket("127.0.0.1", PUERTO_SERVIDOR_DIRECTORIO);
-             ObjectOutputStream salida = new ObjectOutputStream(socket.getOutputStream());
-             ObjectInputStream entrada = new ObjectInputStream(socket.getInputStream())) {
-
-            Contacto usuarioDTO = new Contacto(usuario);
-            salida.writeObject(usuarioDTO);
-            String respuesta = (String) entrada.readObject();
-            System.out.println(respuesta); // Mostrar respuesta del servidor de directorios
-
-        } catch (IOException | ClassNotFoundException e) {
-            mostrarMensajeFlotante("Error al registrar en el servidor de directorios", Color.RED);
-        }
-    }
-        
-
-
-
     /**
      * Agrega un nuevo contacto a la agenda y a la vista.
      */
@@ -188,6 +199,8 @@ public class Controlador implements ActionListener, Observer {
         Contacto nuevoContacto = null;
 
         nuevoContacto = vista.mostrarAgregarContacto();
+
+
         if(nuevoContacto != null) {
             try {
                 agendaServicio.addContacto(nuevoContacto);
@@ -272,8 +285,27 @@ public class Controlador implements ActionListener, Observer {
      */
     @Override
     public void update(Observable o, Object arg) {
-        Mensaje mensaje = (Mensaje) arg;
-        recibirMensaje(mensaje);
+        if(arg instanceof Mensaje) {
+            Mensaje mensaje = (Mensaje) arg;
+            System.out.println("Mensaje recibido: " + mensaje);
+            recibirMensaje(mensaje);
+            // Aquí puedes manejar el mensaje de texto recibido
+        } else if (arg instanceof Contacto) {
+            Contacto contacto = (Contacto) arg;
+            System.out.println("Contacto recibido: " + contacto);
+            // Aquí puedes manejar el contacto recibido
+        } else if (arg instanceof DirectorioDTO) {
+            DirectorioDTO contactos = (DirectorioDTO) arg;
+            System.out.println("Contactos recibidos: " + contactos);
+            this.directorioDTO = contactos;
+
+        }
+
+
+    }
+
+    public DirectorioDTO getDirectorioDTO() {
+        return directorioDTO;
     }
 
     /**
@@ -292,6 +324,8 @@ public class Controlador implements ActionListener, Observer {
         this.vista = vista;
 
     }
+
+
 
     /**
      * Carga la conversación seleccionada en la vista.
@@ -325,6 +359,10 @@ public class Controlador implements ActionListener, Observer {
 
 
     public ArrayList<Contacto> obtenerContactos() {
-        return null;
+            return this.conexion.obtenerContactos();
     }
+
+
+
+
 }

@@ -5,6 +5,7 @@ import org.example.cliente.modelo.usuario.Contacto;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 
 import static java.lang.Thread.sleep;
@@ -18,51 +19,43 @@ public class ManejadorRegistro implements Runnable {
     private Socket socket;
     private Servidor servidorDirectorio;
     private boolean corriendo = false;
-    private Contacto usuario; // Almacena el usuario registrado con este hilo
+    private Contacto usuario;
+    private ObjectInputStream entrada;
+    private ObjectOutputStream salida;
 
-    /**
-     * Constructor para ManejadorRegistro.
-     * Inicializa el socket y el mapa de usuarios para manejar el registro de usuarios.
-     *
-     * @param socket   El socket para la comunicación con el cliente.
-     * @param servidorDirectorio El servidor de directorio que gestiona los usuarios registrados.
-     */
     public ManejadorRegistro(Socket socket, Servidor servidorDirectorio) {
         this.socket = socket;
         this.servidorDirectorio = servidorDirectorio;
-
     }
 
-
-    /**
-     * Ejecuta el proceso de registro en un hilo separado.
-     * Lee un objeto UsuarioDTO del flujo de entrada, verifica si el nickname ya está en uso,
-     * y envía una respuesta al cliente indicando el éxito o fracaso del registro.
-     */
     @Override
     public void run() {
         try {
-            ObjectInputStream entrada = new ObjectInputStream(socket.getInputStream());
-            ObjectOutputStream salida = new ObjectOutputStream(socket.getOutputStream());
+            // Crear flujos una sola vez
+            salida = new ObjectOutputStream(socket.getOutputStream());
+            entrada = new ObjectInputStream(socket.getInputStream());
 
+            // Registro del usuario
             Contacto usuarioDTO = (Contacto) entrada.readObject();
-
-            if (this.servidorDirectorio.getUsuarios().containsKey(usuarioDTO.getNombre())) {
+            if (servidorDirectorio.getUsuarios().containsKey(usuarioDTO.getNombre())) {
                 salida.writeObject("El nickname ya está en uso.");
                 salida.flush();
                 socket.close();
                 return;
             }
 
-            // Registro exitoso
             this.usuario = usuarioDTO;
-            this.servidorDirectorio.getUsuarios().put(usuarioDTO.getNombre(), usuarioDTO);
-            this.servidorDirectorio.getSockets().put(usuarioDTO, socket);
+            servidorDirectorio.addUsuario(usuario.getNombre(), usuario);
+            servidorDirectorio.addSocket(usuario, socket);
+            servidorDirectorio.addManejador(usuario, this);
             salida.writeObject("Registro exitoso.");
             salida.flush();
 
+            // Enviar mensajes pendientes
+            enviarMensajesPendientes();
+
             this.corriendo = true;
-            while(corriendo) {
+            while (corriendo) {
                 Object msg = entrada.readObject();
                 if (msg == null) {
                     System.out.println("El cliente se ha desconectado.");
@@ -70,76 +63,49 @@ public class ManejadorRegistro implements Runnable {
                     break;
                 }
 
+                System.out.println("Objeto recibido de tipo: " + msg.getClass().getName());
                 if (msg instanceof Mensaje) {
                     Mensaje mensaje = (Mensaje) msg;
-                    System.out.println("Mensaje recibido de " + mensaje.getEmisor() + ": " + mensaje.getContenido());
-                    Socket socketDestino = servidorDirectorio.getSockets().get(mensaje.getReceptor());
-                    salida.writeObject("Mensaje recibido");
-                    try{ //intento enviar el mensaje
-                        salida = new ObjectOutputStream(socketDestino.getOutputStream());
-                        salida.writeObject(mensaje);
-                        salida.flush();
-
-                    }catch (IOException e){
-                        System.out.println("No se pudo enviar el mensaje a " + mensaje.getReceptor());
-                        this.servidorDirectorio.getMensajesRecibidos().add(mensaje);
-                    }
-                } else if (msg instanceof String) {
-                    String mensajeOperacion = (String) msg;
-                    if (mensajeOperacion.equals("MensajesPendientes")) {
-                        System.out.println("Enviando mensajes pendientes...");
-                        // Enviar mensajes pendientes al cliente
-                        salida = new ObjectOutputStream(socket.getOutputStream());
-                        for (Mensaje mensaje : this.servidorDirectorio.getMensajesRecibidos()) {
-                            if (mensaje.getReceptor().equals(usuario)) {
-                                salida.writeObject(mensaje);
-
-                            }
-
-                            salida.flush();
-                            sleep(50); // Espera un poco para evitar congestión
-                        }
-                        // Limpiar la lista de mensajes pendientes
-                        this.servidorDirectorio.getMensajesRecibidos().removeIf(mensaje -> mensaje.getReceptor().equals(usuario));
-
-                    } else if (mensajeOperacion.equals("Contactos")) {
-                        System.out.println("Enviando contactos...");
-                        // Enviar contactos al cliente
-                        salida = new ObjectOutputStream(socket.getOutputStream());
-                        ArrayList<Contacto> contactos = new ArrayList<>(this.servidorDirectorio.getUsuarios().values());
-                        // Enviar todos los contactos registrados en el servidor
-                        salida.writeObject(contactos);
-                        salida.flush();
-                    } else {
-                        System.out.println("Comando no reconocido: " + mensajeOperacion);
-
-                    }
-                }else if (msg instanceof Contacto) { //busco un contacto
+                    System.out.println("Soy " + usuario.getNombre() + ": Mensaje recibido de " + mensaje.getEmisor() + ": " + mensaje.getContenido());
+                    enviarMensaje(mensaje);
+                } else if (msg instanceof Contacto) {
                     Contacto contacto = (Contacto) msg;
-                    System.out.println("Contacto recibido: " + contacto.getNombre());
-                    Contacto contactoEncontrado = this.servidorDirectorio.getUsuarios().get(contacto.getNombre());
-                    if (contactoEncontrado != null) {
-                        System.out.println("Contacto encontrado: " + contactoEncontrado.getNombre());
-
-                        // Aquí puedes enviar el contacto encontrado al cliente
-                        salida = new ObjectOutputStream(socket.getOutputStream());
-                        salida.writeObject(contactoEncontrado);
-                        salida.flush();
-
+                    System.out.println("Soy " + usuario.getNombre() + ": Contacto recibido: " + contacto.getNombre());
+                    if (contacto.getNombre().equals("Contactos")) {
+                        enviarContactos();
                     } else {
-                        System.out.println("Contacto no encontrado");
-                        salida = new ObjectOutputStream(socket.getOutputStream());
+                        System.out.println("Soy " + usuario.getNombre() + ": Contacto no encontrado");
                         salida.writeObject("Contacto no encontrado");
                         salida.flush();
                     }
-                    // Aquí puedes manejar el contacto recibido
-
-
+//                } else if (msg instanceof Contacto) {
+//                    Contacto contacto = (Contacto) msg;
+//                    System.out.println("Contacto recibido: " + contacto.getNombre());
+//                    Contacto contactoEncontrado = servidorDirectorio.getUsuarios().get(contacto.getNombre());
+//                    if (contactoEncontrado != null) {
+//                        System.out.println("Contacto encontrado: " + contactoEncontrado.getNombre());
+//                        salida.writeObject(contactoEncontrado);
+//                        salida.flush();
+//                    } else {
+//                        System.out.println("Contacto no encontrado");
+//                        salida.writeObject("Contacto no encontrado");
+//                        salida.flush();
+//                    }
                 } else {
-                    System.out.println("No es un mensaje");
+                    System.out.println("Objeto desconocido recibido: " + msg);
                 }
             }
-
+        } catch (SocketException e) {
+            System.out.println("El cliente se ha desconectado.");
+            //se elimina del mapa de sockets
+            servidorDirectorio.getSockets().remove(usuario);
+            servidorDirectorio.getUsuarios().remove(usuario.getNombre());
+            this.corriendo = false;
+        } catch (EOFException e) {
+            System.out.println("El cliente se ha desconectado.");
+            servidorDirectorio.getSockets().remove(usuario);
+            servidorDirectorio.getUsuarios().remove(usuario.getNombre());
+            this.corriendo = false;
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {
@@ -151,6 +117,46 @@ public class ManejadorRegistro implements Runnable {
                 e.printStackTrace();
             }
         }
+    }
 
+    public void enviarMensajeACliente(Mensaje mensaje) throws IOException {
+        System.out.println("Enviando mensaje a " + usuario.getNombre() + ": " + mensaje.getContenido());
+        salida.writeObject(mensaje);
+        salida.flush();
+    }
+
+    private void enviarMensajesPendientes() throws IOException, InterruptedException {
+        for (Mensaje mensaje : servidorDirectorio.getMensajesRecibidos()) {
+            if (mensaje.getReceptor().equals(usuario)) {
+                System.out.println("Enviando mensaje pendiente a " + usuario.getNombre() + ": " + mensaje.getContenido());
+                salida.writeObject(mensaje);
+                salida.flush();
+                Thread.sleep(50);
+            }
+        }
+        servidorDirectorio.getMensajesRecibidos().removeIf(mensaje -> mensaje.getReceptor().equals(usuario));
+    }
+
+    private void enviarContactos() throws IOException {
+        ArrayList<Contacto> contactosList = new ArrayList<>(servidorDirectorio.getUsuarios().values());
+        DirectorioDTO contactos = new DirectorioDTO(contactosList);
+        System.out.println("Enviando lista de contactos: " + contactos);
+        salida.writeObject(contactos);
+        salida.flush();
+    }
+
+    private void enviarMensaje(Mensaje mensaje) {
+        ManejadorRegistro manejadorDestino = servidorDirectorio.getManejadores().get(mensaje.getReceptor());
+        if (manejadorDestino != null) {
+            try {
+                manejadorDestino.enviarMensajeACliente(mensaje);
+            } catch (IOException e) {
+                System.out.println("No se pudo enviar el mensaje a " + mensaje.getReceptor());
+                servidorDirectorio.getMensajesRecibidos().add(mensaje);
+            }
+        } else {
+            servidorDirectorio.getMensajesRecibidos().add(mensaje);
+            System.out.println("El receptor no está conectado. El mensaje se almacenará.");
+        }
     }
 }
