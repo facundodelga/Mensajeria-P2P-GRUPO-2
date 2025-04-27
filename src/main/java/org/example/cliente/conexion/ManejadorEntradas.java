@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 import java.util.Observable;
 
@@ -61,7 +62,10 @@ public class ManejadorEntradas extends Observable implements Runnable {
                     System.out.println("Objeto desconocido recibido: " + msg);
                 }
             }
+        } catch (SocketException e) {
+            System.out.println("El socket se ha cerrado.");
         } catch (IOException | ClassNotFoundException e) {
+
             e.printStackTrace();
         } finally {
             try {

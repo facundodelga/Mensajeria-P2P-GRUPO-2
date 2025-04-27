@@ -5,6 +5,7 @@ import org.example.cliente.modelo.usuario.Contacto;
 
 import java.io.*;
 import java.net.Socket;
+import java.net.SocketException;
 import java.util.ArrayList;
 
 import static java.lang.Thread.sleep;
@@ -95,6 +96,15 @@ public class ManejadorRegistro implements Runnable {
                     System.out.println("Objeto desconocido recibido: " + msg);
                 }
             }
+        } catch (SocketException e) {
+            System.out.println("El cliente se ha desconectado.");
+            //se elimina del mapa de sockets
+            servidorDirectorio.getSockets().remove(usuario);
+
+            this.corriendo = false;
+        } catch (EOFException e) {
+            System.out.println("El cliente se ha desconectado.");
+            this.corriendo = false;
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         } catch (InterruptedException e) {

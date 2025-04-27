@@ -79,7 +79,22 @@ public class Controlador implements ActionListener, Observer {
             case "IniciarChat":
                 iniciarChat();
                 break;
+            case "CerrarSesion":
+                cerrarSesion();
+                break;
+            case "ObtenerContactos":
+                obtenerContactos();
+                break;
+
         }
+    }
+
+    private void cerrarSesion() {
+        // Cerrar la conexión y limpiar la vista
+        if (conexion != null) {
+            conexion.cerrarConexiones();
+        }
+
     }
 
     /**
@@ -166,24 +181,6 @@ public class Controlador implements ActionListener, Observer {
         }
     }
 
-    private void registrarEnServidorDirectorio(Usuario usuario) {
-        try (Socket socket = new Socket("127.0.0.1", PUERTO_SERVIDOR_DIRECTORIO);
-             ObjectOutputStream salida = new ObjectOutputStream(socket.getOutputStream());
-             ObjectInputStream entrada = new ObjectInputStream(socket.getInputStream())) {
-
-            Contacto usuarioDTO = new Contacto(usuario);
-            salida.writeObject(usuarioDTO);
-            String respuesta = (String) entrada.readObject();
-            System.out.println(respuesta); // Mostrar respuesta del servidor de directorios
-
-        } catch (IOException | ClassNotFoundException e) {
-            mostrarMensajeFlotante("Error al registrar en el servidor de directorios", Color.RED);
-        }
-    }
-        
-
-
-
     /**
      * Agrega un nuevo contacto a la agenda y a la vista.
      */
@@ -191,6 +188,7 @@ public class Controlador implements ActionListener, Observer {
         Contacto nuevoContacto = null;
 
         nuevoContacto = vista.mostrarAgregarContacto();
+
         if(nuevoContacto != null) {
             try {
                 agendaServicio.addContacto(nuevoContacto);
@@ -328,6 +326,10 @@ public class Controlador implements ActionListener, Observer {
 
 
     public ArrayList<Contacto> obtenerContactos() {
-        return null;
+
+
+            return this.conexion.obtenerContactos();
+
+
     }
 }

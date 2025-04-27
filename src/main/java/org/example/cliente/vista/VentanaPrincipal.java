@@ -302,9 +302,9 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
     /**
      * Actualiza la lista de contactos con los contactos proporcionados por el controlador
      */
-    public void actualizarListaContactos() {
+    public void actualizarListaContactos(ArrayList<Contacto> contactos) {
         modeloContactos.clear();
-        ArrayList<Contacto> contactos = Controlador.getInstancia().obtenerContactos();
+
         for (Contacto contacto : contactos) {
             if (!modeloContainsUsuario(modeloContactos, contacto)) {
                 modeloContactos.addElement(contacto);
