@@ -19,6 +19,8 @@ import java.util.Map;
 public class Servidor {
     private ServerSocket serverSocket;
     private Map<Contacto, ManejadorRegistro> manejadores;
+    private IDirectorio directorio;
+    private IColaMensajes colaMensajes;
 
     /**
      * Constructor para ServidorDirectorio.
@@ -38,6 +40,8 @@ public class Servidor {
             throw new RuntimeException("Error al abrir el archivo de configuraci贸n");
         }
 
+        this.directorio = new Directorio();
+        this.colaMensajes = new ColaMensajes();
         this.manejadores = new HashMap<>();
         System.out.println("Servidor iniciado en el puerto: " + puerto);
     }
@@ -52,10 +56,10 @@ public class Servidor {
                 System.out.println("SERVIDOR: Esperando conexiones...");
                 Socket socket = serverSocket.accept();
                 System.out.println("Cliente conectado desde: " + socket.getInetAddress() + ":" + socket.getPort());
-                new Thread(new ManejadorRegistro(socket, this)).start();
+                ManejadorRegistro manejador = new ManejadorRegistro(socket, this.directorio, this.colaMensajes, this);
+                new Thread(manejador).start();
 
             } catch (IOException e) {
-
                 e.printStackTrace();
             }
         }
@@ -70,6 +74,14 @@ public class Servidor {
         serverSocket.close();
     }
 
+
+    public IDirectorio getDirectorio() {
+        return directorio;
+    }
+
+    public IColaMensajes getColaMensajes() {
+        return colaMensajes;
+    }
 
     public Map<Contacto, ManejadorRegistro> getManejadores() {
         return manejadores;
