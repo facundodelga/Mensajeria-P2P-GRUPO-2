@@ -8,6 +8,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -20,7 +21,7 @@ public class Servidor {
     private ArrayList<Mensaje> mensajesRecibidos; // Almacena los mensajes recibidos
     private Map<String, Contacto> usuarios; // Almacena los usuarios registrados
     private Map<Contacto, Socket> sockets; // Almacena los sockets de los usuarios registrados
-
+    private Map<Contacto, ObjectOutputStream> salidas = new HashMap<>();
     /**
      * Constructor para ServidorDirectorio.
      * Inicializa el ServerSocket en el puerto especificado y crea un mapa para almacenar usuarios.
@@ -87,4 +88,9 @@ public class Servidor {
     public Map<Contacto, Socket> getSockets() {
         return sockets;
     }
+
+    public Map<Contacto, ObjectOutputStream> getSalidas() { // <-- Getter nuevo
+        return salidas;
+    }
+
 }
