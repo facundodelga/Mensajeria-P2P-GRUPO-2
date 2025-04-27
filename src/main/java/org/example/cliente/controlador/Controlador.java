@@ -210,8 +210,6 @@ public class Controlador implements ActionListener, Observer {
                 mostrarMensajeFlotante(e.getMessage(), Color.RED);
             }
         }
-
-
     }
 
     /**
@@ -297,6 +295,7 @@ public class Controlador implements ActionListener, Observer {
         } else if (arg instanceof DirectorioDTO) {
             DirectorioDTO contactos = (DirectorioDTO) arg;
             System.out.println("Contactos recibidos: " + contactos);
+            contactos.getContactos().removeIf(c -> c.getNombre().equals(usuarioDTO.getNombre()));
             this.directorioDTO = contactos;
 
         }

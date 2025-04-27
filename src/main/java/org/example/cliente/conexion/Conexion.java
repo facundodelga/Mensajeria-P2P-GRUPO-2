@@ -48,8 +48,21 @@ public class Conexion implements IConexion {
         try {
             this.socket = new Socket();
 
+            int puertotxt;
+            String ip;
+            try (BufferedReader reader = new BufferedReader(new FileReader("clienteConfig.txt"))) {
+                ip = reader.readLine().trim();
+                puertotxt = Integer.parseInt(reader.readLine().trim());
+
+
+            } catch (NumberFormatException e) {
+                throw new RuntimeException("Error al leer el puerto desde el archivo de configuracion");
+            } catch (IOException e) {
+                throw new RuntimeException("Error al abrir el archivo de configuracion");
+            }
+
             //this.socket.bind(new InetSocketAddress(usuario.getPuerto())); // El puerto que eligió el usuario
-            this.socket.connect(new InetSocketAddress("127.0.0.1", 8080));
+            this.socket.connect(new InetSocketAddress(ip, puertotxt));
 
             this.socket.setReuseAddress(true);
 

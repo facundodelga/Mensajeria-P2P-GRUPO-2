@@ -13,15 +13,14 @@ import java.util.Map;
 
 /**
  * Clase que representa un servidor de directorio para gestionar el registro de usuarios.
- * Escucha conexiones entrantes y delega el manejo de cada conexión a un hilo separado.
+ * Escucha conexiones entrantes y delega el manejo de cada conexi贸n a un hilo separado.
  */
 
 public class Servidor {
     private ServerSocket serverSocket;
-    private ArrayList<Mensaje> mensajesRecibidos; // Almacena los mensajes recibidos
-    private Map<String, Contacto> usuarios; // Almacena los usuarios registrados
-    private Map<Contacto, Socket> sockets; // Almacena los sockets de los usuarios registrados
     private Map<Contacto, ManejadorRegistro> manejadores;
+    private IDirectorio directorio;
+    private IColaMensajes colaMensajes;
 
     /**
      * Constructor para ServidorDirectorio.
@@ -36,21 +35,20 @@ public class Servidor {
             serverSocket.setReuseAddress(true);
             //serverSocket.bind(new InetSocketAddress(puerto));
         } catch (NumberFormatException e) {
-            throw new RuntimeException("Error al leer el puerto desde el archivo de configuración");
+            throw new RuntimeException("Error al leer el puerto desde el archivo de configuraci贸n");
         } catch (IOException e) {
-            throw new RuntimeException("Error al abrir el archivo de configuración");
+            throw new RuntimeException("Error al abrir el archivo de configuraci贸n");
         }
 
-        this.usuarios = new HashMap<>();
-        this.mensajesRecibidos = new ArrayList<>();
-        this.sockets = new HashMap<>();
+        this.directorio = new Directorio();
+        this.colaMensajes = new ColaMensajes();
         this.manejadores = new HashMap<>();
         System.out.println("Servidor iniciado en el puerto: " + puerto);
     }
 
     /**
      * Inicia el servidor y comienza a aceptar conexiones de clientes.
-     * Por cada conexión entrante, se crea un nuevo hilo para manejar el registro del usuario.
+     * Por cada conexi贸n entrante, se crea un nuevo hilo para manejar el registro del usuario.
      */
     public void iniciar() {
         while (true) {
@@ -58,10 +56,10 @@ public class Servidor {
                 System.out.println("SERVIDOR: Esperando conexiones...");
                 Socket socket = serverSocket.accept();
                 System.out.println("Cliente conectado desde: " + socket.getInetAddress() + ":" + socket.getPort());
-                new Thread(new ManejadorRegistro(socket, this)).start();
-                
-            } catch (IOException e) {
+                ManejadorRegistro manejador = new ManejadorRegistro(socket, this);
+                new Thread(manejador).start();
 
+            } catch (IOException e) {
                 e.printStackTrace();
             }
         }
@@ -76,32 +74,23 @@ public class Servidor {
         serverSocket.close();
     }
 
-    public ArrayList<Mensaje> getMensajesRecibidos() {
-        return mensajesRecibidos;
+
+    public IDirectorio getDirectorio() {
+        return directorio;
     }
 
-    public Map<String, Contacto> getUsuarios() {
-        return usuarios;
-    }
-
-    public Map<Contacto, Socket> getSockets() {
-        return sockets;
+    public IColaMensajes getColaMensajes() {
+        return colaMensajes;
     }
 
     public Map<Contacto, ManejadorRegistro> getManejadores() {
         return manejadores;
     }
 
-    public void addUsuario(String nombre, Contacto usuario) {
-        usuarios.put(nombre, usuario);
-    }
-
-    public void addSocket(Contacto usuario, Socket socket) {
-        sockets.put(usuario, socket);
-    }
 
     public void addManejador(Contacto usuario, ManejadorRegistro manejador) {
         manejadores.put(usuario, manejador);
         System.out.println(manejadores);
     }
+
 }

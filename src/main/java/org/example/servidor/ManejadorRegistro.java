@@ -22,7 +22,6 @@ public class ManejadorRegistro implements Runnable {
     private Contacto usuario;
     private ObjectInputStream entrada;
     private ObjectOutputStream salida;
-
     public ManejadorRegistro(Socket socket, Servidor servidorDirectorio) {
         this.socket = socket;
         this.servidorDirectorio = servidorDirectorio;
@@ -37,7 +36,7 @@ public class ManejadorRegistro implements Runnable {
 
             // Registro del usuario
             Contacto usuarioDTO = (Contacto) entrada.readObject();
-            if (servidorDirectorio.getUsuarios().containsKey(usuarioDTO.getNombre())) {
+            if (servidorDirectorio.getDirectorio().getUsuarios().containsKey(usuarioDTO.getNombre())) {
                 salida.writeObject("El nickname ya está en uso.");
                 salida.flush();
                 socket.close();
@@ -45,8 +44,8 @@ public class ManejadorRegistro implements Runnable {
             }
 
             this.usuario = usuarioDTO;
-            servidorDirectorio.addUsuario(usuario.getNombre(), usuario);
-            servidorDirectorio.addSocket(usuario, socket);
+            servidorDirectorio.getDirectorio().addUsuario(usuario.getNombre(), usuario);
+            servidorDirectorio.getDirectorio().addSocket(usuario, socket);
             servidorDirectorio.addManejador(usuario, this);
             salida.writeObject("Registro exitoso.");
             salida.flush();
@@ -98,13 +97,13 @@ public class ManejadorRegistro implements Runnable {
         } catch (SocketException e) {
             System.out.println("El cliente se ha desconectado.");
             //se elimina del mapa de sockets
-            servidorDirectorio.getSockets().remove(usuario);
-            servidorDirectorio.getUsuarios().remove(usuario.getNombre());
+            servidorDirectorio.getDirectorio().getSockets().remove(usuario);
+            servidorDirectorio.getDirectorio().getUsuarios().remove(usuario.getNombre());
             this.corriendo = false;
         } catch (EOFException e) {
             System.out.println("El cliente se ha desconectado.");
-            servidorDirectorio.getSockets().remove(usuario);
-            servidorDirectorio.getUsuarios().remove(usuario.getNombre());
+            servidorDirectorio.getDirectorio().getSockets().remove(usuario);
+            servidorDirectorio.getDirectorio().getUsuarios().remove(usuario.getNombre());
             this.corriendo = false;
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
@@ -126,7 +125,7 @@ public class ManejadorRegistro implements Runnable {
     }
 
     private void enviarMensajesPendientes() throws IOException, InterruptedException {
-        for (Mensaje mensaje : servidorDirectorio.getMensajesRecibidos()) {
+        for (Mensaje mensaje : servidorDirectorio.getColaMensajes().getMensajesRecibidos()) {
             if (mensaje.getReceptor().equals(usuario)) {
                 System.out.println("Enviando mensaje pendiente a " + usuario.getNombre() + ": " + mensaje.getContenido());
                 salida.writeObject(mensaje);
@@ -134,11 +133,11 @@ public class ManejadorRegistro implements Runnable {
                 Thread.sleep(50);
             }
         }
-        servidorDirectorio.getMensajesRecibidos().removeIf(mensaje -> mensaje.getReceptor().equals(usuario));
+        servidorDirectorio.getColaMensajes().getMensajesRecibidos().removeIf(mensaje -> mensaje.getReceptor().equals(usuario));
     }
 
     private void enviarContactos() throws IOException {
-        ArrayList<Contacto> contactosList = new ArrayList<>(servidorDirectorio.getUsuarios().values());
+        ArrayList<Contacto> contactosList = new ArrayList<>(servidorDirectorio.getDirectorio().getUsuarios().values());
         DirectorioDTO contactos = new DirectorioDTO(contactosList);
         System.out.println("Enviando lista de contactos: " + contactos);
         salida.writeObject(contactos);
@@ -152,10 +151,10 @@ public class ManejadorRegistro implements Runnable {
                 manejadorDestino.enviarMensajeACliente(mensaje);
             } catch (IOException e) {
                 System.out.println("No se pudo enviar el mensaje a " + mensaje.getReceptor());
-                servidorDirectorio.getMensajesRecibidos().add(mensaje);
+                servidorDirectorio.getColaMensajes().getMensajesRecibidos().add(mensaje);
             }
         } else {
-            servidorDirectorio.getMensajesRecibidos().add(mensaje);
+            servidorDirectorio.getColaMensajes().getMensajesRecibidos().add(mensaje);
             System.out.println("El receptor no está conectado. El mensaje se almacenará.");
         }
     }
