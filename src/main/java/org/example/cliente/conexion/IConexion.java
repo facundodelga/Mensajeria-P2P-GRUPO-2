@@ -9,7 +9,7 @@ import java.util.ArrayList;
 public interface IConexion extends Runnable {
     void conectarServidor(Contacto usuario,int puerto) throws PuertoEnUsoException;
 
-    void esperarMensajes();
+    void esperarMensajes() throws IOException;
 
     void enviarMensaje(Contacto usuarioDTO, Mensaje mensaje) throws IOException, EnviarMensajeException;
 

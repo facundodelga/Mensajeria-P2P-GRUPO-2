@@ -5,49 +5,20 @@ import org.example.cliente.modelo.usuario.Contacto;
 
 import java.io.*;
 import java.net.ConnectException;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.UnknownHostException;
 import java.util.ArrayList;
 
-/**
- * Clase que representa una conexión de servidor.
- * Implementa la interfaz IConexion.
- */
 public class Conexion implements IConexion {
-
     private Socket socket;
     private ObjectInputStream entrada;
     private ObjectOutputStream salida;
 
-    /**
-     * Constructor de la clase Conexion.
-     */
     public Conexion() {
     }
 
-    /**
-     * Verifica si un puerto está en uso.
-     * @param puerto El puerto a verificar.
-     * @return true si el puerto está en uso, false en caso contrario.
-     */
-    private boolean elPuertoEstaEnUso(int puerto) {
-        try (ServerSocket ignored = new ServerSocket(puerto)) {
-            return false;
-        } catch (IOException e) {
-            return true;
-        }
-    }
-
-    /**
-     * Inicia el servidor en el puerto especificado.
-     * @param puerto El puerto en el que se configurará el servidor.
-     */
     @Override
     public void conectarServidor(Contacto usuario, int puerto) throws PuertoEnUsoException {
-//        if (elPuertoEstaEnUso(puerto)) {
-//            throw new PuertoEnUsoException("El puerto " + puerto + " ya está en uso.");
-//        }
         try {
             this.socket = new Socket("127.0.0.1", puerto);
             this.salida = new ObjectOutputStream(socket.getOutputStream());
@@ -55,7 +26,6 @@ public class Conexion implements IConexion {
 
             Thread.sleep(50);
 
-            // Enviar el objeto UsuarioDTO al servidor
             this.salida.writeObject(usuario);
             this.salida.flush();
 
@@ -77,7 +47,7 @@ public class Conexion implements IConexion {
         }
     }
 
-    public void obtenerMensajesPendientes(){
+    public void obtenerMensajesPendientes() {
         try {
             this.salida.writeObject("MensajesPendientes");
             this.salida.flush();
@@ -86,83 +56,58 @@ public class Conexion implements IConexion {
         }
     }
 
-    public ArrayList<Contacto> obtenerContactos(){
-        try{
-            this.salida = new ObjectOutputStream(socket.getOutputStream());
+    public ArrayList<Contacto> obtenerContactos() {
+        try {
             this.salida.writeObject("Contactos");
             this.salida.flush();
 
-            this.entrada = new ObjectInputStream(socket.getInputStream());
-
-            ArrayList<Contacto> contactos;
-            contactos = (ArrayList<Contacto>) this.entrada.readObject();
+            ArrayList<Contacto> contactos = (ArrayList<Contacto>) this.entrada.readObject();
             return contactos;
-        }catch (Exception e){
+        } catch (Exception e) {
             e.printStackTrace();
         }
         return null;
     }
 
-    /**
-     * Espera conexiones entrantes y maneja los mensajes recibidos.
-     */
     @Override
-    public void esperarMensajes() {
-
-        new Thread(new ManejadorEntradas(socket, entrada)).start();
-
+    public void esperarMensajes() throws IOException {
+        new Thread(new ManejadorEntradas(socket, salida)).start();
     }
 
-    /**
-     * Envía un mensaje a un usuario específico.
-     * @param usuarioDTO El usuario al que se enviará el mensaje.
-     * @param mensaje El mensaje que se enviará.
-     * @throws EnviarMensajeException Si ocurre un error al enviar el mensaje.
-     */
     @Override
     public void enviarMensaje(Contacto usuarioDTO, Mensaje mensaje) throws EnviarMensajeException, IOException {
         if (salida == null) {
             throw new IOException("El canal de salida no está inicializado.");
         } else {
-            System.out.println("Intentando enviar mensaje a " + usuarioDTO);
             try {
-                System.out.println("Enviando mensaje a " + usuarioDTO + ": " + mensaje.getContenido());
                 salida.writeObject(mensaje);
                 salida.flush();
-
             } catch (IOException e) {
                 throw new EnviarMensajeException("Error al enviar el mensaje a " + usuarioDTO, e);
             }
         }
     }
 
-    /**
-     * Cierra las conexiones del servidor y del socket.
-     */
     @Override
-    public void cerrarConexiones(){
+    public void cerrarConexiones() {
         try {
-            if(socket != null) {
+            if (socket != null) {
                 socket.close();
             }
-
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
-    /**
-     * Método que ejecuta el hilo del servidor para esperar mensajes.
-     */
     @Override
     public void run() {
-        esperarMensajes();
+        try {
+            esperarMensajes();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
-    /**
-     * Obtiene el Socket de la conexión actual.
-     * @return El Socket de la conexión actual.
-     */
     public Socket getSocket() {
         return socket;
     }

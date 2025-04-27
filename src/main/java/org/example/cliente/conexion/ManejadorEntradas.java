@@ -2,63 +2,51 @@ package org.example.cliente.conexion;
 
 import org.example.cliente.controlador.Controlador;
 import org.example.cliente.modelo.mensaje.Mensaje;
-import org.example.cliente.modelo.usuario.Contacto;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.util.Observable;
 
-/**
- * Clase que maneja las entradas de mensajes desde un socket.
- * Extiende Observable para notificar a los observadores cuando se recibe un mensaje.
- */
 public class ManejadorEntradas extends Observable implements Runnable {
     private Socket socket;
     private ObjectInputStream entrada;
+    private ObjectOutputStream salida;
 
-
-    /**
-     * Constructor de la clase ManejadorEntradas.
-     * @param socket El socket desde el cual se recibirán los mensajes.
-     */
-    public ManejadorEntradas(Socket socket, ObjectInputStream entrada) {
+    public ManejadorEntradas(Socket socket, ObjectOutputStream salida) throws IOException {
         this.socket = socket;
-        this.entrada = entrada;
+        this.salida = salida;
+        this.entrada = new ObjectInputStream(socket.getInputStream());
         addObserver(Controlador.getInstancia());
     }
 
-    /**
-     * Método que se ejecuta cuando el hilo se inicia.
-     * Lee mensajes desde el socket y notifica a los observadores.
-     */
     @Override
     public void run() {
         try {
-            while(true) {
-
-                Object msg = entrada.readObject();
-                if (msg instanceof Mensaje) {
-                    Mensaje mensaje = (Mensaje) msg;
-
-                    System.out.println("Mensaje recibido de " + mensaje.getEmisor() + ": " + mensaje.getContenido());
-
-                    setChanged();
-                    notifyObservers(mensaje);
-
-                } /*else if(msg instanceof ArrayList<?>) {
-                    ArrayList<Contacto> mensaje = (ArrayList<Contacto>) entrada.readObject();
-                    System.out.println("Mensaje recibido: " + mensaje);
-                    setChanged();
-                    notifyObservers(mensaje);
-                }*/
-
+            while (true) {
+                try {
+                    Object msg = entrada.readObject();
+                    if (msg instanceof Mensaje) {
+                        Mensaje mensaje = (Mensaje) msg;
+                        System.out.println("Mensaje recibido de " + mensaje.getEmisor() + ": " + mensaje.getContenido());
+                        setChanged();
+                        notifyObservers(mensaje);
+                    }
+                } catch (IOException e) {
+                    System.err.println("Error de entrada/salida: " + e.getMessage());
+                    break; // Salir del bucle en caso de error
+                } catch (ClassNotFoundException e) {
+                    System.err.println("Clase no encontrada: " + e.getMessage());
+                }
             }
-
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+        } finally {
+            try {
+                entrada.close();
+                socket.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         }
     }
 }
