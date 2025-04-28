@@ -1,26 +1,16 @@
 package org.example.servidor;
 
-import org.example.cliente.modelo.mensaje.Mensaje;
-import org.example.cliente.modelo.usuario.Contacto;
-
 import java.io.*;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
 import java.net.Socket;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * Clase que representa un servidor de directorio para gestionar el registro de usuarios.
  * Escucha conexiones entrantes y delega el manejo de cada conexi贸n a un hilo separado.
  */
 
-public class Servidor {
-    private ServerSocket serverSocket;
-    private Map<Contacto, ManejadorRegistro> manejadores;
-    private IDirectorio directorio;
-    private IColaMensajes colaMensajes;
+public class Servidor extends Thread {
+    private ServidorState estado;
+    private int puerto, puertoOtro;
 
     /**
      * Constructor para ServidorDirectorio.
@@ -28,22 +18,43 @@ public class Servidor {
      * @throws IOException Si hay un error al abrir el puerto.
      */
     public Servidor() throws IOException {
-        int puerto;
+
         try (BufferedReader reader = new BufferedReader(new FileReader("serverConfig.txt"))) {
-            puerto = Integer.parseInt(reader.readLine().trim());
-            this.serverSocket = new ServerSocket(puerto);
-            serverSocket.setReuseAddress(true);
+            this.puerto = Integer.parseInt(reader.readLine().trim());
+            this.puertoOtro = Integer.parseInt(reader.readLine().trim());
             //serverSocket.bind(new InetSocketAddress(puerto));
         } catch (NumberFormatException e) {
             throw new RuntimeException("Error al leer el puerto desde el archivo de configuraci贸n");
         } catch (IOException e) {
             throw new RuntimeException("Error al abrir el archivo de configuraci贸n");
         }
+        // Trata de conectarse al otro servidor para ver si es primario o secundario
+        try {
+            System.out.println("Intentando conectar al servidor " + puertoOtro + ".");
+            this.estado = new ServidorSecundario(this);
+            // Encontró servidor primario
+        } catch (IOException e) { // No encontró servidor primario
+            System.out.println("No se encontró el servidor en " + puertoOtro  + ".");
+            try {
+                System.out.println("Intentando conectar al servidor " +  puerto + ".");
+                this.estado = new ServidorPrincipal(this);
+            }catch(IOException e1){
+                System.out.println("No se pudo abrir el servidor principal: " + puerto + ".");
+                System.exit(404);
+            }
+        }
 
-        this.directorio = new Directorio();
-        this.colaMensajes = new ColaMensajes();
-        this.manejadores = new HashMap<>();
+        this.start();
         System.out.println("Servidor iniciado en el puerto: " + puerto);
+
+
+    }
+
+    @Override
+    public void run() {
+        while (true) {
+            this.estado.esperarConexiones();
+        }
     }
 
     /**
@@ -51,46 +62,30 @@ public class Servidor {
      * Por cada conexi贸n entrante, se crea un nuevo hilo para manejar el registro del usuario.
      */
     public void iniciar() {
-        while (true) {
-            try {
-                System.out.println("SERVIDOR: Esperando conexiones...");
-                Socket socket = serverSocket.accept();
-                System.out.println("Cliente conectado desde: " + socket.getInetAddress() + ":" + socket.getPort());
-                ManejadorRegistro manejador = new ManejadorRegistro(socket, this);
-                new Thread(manejador).start();
 
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
     }
 
-    /**
-     * Cierra el ServerSocket y libera los recursos asociados.
-     *
-     * @throws IOException Si hay un error al cerrar el socket del servidor.
-     */
-    public void cerrar() throws IOException {
-        serverSocket.close();
+    public ServidorState getEstado() {
+        return estado;
     }
 
-
-    public IDirectorio getDirectorio() {
-        return directorio;
+    public void setEstado(ServidorState estado) {
+        this.estado = estado;
     }
 
-    public IColaMensajes getColaMensajes() {
-        return colaMensajes;
+    public int getPuerto() {
+        return puerto;
     }
 
-    public Map<Contacto, ManejadorRegistro> getManejadores() {
-        return manejadores;
+    public void setPuerto(int puerto) {
+        this.puerto = puerto;
     }
 
-
-    public void addManejador(Contacto usuario, ManejadorRegistro manejador) {
-        manejadores.put(usuario, manejador);
-        System.out.println(manejadores);
+    public int getPuertoOtro() {
+        return puertoOtro;
     }
 
+    public void setPuertoOtro(int puertoOtro) {
+        this.puertoOtro = puertoOtro;
+    }
 }

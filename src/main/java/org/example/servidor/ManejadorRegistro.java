@@ -17,12 +17,13 @@ import static java.lang.Thread.sleep;
 
 public class ManejadorRegistro implements Runnable {
     private Socket socket;
-    private Servidor servidorDirectorio;
+    private ServidorPrincipal servidorDirectorio;
     private boolean corriendo = false;
     private Contacto usuario;
     private ObjectInputStream entrada;
     private ObjectOutputStream salida;
-    public ManejadorRegistro(Socket socket, Servidor servidorDirectorio) {
+
+    public ManejadorRegistro(Socket socket, ServidorPrincipal servidorDirectorio) {
         this.socket = socket;
         this.servidorDirectorio = servidorDirectorio;
     }
