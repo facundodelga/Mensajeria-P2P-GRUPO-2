@@ -30,9 +30,10 @@ public class Servidor extends Thread {
         }
         // Trata de conectarse al otro servidor para ver si es primario o secundario
         try {
+            // Encontró servidor primario
             System.out.println("Intentando conectar al servidor " + puertoOtro + ".");
             this.estado = new ServidorSecundario(this);
-            // Encontró servidor primario
+
         } catch (IOException e) { // No encontró servidor primario
             System.out.println("No se encontró el servidor en " + puertoOtro  + ".");
             try {

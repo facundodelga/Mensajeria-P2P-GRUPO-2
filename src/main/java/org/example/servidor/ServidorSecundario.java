@@ -22,9 +22,10 @@ public class ServidorSecundario implements ServidorState {
     public ServidorSecundario(Servidor servidor) throws IOException {
         this.servidor = servidor;
         this.puerto = servidor.getPuerto();
+        this.puertoPrincipal = servidor.getPuertoOtro();
 
         int portOtro = this.servidor.getPuertoOtro();
-        Socket socketOtro = new Socket("127.0.0.1",portOtro);
+        Socket socketOtro = new Socket("127.0.0.1",puerto);
         socketOtro.setSoTimeout(5100); // Heartbeat de 5 segundos. Tolerancia de 0.1 segundos.
 
         PrintWriter out = new PrintWriter(socketOtro.getOutputStream(), true);
@@ -46,7 +47,11 @@ public class ServidorSecundario implements ServidorState {
         // Implementar la lógica para cambiar el estado del servidor secundario
         System.out.println("Cambiando estado del servidor secundario...");
         System.out.println("Cambiando a modo primario...");  // CAMBIO DE SV SECUNDARIO A PRIMARIO
-        this.servidor.setEstado(new ServidorPrincipal(this.servidor, this.manejadores, this.directorio, this.colaMensajes, false));
+        try {
+            this.servidor.setEstado(new ServidorPrincipal(this.servidor, this.manejadores, this.directorio, this.colaMensajes, false));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     private void esperarPulsos() {

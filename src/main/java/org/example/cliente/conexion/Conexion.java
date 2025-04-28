@@ -16,6 +16,7 @@ public class Conexion implements IConexion {
     private Socket socket;
     private ObjectInputStream entrada;
     private ObjectOutputStream salida;
+    private PrintWriter registroOut;
 
     /**
      * Constructor de la clase Conexion.
@@ -60,12 +61,20 @@ public class Conexion implements IConexion {
             } catch (IOException e) {
                 throw new RuntimeException("Error al abrir el archivo de configuracion");
             }
-
+            System.out.println("Intentando conectar al servidor " + ip + ":" + puertotxt + ".");
             //this.socket.bind(new InetSocketAddress(usuario.getPuerto())); // El puerto que eligió el usuario
             this.socket.connect(new InetSocketAddress(ip, puertotxt));
 
             this.socket.setReuseAddress(true);
 
+            // Enviar intento de conexion
+            this.registroOut = new PrintWriter(socket.getOutputStream(), true);
+            this.registroOut.println("CLIENTE");
+
+            Thread.sleep(50);
+
+
+            System.out.println("Conexión autorizada.");
             this.salida = new ObjectOutputStream(socket.getOutputStream());
             this.entrada = new ObjectInputStream(socket.getInputStream());
 
@@ -81,7 +90,9 @@ public class Conexion implements IConexion {
                 throw new PuertoEnUsoException("El nickname ya está en uso.");
             } else {
                 System.out.println("Conexión establecida con el servidor en el puerto: " + puerto);
+
             }
+
         } catch (ConnectException e) {
             System.err.println("Error: No se pudo conectar al servidor en el puerto " + puerto + ". Asegúrese de que el servidor esté en ejecución.");
         } catch (UnknownHostException e) {
