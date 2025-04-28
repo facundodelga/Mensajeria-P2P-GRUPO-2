@@ -7,7 +7,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public interface IConexion extends Runnable {
-    void conectarServidor(Contacto usuario,int puerto) throws PuertoEnUsoException;
+    void conectarServidor(Contacto usuario) throws PuertoEnUsoException, IOException;
 
     void esperarMensajes();
 

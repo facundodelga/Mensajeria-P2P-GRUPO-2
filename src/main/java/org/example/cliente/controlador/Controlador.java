@@ -178,7 +178,7 @@ public class Controlador implements ActionListener, Observer {
             // Registrar en el servidor de directorios
            // registrarEnServidorDirectorio(usuario);
 
-            conexion.conectarServidor(usuarioDTO,8080);
+            conexion.conectarServidor(usuarioDTO);
             new Thread(conexion).start();
             vista.mostrar();
             vista.titulo("Usuario: " + nombre + " | Ip: "+ "127.0.0.1" + " | Puerto: " + puerto);
@@ -189,6 +189,8 @@ public class Controlador implements ActionListener, Observer {
         }catch (PuertoEnUsoException e){
             mostrarMensajeFlotante(e.getMessage(), Color.RED);
             vistaInicioSesion.mostrar();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
     }
 

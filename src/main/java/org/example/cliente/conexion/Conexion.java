@@ -6,17 +6,24 @@ import org.example.cliente.modelo.usuario.Contacto;
 import java.io.*;
 import java.net.*;
 import java.util.ArrayList;
+import java.util.Observable;
+import java.util.Observer;
 
 /**
  * Clase que representa una conexión de servidor.
  * Implementa la interfaz IConexion.
  */
-public class Conexion implements IConexion {
+public class Conexion implements IConexion, Observer {
 
     private Socket socket;
+    private Contacto usuario;
     private ObjectInputStream entrada;
     private ObjectOutputStream salida;
     private PrintWriter registroOut;
+    private String ip;
+    private int puertoRespaldo;
+    private int puerto;
+
 
     /**
      * Constructor de la clase Conexion.
@@ -39,74 +46,40 @@ public class Conexion implements IConexion {
 
     /**
      * Inicia el servidor en el puerto especificado.
-     * @param puerto El puerto en el que se configurará el servidor.
+     *
      */
     @Override
-    public void conectarServidor(Contacto usuario, int puerto) throws PuertoEnUsoException {
+    public void conectarServidor(Contacto usuario) throws PuertoEnUsoException, IOException {
+        this.usuario = usuario;
 //        if (elPuertoEstaEnUso(puerto)) {
 //            throw new PuertoEnUsoException("El puerto " + puerto + " ya está en uso.");
 //        }
         try {
             this.socket = new Socket();
 
-            int puertotxt;
-            String ip;
             try (BufferedReader reader = new BufferedReader(new FileReader("clienteConfig.txt"))) {
                 ip = reader.readLine().trim();
-                puertotxt = Integer.parseInt(reader.readLine().trim());
-
+                puerto = Integer.parseInt(reader.readLine().trim());
+                puertoRespaldo = Integer.parseInt(reader.readLine().trim());
 
             } catch (NumberFormatException e) {
                 throw new RuntimeException("Error al leer el puerto desde el archivo de configuracion");
             } catch (IOException e) {
                 throw new RuntimeException("Error al abrir el archivo de configuracion");
             }
-            System.out.println("Intentando conectar al servidor " + ip + ":" + puertotxt + ".");
-            //this.socket.bind(new InetSocketAddress(usuario.getPuerto())); // El puerto que eligió el usuario
-            this.socket.connect(new InetSocketAddress(ip, puertotxt));
-
-            this.socket.setReuseAddress(true);
-
-            // Enviar intento de conexion
-            this.registroOut = new PrintWriter(socket.getOutputStream(), true);
-            this.registroOut.println("CLIENTE");
-
-            Thread.sleep(50);
-
-
-            System.out.println("Conexión autorizada.");
-            this.salida = new ObjectOutputStream(socket.getOutputStream());
-            this.entrada = new ObjectInputStream(socket.getInputStream());
-
-            Thread.sleep(50);
-            System.out.println(usuario.toString());
-            // Enviar el objeto UsuarioDTO al servidor
-            this.salida.writeObject(usuario);
-            this.salida.flush();
-
-            String estaOcupado = (String) this.entrada.readObject();
-
-            if ("El nickname ya está en uso.".equals(estaOcupado)) {
-                throw new PuertoEnUsoException("El nickname ya está en uso.");
-            } else {
-                System.out.println("Conexión establecida con el servidor en el puerto: " + puerto);
-
-            }
+            conectar(usuario, puerto);
 
         } catch (ConnectException e) {
-            System.err.println("Error: No se pudo conectar al servidor en el puerto " + puerto + ". Asegúrese de que el servidor esté en ejecución.");
+            System.err.println("Error: No se pudo conectar al servidor en el puerto " + puerto + ". Reintentando respaldo.");
+            conectar(usuario, puertoRespaldo);
         } catch (UnknownHostException e) {
             System.err.println("Error: Host desconocido.");
         } catch (IOException e) {
             System.err.println("Error de E/S: " + e.getMessage());
         }
-        catch (InterruptedException e) {
-            System.err.println("Error: Hilo interrumpido.");
-        }
-        catch (ClassNotFoundException e) {
-            System.err.println("Error: Clase no encontrada.");
-        }
     }
+
+
 
     public void obtenerMensajesPendientes(){
         try {
@@ -137,7 +110,7 @@ public class Conexion implements IConexion {
     @Override
     public void esperarMensajes() {
 
-        new Thread(new ManejadorEntradas(socket, entrada)).start();
+        new Thread(new ManejadorEntradas(socket, entrada,this)).start();
 
     }
 
@@ -190,6 +163,85 @@ public class Conexion implements IConexion {
             e.printStackTrace();
         }
     }
+    public void conectar(Contacto usuario, int puerto) throws IOException, PuertoEnUsoException {
+        try {
+
+            this.socket = new Socket();
+            System.out.println("Intentando conectar al servidor " + ip + ":" + puerto + ".");
+            this.socket.connect(new InetSocketAddress(ip, puerto));
+
+            this.socket.setReuseAddress(true);
+
+            // Enviar intento de conexion
+            this.registroOut = new PrintWriter(socket.getOutputStream(), true);
+            this.registroOut.println("CLIENTE");
+
+            Thread.sleep(50);
+
+            System.out.println("Conexión autorizada.");
+            this.salida = new ObjectOutputStream(socket.getOutputStream());
+            this.entrada = new ObjectInputStream(socket.getInputStream());
+
+            Thread.sleep(50);
+
+            System.out.println(usuario.toString());
+            // Enviar el objeto UsuarioDTO al servidor
+            this.salida.writeObject(usuario);
+            this.salida.flush();
+
+            String estaOcupado = (String) this.entrada.readObject();
+
+            if ("El nickname ya está en uso.".equals(estaOcupado)) {
+                throw new PuertoEnUsoException("El nickname ya está en uso.");
+            } else {
+                System.out.println("Conexión establecida con el servidor en el puerto: " + puerto);
+
+            }
+        } catch (ConnectException e) {
+            System.err.println("Error: No se pudo conectar al servidor en el puerto " + puerto + ". Asegúrese de que el servidor esté en ejecución.");
+        } catch (UnknownHostException e) {
+            System.err.println("Error: Host desconocido.");
+        } catch (IOException e) {
+            System.err.println("Error de E/S: " + e.getMessage());
+        }
+        catch (InterruptedException e) {
+            System.err.println("Error: Hilo interrumpido.");
+        }
+        catch (ClassNotFoundException e) {
+            System.err.println("Error: Clase no encontrada.");
+        }
+
+    }
+
+    public void reconectar() throws IOException {
+
+
+        boolean conectado= false;
+        while(!conectado){
+            try{
+                this.conectar(this.usuario, this.puerto);
+                conectado=true;
+
+            }catch (IOException e) {
+                System.err.println("Error: No se pudo conectar al servidor en el puerto " + puerto + ". Reintentando respaldo.");
+                try {
+                    this.conectar(this.usuario, this.puertoRespaldo);
+                    conectado=true;
+                } catch (PuertoEnUsoException ex) {
+                    throw new RuntimeException(ex);
+                }
+
+            } catch (PuertoEnUsoException e) {
+                throw new RuntimeException(e);
+            }
+
+        }
+
+        if (!conectado) {
+            throw new IOException("No se pudo conectar a ninguno de los servidores disponibles.");
+        }
+
+    }
 
     /**
      * Método que ejecuta el hilo del servidor para esperar mensajes.
@@ -205,5 +257,10 @@ public class Conexion implements IConexion {
      */
     public Socket getSocket() {
         return socket;
+    }
+
+    @Override
+    public void update(Observable o, Object arg) {
+
     }
 }

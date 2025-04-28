@@ -27,10 +27,11 @@ public class ManejadorEntradas extends Observable implements Runnable {
      * Constructor de la clase ManejadorEntradas.
      * @param socket El socket desde el cual se recibirán los mensajes.
      */
-    public ManejadorEntradas(Socket socket, ObjectInputStream entrada) {
+    public ManejadorEntradas(Socket socket, ObjectInputStream entrada, Conexion conexion) {
         this.socket = socket;
         this.entrada = entrada;
         addObserver(Controlador.getInstancia());
+        addObserver(conexion);
     }
 
     /**
@@ -75,6 +76,7 @@ public class ManejadorEntradas extends Observable implements Runnable {
 
                 }
                 socket.close();
+
             } catch (IOException e) {
                 e.printStackTrace();
             }
