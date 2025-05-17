@@ -50,6 +50,7 @@ public class ManejadorRegistro implements Runnable {
             servidorDirectorio.addManejador(usuario, this);
             salida.writeObject("Registro exitoso.");
             salida.flush();
+            this.servidorDirectorio.setCambios(true);
 
             // Enviar mensajes pendientes
             enviarMensajesPendientes();
@@ -153,6 +154,7 @@ public class ManejadorRegistro implements Runnable {
             } catch (IOException e) {
                 System.out.println("No se pudo enviar el mensaje a " + mensaje.getReceptor());
                 servidorDirectorio.getColaMensajes().getMensajesRecibidos().add(mensaje);
+                this.servidorDirectorio.setCambios(true);
             }
         } else {
             servidorDirectorio.getColaMensajes().getMensajesRecibidos().add(mensaje);

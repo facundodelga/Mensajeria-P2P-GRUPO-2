@@ -66,6 +66,7 @@ public class ManejadorEntradas extends Observable implements Runnable {
             }
         } catch (SocketException e) {
             System.out.println("El socket se ha cerrado.");
+
         } catch (IOException | ClassNotFoundException e) {
 
             e.printStackTrace();

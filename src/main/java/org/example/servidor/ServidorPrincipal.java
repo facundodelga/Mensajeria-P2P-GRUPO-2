@@ -39,7 +39,7 @@ public class ServidorPrincipal implements ServidorState{
 
     public void setCambios(boolean cambios) {
         // Implementación del método para manejar cambios
-
+        this.cambios = cambios;
     }
     public boolean hayCambios () {
         return this.cambios;

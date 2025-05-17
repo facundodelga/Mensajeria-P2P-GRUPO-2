@@ -1,13 +1,10 @@
 package org.example.cliente.controlador;
 
-import org.example.cliente.conexion.EnviarMensajeException;
-import org.example.cliente.conexion.IConexion;
-import org.example.cliente.conexion.PuertoEnUsoException;
+import org.example.cliente.conexion.*;
 import org.example.cliente.modelo.*;
 import org.example.cliente.vista.*;
 
 import org.example.cliente.modelo.mensaje.Mensaje;
-import org.example.cliente.conexion.Conexion;
 import org.example.cliente.modelo.usuario.Usuario;
 import org.example.cliente.modelo.usuario.Contacto;
 import org.example.servidor.DirectorioDTO;
@@ -139,8 +136,8 @@ public class Controlador implements ActionListener, Observer {
 
         try {
 
-            conexion.enviarMensaje(vista.getListaChats().getSelectedValue().getContacto(),mensaje);
-            this.conversacionServicio.addMensajeSaliente(vista.getListaChats().getSelectedValue().getContacto(),mensaje);
+            conexion.enviarMensaje(vista.getListaChats().getSelectedValue().getContacto(), mensaje);
+            this.conversacionServicio.addMensajeSaliente(vista.getListaChats().getSelectedValue().getContacto(), mensaje);
             vista.getCampoMensaje().setText("");
 
             //agregar el mensaje a la vista
@@ -148,6 +145,9 @@ public class Controlador implements ActionListener, Observer {
                     mensaje,
                     true,
                     sdf.format(mensaje.getFecha())));
+        }catch (PerdioConexionException e){
+            // Intentar reconectar
+
         } catch (EnviarMensajeException | IOException e) {
             mostrarMensajeFlotante(e.getMessage(), Color.RED);
         }
@@ -189,8 +189,8 @@ public class Controlador implements ActionListener, Observer {
         }catch (PuertoEnUsoException e){
             mostrarMensajeFlotante(e.getMessage(), Color.RED);
             vistaInicioSesion.mostrar();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
+        } catch (IOException | PerdioConexionException e) {
+            reconectar();
         }
     }
 
@@ -360,10 +360,40 @@ public class Controlador implements ActionListener, Observer {
 
 
     public ArrayList<Contacto> obtenerContactos() {
-            return this.conexion.obtenerContactos();
+        ArrayList<Contacto> contactos = new ArrayList<>();
+        try {
+            contactos = this.conexion.obtenerContactos();
+        } catch (PerdioConexionException e) {
+            //intentar reconectar
+            reconectar();
+        }
+        return contactos;
+    }
+
+    void reconectar(){
+        try {
+
+            this.conexion.reconectar();
+
+        } catch (IOException e) {
+            if(this.vista.mostrarDialogoReintentarConexion()){
+                reconectar();
+            }else{
+                this.vista.cerrarDialogoReconexion();
+                System.exit(0);
+            }
+
+        }
     }
 
 
 
 
+    public void cerrarMensajeConectando() {
+        this.vista.cerrarDialogoReconexion();
+    }
+
+    public void abrirMensajeConectando() {
+        this.vista.mostrarDialogoReconexion();
+    }
 }

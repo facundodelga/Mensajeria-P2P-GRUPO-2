@@ -2,13 +2,14 @@ package org.example.cliente.modelo.usuario;
 
 import org.example.cliente.modelo.conversacion.Conversacion;
 
+import java.io.Serializable;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Clase que representa a un usuario en el sistema.
  */
-public class Usuario {
+public class Usuario implements Serializable {
     private String nombre;
     private String ip;
     private int puerto;

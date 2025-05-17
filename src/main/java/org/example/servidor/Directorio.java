@@ -6,8 +6,8 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Directorio implements IDirectorio {
-    private final Map<String, Contacto> usuarios;
-    private final Map<Contacto, Socket> sockets;
+    private  Map<String, Contacto> usuarios;
+    private  transient Map<Contacto, Socket> sockets;
 
     public Directorio() {
         usuarios = new HashMap<>();
@@ -43,4 +43,17 @@ public class Directorio implements IDirectorio {
     public Socket getSocket(Contacto receptor) {
         return sockets.get(receptor);
     }
+
+    @Override
+    public Directorio clonar() {
+        Directorio copia = Clonador.deepClone(this);
+
+        // Restaurar los sockets manualmente
+        for (Map.Entry<Contacto, Socket> entry : this.sockets.entrySet()) {
+            copia.sockets.put(new Contacto(entry.getKey()), entry.getValue()); // Clonar Contacto, compartir Socket
+        }
+
+        return copia;
+    }
+
 }

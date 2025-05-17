@@ -2,11 +2,9 @@ package org.example.cliente.vista;
 
 import org.example.cliente.controlador.Controlador;
 import org.example.cliente.modelo.usuario.Contacto;
-import org.example.servidor.DirectorioDTO;
 
 import java.awt.*;
 import java.awt.event.WindowAdapter;
-import java.util.ArrayList;
 import javax.swing.*;
 
 /**
@@ -28,6 +26,7 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
     private JButton botonAgregarChat;
     IVistaAgregarContacto dialog;
     private JMenuItem itemAgregarContacto;
+    private JDialog dialogoReconexion;
 
     // Nuevos componentes para mostrar datos del usuario
     private JLabel lblNombreUsuario;
@@ -307,8 +306,6 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         return false;
     }
 
-
-
     /**
      * Muestra la ventana principal.
      */
@@ -316,8 +313,6 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
     public void mostrar() {
         setVisible(true);
     }
-
-
 
     /**
      * Agrega un listener de ventana.
@@ -334,6 +329,130 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
      */
     public void titulo(String texto) {
         setTitle("App de Mensajeria - " + texto);
+    }
+
+    /**
+     * Muestra un diálogo de reconexión cuando se pierde la conexión con el servidor.
+     *
+     * @return true si el diálogo fue mostrado correctamente
+     */
+    public boolean mostrarDialogoReconexion() {
+        this.dialogoReconexion = new JDialog(this, "Error de Conexión", true);
+        dialogoReconexion.setSize(400, 200);
+        dialogoReconexion.setLocationRelativeTo(this);
+        dialogoReconexion.setLayout(new BorderLayout());
+
+        // Panel con mensaje
+        JPanel panelMensaje = new JPanel();
+        panelMensaje.setLayout(new BorderLayout());
+        panelMensaje.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        // Icono de advertencia
+        JLabel iconoLabel = new JLabel(UIManager.getIcon("OptionPane.warningIcon"));
+        panelMensaje.add(iconoLabel, BorderLayout.WEST);
+
+        // Mensaje de error
+        JPanel panelTexto = new JPanel();
+        panelTexto.setLayout(new BoxLayout(panelTexto, BoxLayout.Y_AXIS));
+        panelTexto.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
+
+        JLabel mensajeLabel = new JLabel("Se ha perdido la conexión con el servidor.");
+        mensajeLabel.setFont(new Font("Tahoma", Font.BOLD, 14));
+
+        JLabel preguntaLabel = new JLabel("¿Qué desea hacer?");
+        preguntaLabel.setFont(new Font("Tahoma", Font.PLAIN, 12));
+
+        panelTexto.add(mensajeLabel);
+        panelTexto.add(Box.createRigidArea(new Dimension(0, 10)));
+        panelTexto.add(preguntaLabel);
+
+        panelMensaje.add(panelTexto, BorderLayout.CENTER);
+
+        // Panel de botones
+        JPanel panelBotones = new JPanel();
+        panelBotones.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        panelBotones.setLayout(new FlowLayout(FlowLayout.RIGHT));
+
+        dialogoReconexion.add(panelMensaje, BorderLayout.CENTER);
+        dialogoReconexion.add(panelBotones, BorderLayout.SOUTH);
+
+        // Mostrar el diálogo
+        dialogoReconexion.setVisible(true);
+
+        return true;
+    }
+
+    public void cerrarDialogoReconexion() {
+        if (dialogoReconexion != null) {
+            dialogoReconexion.dispose();
+        }
+    }
+
+    /**
+     * Muestra un diálogo para intentar reconectar o salir del programa
+     * @return true si el usuario decidió intentar reconectar, false si decidió salir
+     */
+    public boolean mostrarDialogoReintentarConexion() {
+        final boolean[] resultado = new boolean[1];
+
+        this.dialogoReconexion = new JDialog(this, "Error de Conexión", true);
+        dialogoReconexion.setSize(400, 200);
+        dialogoReconexion.setLocationRelativeTo(this);
+        dialogoReconexion.setLayout(new BorderLayout());
+
+        // Panel con mensaje
+        JPanel panelMensaje = new JPanel();
+        panelMensaje.setLayout(new BorderLayout());
+        panelMensaje.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+
+        // Icono de advertencia
+        JLabel iconoLabel = new JLabel(UIManager.getIcon("OptionPane.warningIcon"));
+        panelMensaje.add(iconoLabel, BorderLayout.WEST);
+
+        // Mensaje de error
+        JPanel panelTexto = new JPanel();
+        panelTexto.setLayout(new BoxLayout(panelTexto, BoxLayout.Y_AXIS));
+        panelTexto.setBorder(BorderFactory.createEmptyBorder(0, 20, 0, 0));
+
+        JLabel mensajeLabel = new JLabel("Se ha perdido la conexión con el servidor.");
+        mensajeLabel.setFont(new Font("Tahoma", Font.BOLD, 14));
+
+        JLabel preguntaLabel = new JLabel("¿Desea intentar reconectar o salir del programa?");
+        preguntaLabel.setFont(new Font("Tahoma", Font.PLAIN, 12));
+
+        panelTexto.add(mensajeLabel);
+        panelTexto.add(Box.createRigidArea(new Dimension(0, 10)));
+        panelTexto.add(preguntaLabel);
+
+        panelMensaje.add(panelTexto, BorderLayout.CENTER);
+
+        // Panel de botones
+        JPanel panelBotones = new JPanel();
+        panelBotones.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        panelBotones.setLayout(new FlowLayout(FlowLayout.RIGHT));
+
+        JButton botonReconectar = new JButton("Reintentar conexión");
+        botonReconectar.addActionListener(e -> {
+            resultado[0] = true;
+            dialogoReconexion.dispose();
+        });
+
+        JButton botonSalir = new JButton("Salir");
+        botonSalir.addActionListener(e -> {
+            resultado[0] = false;
+            dialogoReconexion.dispose();
+        });
+
+        panelBotones.add(botonReconectar);
+        panelBotones.add(botonSalir);
+
+        dialogoReconexion.add(panelMensaje, BorderLayout.CENTER);
+        dialogoReconexion.add(panelBotones, BorderLayout.SOUTH);
+
+        // Mostrar el diálogo
+        dialogoReconexion.setVisible(true);
+
+        return resultado[0];
     }
 
     // Getters
@@ -373,10 +492,6 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         }
         return new Contacto(dialog.getNombre(), dialog.getIP(), Integer.parseInt(dialog.getPuerto()));
     }
-
-
-
-
 
     /**
      * Método para que el controlador registre la acción de agregar contacto.

@@ -10,6 +10,8 @@ import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.Map;
 
+import static java.lang.Thread.sleep;
+
 public class ServidorSecundario implements ServidorState {
     private Servidor servidor;
     private Map<Contacto, ManejadorRegistro> manejadores;
@@ -44,6 +46,11 @@ public class ServidorSecundario implements ServidorState {
 
     @Override
     public void cambiarEstado() {
+        try {
+            sleep(3000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         // Implementar la lógica para cambiar el estado del servidor secundario
         System.out.println("Cambiando estado del servidor secundario...");
         System.out.println("Cambiando a modo primario...");  // CAMBIO DE SV SECUNDARIO A PRIMARIO
@@ -63,7 +70,10 @@ public class ServidorSecundario implements ServidorState {
                     System.out.println("Se recibió un pulso del servidor principal.");
                 } else {
                     System.out.println("Se recibió una actualización del servidor principal.");
-
+                    ServidorDTO estado = (ServidorDTO) o;
+                    this.directorio = estado.getDirectorio();
+                    this.colaMensajes = (estado.getColaMensajes());
+                    System.out.println("Se actualizó el estado del servidor secundario.");
                 }
                 before = System.currentTimeMillis();
             }
@@ -74,8 +84,10 @@ public class ServidorSecundario implements ServidorState {
             this.cambiarEstado();
         } catch (IOException e) {
             // ERROR DE CONEXION CON EL SV PRIMARIO
+            e.printStackTrace();
             System.out.println("Hubo un error de conexión con el servidor primario.");
             System.out.println("Cambiando a modo primario..."); // CAMBIO DE SV SECUNDARIO A PRIMARIO
+
             this.cambiarEstado();
         } catch (ClassNotFoundException e) {
             // No se encontró la clase del objeto enviado (nunca pasa)

@@ -7,14 +7,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 public interface IConexion extends Runnable {
-    void conectarServidor(Contacto usuario) throws PuertoEnUsoException, IOException;
+    void conectarServidor(Contacto usuario) throws PuertoEnUsoException, IOException, PerdioConexionException;
 
     void esperarMensajes();
 
-    void enviarMensaje(Contacto usuarioDTO, Mensaje mensaje) throws IOException, EnviarMensajeException;
+    void enviarMensaje(Contacto usuarioDTO, Mensaje mensaje) throws IOException, EnviarMensajeException, PerdioConexionException;
 
     void cerrarConexiones();
     void obtenerMensajesPendientes();
+    void reconectar() throws IOException;
 
-    ArrayList<Contacto> obtenerContactos();
+    ArrayList<Contacto> obtenerContactos() throws PerdioConexionException;
 }

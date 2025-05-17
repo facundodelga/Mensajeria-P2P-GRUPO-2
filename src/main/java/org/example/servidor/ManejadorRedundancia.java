@@ -54,7 +54,8 @@ public class ManejadorRedundancia extends Thread implements IRedundancia {
     @Override
     public void enviarEstado() throws IOException{
         //Aca se deberia de clonar el estado del directorio y la cola de mensajes
-        //this.out.writeObject((FilasDTO) filasDTO); //Envia el estado del directorio y la cola de mensajes
+        ServidorDTO estado = new ServidorDTO((Directorio)this.servidor.getDirectorio().clonar(),(ColaMensajes) this.servidor.getColaMensajes().clonar());
+        this.out.writeObject(estado);
         this.servidor.setCambios(false);
     }
 

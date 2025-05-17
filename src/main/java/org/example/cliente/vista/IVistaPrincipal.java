@@ -19,6 +19,9 @@ public interface IVistaPrincipal {
     Contacto mostrarAgregarContacto();
     public JList<Contacto> getListaContactos();
     public DefaultListModel<Contacto> getModeloContactos();
+    boolean mostrarDialogoReconexion();
+    boolean mostrarDialogoReintentarConexion();
+    void cerrarDialogoReconexion();
 
     void setAccionAgregarContacto(Runnable accion);
     public void addMensajeBurbuja(MensajePantalla mensaje);
@@ -30,4 +33,6 @@ public interface IVistaPrincipal {
     void informacionDelUsuario(Contacto contacto);
 
     void addWindowListener(WindowAdapter windowAdapter);
+
+
 }
