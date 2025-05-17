@@ -14,7 +14,6 @@ import static java.lang.Thread.sleep;
 
 public class ServidorSecundario implements ServidorState {
     private Servidor servidor;
-    private Map<Contacto, ManejadorRegistro> manejadores;
     private IDirectorio directorio;
     private IColaMensajes colaMensajes;
     private ObjectInputStream entradaOtro;
@@ -55,7 +54,7 @@ public class ServidorSecundario implements ServidorState {
         System.out.println("Cambiando estado del servidor secundario...");
         System.out.println("Cambiando a modo primario...");  // CAMBIO DE SV SECUNDARIO A PRIMARIO
         try {
-            this.servidor.setEstado(new ServidorPrincipal(this.servidor, this.manejadores, this.directorio, this.colaMensajes, false));
+            this.servidor.setEstado(new ServidorPrincipal(this.servidor, this.directorio, this.colaMensajes, false));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -84,7 +83,7 @@ public class ServidorSecundario implements ServidorState {
             this.cambiarEstado();
         } catch (IOException e) {
             // ERROR DE CONEXION CON EL SV PRIMARIO
-            e.printStackTrace();
+
             System.out.println("Hubo un error de conexión con el servidor primario.");
             System.out.println("Cambiando a modo primario..."); // CAMBIO DE SV SECUNDARIO A PRIMARIO
 

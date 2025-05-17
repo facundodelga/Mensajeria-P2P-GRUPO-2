@@ -46,7 +46,7 @@ public class ManejadorRegistro implements Runnable {
 
             this.usuario = usuarioDTO;
             servidorDirectorio.getDirectorio().addUsuario(usuario.getNombre(), usuario);
-            servidorDirectorio.getDirectorio().addSocket(usuario, socket);
+            //servidorDirectorio.getDirectorio().addSocket(usuario, socket);
             servidorDirectorio.addManejador(usuario, this);
             salida.writeObject("Registro exitoso.");
             salida.flush();
@@ -99,13 +99,15 @@ public class ManejadorRegistro implements Runnable {
         } catch (SocketException e) {
             System.out.println("El cliente se ha desconectado.");
             //se elimina del mapa de sockets
-            servidorDirectorio.getDirectorio().getSockets().remove(usuario);
+            //servidorDirectorio.getDirectorio().getSockets().remove(usuario);
             servidorDirectorio.getDirectorio().getUsuarios().remove(usuario.getNombre());
+            this.servidorDirectorio.setCambios(true);
             this.corriendo = false;
         } catch (EOFException e) {
             System.out.println("El cliente se ha desconectado.");
-            servidorDirectorio.getDirectorio().getSockets().remove(usuario);
+            //servidorDirectorio.getDirectorio().getSockets().remove(usuario);
             servidorDirectorio.getDirectorio().getUsuarios().remove(usuario.getNombre());
+            this.servidorDirectorio.setCambios(true);
             this.corriendo = false;
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
@@ -118,6 +120,7 @@ public class ManejadorRegistro implements Runnable {
                 e.printStackTrace();
             }
         }
+
     }
 
     public void enviarMensajeACliente(Mensaje mensaje) throws IOException {

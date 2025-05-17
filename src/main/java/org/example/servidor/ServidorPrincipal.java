@@ -29,9 +29,9 @@ public class ServidorPrincipal implements ServidorState{
         this.cambios = false;
     }
 
-    public ServidorPrincipal(Servidor servidor, Map<Contacto, ManejadorRegistro> manejadores, IDirectorio directorio, IColaMensajes colaMensajes, boolean cambios) throws IOException {
+    public ServidorPrincipal(Servidor servidor, IDirectorio directorio, IColaMensajes colaMensajes, boolean cambios) throws IOException {
         this(servidor);
-        this.manejadores = manejadores;
+        this.manejadores = new HashMap<>();
         this.directorio = directorio;
         this.colaMensajes = colaMensajes;
         this.cambios = cambios;

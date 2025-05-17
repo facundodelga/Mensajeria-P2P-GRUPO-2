@@ -7,21 +7,11 @@ import java.util.Map;
 
 public class Directorio implements IDirectorio {
     private  Map<String, Contacto> usuarios;
-    private  transient Map<Contacto, Socket> sockets;
+
 
     public Directorio() {
         usuarios = new HashMap<>();
-        sockets = new HashMap<>();
-    }
 
-    @Override
-    public Map<Contacto, Socket> getSockets() {
-        return sockets;
-    }
-
-    @Override
-    public void addSocket(Contacto usuario, Socket socket) {
-        sockets.put(usuario, socket);
     }
 
     @Override
@@ -39,19 +29,11 @@ public class Directorio implements IDirectorio {
         usuarios.remove(nombre, usuario);
     }
 
-    @Override
-    public Socket getSocket(Contacto receptor) {
-        return sockets.get(receptor);
-    }
+
 
     @Override
     public Directorio clonar() {
         Directorio copia = Clonador.deepClone(this);
-
-        // Restaurar los sockets manualmente
-        for (Map.Entry<Contacto, Socket> entry : this.sockets.entrySet()) {
-            copia.sockets.put(new Contacto(entry.getKey()), entry.getValue()); // Clonar Contacto, compartir Socket
-        }
 
         return copia;
     }
