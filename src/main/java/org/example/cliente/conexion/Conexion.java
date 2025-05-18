@@ -190,7 +190,7 @@ public class Conexion implements IConexion, Observer {
 
             sleep(50);
 
-            System.out.println("Conexión autorizada.");
+
             this.salida = new ObjectOutputStream(socket.getOutputStream());
             this.entrada = new ObjectInputStream(socket.getInputStream());
 

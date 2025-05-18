@@ -15,7 +15,7 @@ public class ManejadorRedundancia extends Thread implements IRedundancia {
         try {
 
             this.out = new ObjectOutputStream(socket.getOutputStream());
-            System.out.println("Se conectó un servidor del puerto " + socket.getPort() + " como backup.");
+            System.out.println("Se conectó un servidor como backup.");
             this.servidor.setCambios(true); // Asegura resincronización de estado
             this.running = true;
         } catch (IOException e) {

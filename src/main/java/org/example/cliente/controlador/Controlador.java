@@ -148,6 +148,7 @@ public class Controlador implements ActionListener, Observer {
                     sdf.format(mensaje.getFecha())));
         }catch (PerdioConexionException e){
             // Intentar reconectar
+            reconectar();
 
         } catch (EnviarMensajeException | IOException e) {
             mostrarMensajeFlotante(e.getMessage(), Color.RED);
@@ -379,10 +380,17 @@ public class Controlador implements ActionListener, Observer {
         try {
 
             this.conexion.reconectar();
-
+            new Thread(conexion).start();
         } catch (IOException e) {
             if(this.vista.mostrarDialogoReintentarConexion()){
-                reconectar();
+                try {
+                    this.conexion.reconectar();
+                    new Thread(conexion).start();
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
+
+
             }else{
                 this.vista.cerrarDialogoReconexion();
                 System.exit(0);
