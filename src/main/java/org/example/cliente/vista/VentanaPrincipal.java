@@ -317,6 +317,7 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
      * @return true si el diálogo fue mostrado correctamente
      */
     public boolean mostrarDialogoReconexion() {
+        this.setEnabled(false);
         new Thread(() -> {
             this.dialogoReconexion = new JDialog(this, "Error de Conexión", true);
             dialogoReconexion.setSize(400, 200);
@@ -365,6 +366,7 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
     }
 
     public void cerrarDialogoReconexion() {
+        setEnabled(true);
         if (dialogoReconexion != null) {
             dialogoReconexion.dispose();
         }
@@ -375,6 +377,7 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
      * @return true si el usuario decidió intentar reconectar, false si decidió salir
      */
     public boolean mostrarDialogoReintentarConexion() {
+        this.setEnabled(false);
         final boolean[] resultado = new boolean[1];
 
         this.dialogoReconexion = new JDialog(this, "Error de Conexión", true);
@@ -417,12 +420,14 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         botonReconectar.addActionListener(e -> {
             resultado[0] = true;
             dialogoReconexion.dispose();
+            this.setEnabled(true);
         });
 
         JButton botonSalir = new JButton("Salir");
         botonSalir.addActionListener(e -> {
             resultado[0] = false;
             dialogoReconexion.dispose();
+            System.exit(130);
         });
 
         panelBotones.add(botonReconectar);
