@@ -23,6 +23,8 @@ public class Mensaje implements Serializable {
         this.emisor=emisor;
     }
 
+    public Mensaje() {
+    }
 
     public Date getFecha() {
         return fecha;
@@ -48,4 +50,6 @@ public class Mensaje implements Serializable {
                 ", usuario=" + emisor +
                 '}';
     }
+
+
 }

@@ -5,16 +5,19 @@ import org.example.cliente.modelo.usuario.Contacto;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Map;
 
 public interface IConexion extends Runnable {
-    void conectarServidor(Contacto usuario,int puerto) throws PuertoEnUsoException;
+    void conectarServidor(Contacto usuario) throws PuertoEnUsoException, IOException, PerdioConexionException;
 
     void esperarMensajes();
 
-    void enviarMensaje(Contacto usuarioDTO, Mensaje mensaje) throws IOException, EnviarMensajeException;
+    void enviarMensaje(Contacto usuarioDTO, Mensaje mensaje) throws IOException, EnviarMensajeException, PerdioConexionException;
 
     void cerrarConexiones();
     void obtenerMensajesPendientes();
+    void reconectar() throws IOException;
+    void conectar(Map.Entry<String, Integer> entry) throws IOException, PuertoEnUsoException;
 
-    ArrayList<Contacto> obtenerContactos();
+    ArrayList<Contacto> obtenerContactos() throws PerdioConexionException;
 }

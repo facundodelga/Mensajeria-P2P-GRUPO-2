@@ -6,22 +6,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Directorio implements IDirectorio {
-    private final Map<String, Contacto> usuarios;
-    private final Map<Contacto, Socket> sockets;
+    private  Map<String, Contacto> usuarios;
+
 
     public Directorio() {
         usuarios = new HashMap<>();
-        sockets = new HashMap<>();
-    }
 
-    @Override
-    public Map<Contacto, Socket> getSockets() {
-        return sockets;
-    }
-
-    @Override
-    public void addSocket(Contacto usuario, Socket socket) {
-        sockets.put(usuario, socket);
     }
 
     @Override
@@ -39,8 +29,13 @@ public class Directorio implements IDirectorio {
         usuarios.remove(nombre, usuario);
     }
 
+
+
     @Override
-    public Socket getSocket(Contacto receptor) {
-        return sockets.get(receptor);
+    public Directorio clonar() {
+        Directorio copia = Clonador.deepClone(this);
+
+        return copia;
     }
+
 }

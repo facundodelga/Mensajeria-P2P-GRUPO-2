@@ -195,8 +195,10 @@ public class VentanaAgregarContacto extends JDialog implements IVistaAgregarCont
      */
     private void cargarContactosDisponibles(DirectorioDTO directorio) {
         modeloContactos.clear();
-        for (Contacto contacto : directorio.getContactos()) {
-            modeloContactos.addElement(contacto);
+        if(directorio != null) {
+            for (Contacto contacto : directorio.getContactos()) {
+                modeloContactos.addElement(contacto);
+            }
         }
     }
 

@@ -8,10 +8,19 @@ public class Contacto implements Serializable {
     private String ip;
     private int puerto;
 
+    public Contacto() {
+    }
+
     public Contacto(Usuario usuario) {
         this.nombre = usuario.getNombre();
         this.ip = usuario.getIp();
         this.puerto = usuario.getPuerto();
+    }
+
+    public Contacto(Contacto c){
+        this.nombre = c.getNombre();
+        this.ip = c.getIp();
+        this.puerto = c.getPuerto();
     }
 
     public Contacto(String nombre, String ip, int puerto) {
@@ -66,6 +75,8 @@ public class Contacto implements Serializable {
                 ", puerto=" + puerto +
                 '}';
     }
+
+
 
 
 }

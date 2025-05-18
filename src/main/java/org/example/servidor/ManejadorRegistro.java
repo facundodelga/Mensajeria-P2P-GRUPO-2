@@ -17,12 +17,13 @@ import static java.lang.Thread.sleep;
 
 public class ManejadorRegistro implements Runnable {
     private Socket socket;
-    private Servidor servidorDirectorio;
+    private ServidorPrincipal servidorDirectorio;
     private boolean corriendo = false;
     private Contacto usuario;
     private ObjectInputStream entrada;
     private ObjectOutputStream salida;
-    public ManejadorRegistro(Socket socket, Servidor servidorDirectorio) {
+
+    public ManejadorRegistro(Socket socket, ServidorPrincipal servidorDirectorio) {
         this.socket = socket;
         this.servidorDirectorio = servidorDirectorio;
     }
@@ -36,7 +37,10 @@ public class ManejadorRegistro implements Runnable {
 
             // Registro del usuario
             Contacto usuarioDTO = (Contacto) entrada.readObject();
-            if (servidorDirectorio.getDirectorio().getUsuarios().containsKey(usuarioDTO.getNombre())) {
+
+            boolean estaConectado = servidorDirectorio.getConectados().getUsuarios().containsKey(usuarioDTO.getNombre());
+            boolean estaDirectorio = servidorDirectorio.getDirectorio().getUsuarios().containsKey(usuarioDTO.getNombre());
+            if (estaConectado && estaDirectorio) {
                 salida.writeObject("El nickname ya está en uso.");
                 salida.flush();
                 socket.close();
@@ -45,10 +49,12 @@ public class ManejadorRegistro implements Runnable {
 
             this.usuario = usuarioDTO;
             servidorDirectorio.getDirectorio().addUsuario(usuario.getNombre(), usuario);
-            servidorDirectorio.getDirectorio().addSocket(usuario, socket);
+            servidorDirectorio.getConectados().addUsuario(usuario.getNombre(), usuario);
+            //servidorDirectorio.getDirectorio().addSocket(usuario, socket);
             servidorDirectorio.addManejador(usuario, this);
             salida.writeObject("Registro exitoso.");
             salida.flush();
+            this.servidorDirectorio.setCambios(true);
 
             // Enviar mensajes pendientes
             enviarMensajesPendientes();
@@ -97,13 +103,15 @@ public class ManejadorRegistro implements Runnable {
         } catch (SocketException e) {
             System.out.println("El cliente se ha desconectado.");
             //se elimina del mapa de sockets
-            servidorDirectorio.getDirectorio().getSockets().remove(usuario);
-            servidorDirectorio.getDirectorio().getUsuarios().remove(usuario.getNombre());
+            //servidorDirectorio.getDirectorio().getSockets().remove(usuario);
+            servidorDirectorio.getConectados().getUsuarios().remove(usuario.getNombre());
+            this.servidorDirectorio.setCambios(true);
             this.corriendo = false;
         } catch (EOFException e) {
             System.out.println("El cliente se ha desconectado.");
-            servidorDirectorio.getDirectorio().getSockets().remove(usuario);
-            servidorDirectorio.getDirectorio().getUsuarios().remove(usuario.getNombre());
+            //servidorDirectorio.getDirectorio().getSockets().remove(usuario);
+            servidorDirectorio.getConectados().getUsuarios().remove(usuario.getNombre());
+            this.servidorDirectorio.setCambios(true);
             this.corriendo = false;
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
@@ -116,6 +124,7 @@ public class ManejadorRegistro implements Runnable {
                 e.printStackTrace();
             }
         }
+
     }
 
     public void enviarMensajeACliente(Mensaje mensaje) throws IOException {
@@ -152,6 +161,7 @@ public class ManejadorRegistro implements Runnable {
             } catch (IOException e) {
                 System.out.println("No se pudo enviar el mensaje a " + mensaje.getReceptor());
                 servidorDirectorio.getColaMensajes().getMensajesRecibidos().add(mensaje);
+                this.servidorDirectorio.setCambios(true);
             }
         } else {
             servidorDirectorio.getColaMensajes().getMensajesRecibidos().add(mensaje);

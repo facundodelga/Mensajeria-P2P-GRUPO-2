@@ -3,9 +3,8 @@ package org.example.servidor;
 import org.example.cliente.modelo.mensaje.Mensaje;
 import org.example.cliente.modelo.usuario.Contacto;
 import java.util.ArrayList;
-import java.util.List;
 
-public class ColaMensajes implements IColaMensajes {
+public class ColaMensajes implements IColaMensajes{
     private final ArrayList<Mensaje> mensajesRecibidos;
 
     public ColaMensajes() {
@@ -29,4 +28,13 @@ public class ColaMensajes implements IColaMensajes {
     public void eliminarMensajesPorReceptor(Contacto receptor) {
         mensajesRecibidos.removeIf(mensaje -> mensaje.getReceptor().equals(receptor));
     }
+
+    @Override
+    public ColaMensajes clonar() {
+
+        ColaMensajes colaMensajesClonada = Clonador.deepClone(this);
+        return colaMensajesClonada;
+    }
+
+
 }
