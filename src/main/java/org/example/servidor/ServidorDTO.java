@@ -9,7 +9,10 @@ public class ServidorDTO implements Serializable {
     public ServidorDTO(IDirectorio directorio, IColaMensajes colaMensajes) {
         this.directorio = directorio;
         this.colaMensajes = colaMensajes;
+
     }
+
+
 
     public IDirectorio getDirectorio() {
         return directorio;

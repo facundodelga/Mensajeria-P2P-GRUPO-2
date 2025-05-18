@@ -8,6 +8,8 @@ import java.io.*;
 import java.net.*;
 import java.util.*;
 
+import static java.lang.Thread.sleep;
+
 /**
  * Clase que representa una conexión de servidor.
  * Implementa la interfaz IConexion.
@@ -78,14 +80,8 @@ public class Conexion implements IConexion, Observer {
 
             conectar(this.servers.get(this.serverActivo));
 
-        } catch (SocketException e) {
-            System.err.println("Error: No se pudo conectar al servidor en el puerto " + puerto + ". Reintentando respaldo.");
-
-            conectar(this.servers.get(this.serverActivo));
         } catch (UnknownHostException e) {
             System.err.println("Error: Host desconocido.");
-        } catch (IOException e) {
-            System.err.println("Error de E/S: " + e.getMessage());
         }
     }
 
@@ -183,22 +179,22 @@ public class Conexion implements IConexion, Observer {
         try {
 
             this.socket = new Socket();
-            System.out.println("Intentando conectar al servidor " + ip + ":" + puerto + ".");
+            System.out.println("Intentando conectar al servidor " + ip + ":" + entry.getValue() + ".");
             this.socket.connect(new InetSocketAddress(ip, entry.getValue()));
-
+            System.out.println("Estoy aca?");
             this.socket.setReuseAddress(true);
 
             // Enviar intento de conexion
             this.registroOut = new PrintWriter(socket.getOutputStream(), true);
             this.registroOut.println("CLIENTE");
 
-            Thread.sleep(50);
+            sleep(50);
 
             System.out.println("Conexión autorizada.");
             this.salida = new ObjectOutputStream(socket.getOutputStream());
             this.entrada = new ObjectInputStream(socket.getInputStream());
 
-            Thread.sleep(50);
+            sleep(50);
 
             System.out.println(usuario.toString());
             // Enviar el objeto UsuarioDTO al servidor
@@ -213,14 +209,9 @@ public class Conexion implements IConexion, Observer {
                 System.out.println("Conexión establecida con el servidor en el puerto: " + puerto);
 
             }
-        } catch (ConnectException e) {
-            System.err.println("Error: No se pudo conectar al servidor en el puerto " + puerto + ". Asegúrese de que el servidor esté en ejecución.");
 
         } catch (UnknownHostException e) {
             System.err.println("Error: Host desconocido.");
-        } catch (IOException e) {
-            System.err.println("Error de E/S: " + e.getMessage());
-
         }
         catch (InterruptedException e) {
             System.err.println("Error: Hilo interrumpido.");
@@ -233,33 +224,41 @@ public class Conexion implements IConexion, Observer {
 
     public void reconectar() throws IOException {
         this.abrirMensajeConectando();
-
-
-
+        System.out.println("Intentando reconectar al servidor " + ip + ":" + puerto + ".");
         boolean conectado= false;
-        while(!conectado){
+        for(int i= 5; i>0 && !conectado; i--){
+
             try{
                 this.conectar(servers.get(this.serverActivo));
                 conectado=true;
 
             }catch (IOException e) {
+                try {
+                    sleep(3000);
+                } catch (InterruptedException ex) {
+                    throw new RuntimeException(ex);
+                }
                 if(serverActivo==1){
                     this.serverActivo=0;
                 }else {
+                    System.out.println("Intentando reconectar al servidor " + ip + ":" + puertoRespaldo + ".");
                     this.serverActivo=1;
                 }
             }catch(PuertoEnUsoException e){
-                System.exit(666);
+                System.out.println("reconectado");
             }
 
         }
 
+        this.cerrarMensajeConectando();
+
         if (!conectado) {
+
             throw new IOException("No se pudo conectar a ninguno de los servidores disponibles.");
         }
 
 
-        this.cerrarMensajeConectando();
+
 
     }
 

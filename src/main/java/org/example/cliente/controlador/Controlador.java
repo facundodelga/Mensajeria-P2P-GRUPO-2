@@ -40,6 +40,7 @@ public class Controlador implements ActionListener, Observer {
      * Constructor privado para el patrón Singleton.
      */
     private Controlador() {
+        directorioDTO = new DirectorioDTO();
     }
 
     /**
@@ -179,6 +180,7 @@ public class Controlador implements ActionListener, Observer {
            // registrarEnServidorDirectorio(usuario);
 
             conexion.conectarServidor(usuarioDTO);
+
             new Thread(conexion).start();
             vista.mostrar();
             vista.titulo("Usuario: " + nombre + " | Ip: "+ "127.0.0.1" + " | Puerto: " + puerto);
@@ -191,6 +193,9 @@ public class Controlador implements ActionListener, Observer {
             vistaInicioSesion.mostrar();
         } catch (IOException | PerdioConexionException e) {
             reconectar();
+            vista.mostrar();
+            vista.titulo("Usuario: " + nombre + " | Ip: "+ "127.0.0.1" + " | Puerto: " + usuarioDTO.getPuerto());
+            vista.informacionDelUsuario(usuarioDTO);
         }
     }
 

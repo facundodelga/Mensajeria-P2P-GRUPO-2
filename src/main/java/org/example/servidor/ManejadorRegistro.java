@@ -37,7 +37,10 @@ public class ManejadorRegistro implements Runnable {
 
             // Registro del usuario
             Contacto usuarioDTO = (Contacto) entrada.readObject();
-            if (servidorDirectorio.getDirectorio().getUsuarios().containsKey(usuarioDTO.getNombre())) {
+
+            boolean estaConectado = servidorDirectorio.getConectados().getUsuarios().containsKey(usuarioDTO.getNombre());
+            boolean estaDirectorio = servidorDirectorio.getDirectorio().getUsuarios().containsKey(usuarioDTO.getNombre());
+            if (estaConectado && estaDirectorio) {
                 salida.writeObject("El nickname ya está en uso.");
                 salida.flush();
                 socket.close();
@@ -46,6 +49,7 @@ public class ManejadorRegistro implements Runnable {
 
             this.usuario = usuarioDTO;
             servidorDirectorio.getDirectorio().addUsuario(usuario.getNombre(), usuario);
+            servidorDirectorio.getConectados().addUsuario(usuario.getNombre(), usuario);
             //servidorDirectorio.getDirectorio().addSocket(usuario, socket);
             servidorDirectorio.addManejador(usuario, this);
             salida.writeObject("Registro exitoso.");
@@ -100,13 +104,13 @@ public class ManejadorRegistro implements Runnable {
             System.out.println("El cliente se ha desconectado.");
             //se elimina del mapa de sockets
             //servidorDirectorio.getDirectorio().getSockets().remove(usuario);
-            servidorDirectorio.getDirectorio().getUsuarios().remove(usuario.getNombre());
+            servidorDirectorio.getConectados().getUsuarios().remove(usuario.getNombre());
             this.servidorDirectorio.setCambios(true);
             this.corriendo = false;
         } catch (EOFException e) {
             System.out.println("El cliente se ha desconectado.");
             //servidorDirectorio.getDirectorio().getSockets().remove(usuario);
-            servidorDirectorio.getDirectorio().getUsuarios().remove(usuario.getNombre());
+            servidorDirectorio.getConectados().getUsuarios().remove(usuario.getNombre());
             this.servidorDirectorio.setCambios(true);
             this.corriendo = false;
         } catch (IOException | ClassNotFoundException e) {

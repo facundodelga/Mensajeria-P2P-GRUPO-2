@@ -16,6 +16,7 @@ public class ServidorPrincipal implements ServidorState{
     private Map<Contacto, ManejadorRegistro> manejadores;
     private IDirectorio directorio;
     private IColaMensajes colaMensajes;
+    private IDirectorio conectados;
     private boolean cambios;
 
     public ServidorPrincipal(Servidor servidor) throws IOException {
@@ -24,6 +25,7 @@ public class ServidorPrincipal implements ServidorState{
         this.serverSocket = new ServerSocket(puerto);
         serverSocket.setReuseAddress(true);
         this.directorio = new Directorio();
+        this.conectados = new Directorio();
         this.colaMensajes = new ColaMensajes();
         this.manejadores = new HashMap<>();
         this.cambios = false;
@@ -33,6 +35,7 @@ public class ServidorPrincipal implements ServidorState{
         this(servidor);
         this.manejadores = new HashMap<>();
         this.directorio = directorio;
+        this.conectados = new Directorio();
         this.colaMensajes = colaMensajes;
         this.cambios = cambios;
     }
@@ -77,6 +80,9 @@ public class ServidorPrincipal implements ServidorState{
 
     public IDirectorio getDirectorio() {
         return directorio;
+    }
+    public IDirectorio getConectados() {
+        return conectados;
     }
 
     public IColaMensajes getColaMensajes() {
