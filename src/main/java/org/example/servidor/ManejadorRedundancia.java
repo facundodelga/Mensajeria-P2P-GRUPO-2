@@ -9,14 +9,13 @@ public class ManejadorRedundancia extends Thread implements IRedundancia {
     private ServidorPrincipal servidor;
     private boolean running;
     private ObjectOutputStream out;
-    private int puertoRedundancia;
 
     public ManejadorRedundancia(Socket socket, ServidorPrincipal servidor) {
         this.servidor = servidor;
         try {
 
             this.out = new ObjectOutputStream(socket.getOutputStream());
-            System.out.println("Se conectó un servidor del puerto " + puertoRedundancia + " como backup.");
+            System.out.println("Se conectó un servidor del puerto " + socket.getPort() + " como backup.");
             this.servidor.setCambios(true); // Asegura resincronización de estado
             this.running = true;
         } catch (IOException e) {
@@ -41,7 +40,7 @@ public class ManejadorRedundancia extends Thread implements IRedundancia {
                 }
             } catch (IOException e1) {
                 running = false;
-                System.out.println("Se desconectó el servidor de backup del puerto: " + this.puertoRedundancia);
+                System.out.println("Se desconectó el servidor de backup");
             }
         }
     }
