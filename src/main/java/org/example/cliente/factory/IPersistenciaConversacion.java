@@ -1,9 +1,14 @@
 package org.example.cliente.factory;
 
-import org.grupo10.modelo.Turno;
+import org.example.config.ConfiguracionAplicacion;
+import org.example.cliente.modelo.conversacion.Conversacion;
 
-import java.time.LocalDate;
+import java.util.List;
 
 public interface IPersistenciaConversacion {
-    void logToFile(Turno turno, int boxNumber, LocalDate date);
+    void guardarConversacion(Conversacion conversacion) throws Exception;
+    Conversacion cargarConversacion(String conversacionId) throws Exception;
+    List<String> listarIdsConversaciones() throws Exception;
+    void guardarConfiguracion(ConfiguracionAplicacion config) throws Exception;
+    ConfiguracionAplicacion cargarConfiguracion() throws Exception;
 }
