@@ -1,6 +1,6 @@
 package org.example.cliente.modelo.conversacion;
 
-import org.example.cliente.cifrado.ICifradorMensajes;
+import org.example.util.cifrado.ICifradorMensajes;
 import org.example.cliente.modelo.mensaje.Mensaje;
 import org.example.cliente.modelo.usuario.Contacto; // Necesario si quieres guardar los contactos directamente
 import org.example.util.ClaveUtil; // Nueva utilidad para manejar claves

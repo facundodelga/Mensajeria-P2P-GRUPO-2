@@ -1,12 +1,11 @@
 package org.example.cliente.factory; // Nuevo paquete
 
-import org.example.cliente.cifrado.ICifradorMensajes;
+import org.example.util.cifrado.ICifradorMensajes;
 import org.example.cliente.modelo.mensaje.Mensaje;
 import org.example.cliente.modelo.usuario.Contacto;
 
 import javax.crypto.SecretKey;
 import java.util.Date;
-import java.util.UUID;
 
 public class CreadorMensaje {
 

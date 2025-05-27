@@ -1,4 +1,4 @@
-package org.example.cliente.cifrado; // Ajustado al nuevo paquete
+package org.example.util.cifrado; // Ajustado al nuevo paquete
 
 import javax.crypto.SecretKey;
 
