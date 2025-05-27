@@ -8,5 +8,6 @@ public interface IUsuario {
     int getPuerto();
 
 
-
+    class Turno {
+    }
 }

@@ -1,8 +1,8 @@
 package org.example.cliente.factory.json;
 
-import org.grupo10.exception.ClienteNoExistenteException;
-import org.grupo10.factory.ILogRepositorio;
-import org.grupo10.modelo.Cliente;
+
+import org.example.cliente.factory.ILogRepositorio;
+import org.example.cliente.modelo.usuario.Usuario;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
@@ -17,7 +17,6 @@ import java.time.format.DateTimeFormatter;
 public class JsonRepositorio implements ILogRepositorio {
     private String filename;
 
-    @Override
     public void readRepo( ) throws FileNotFoundException {
         String currentDir = System.getProperty("user.dir");
         try {
@@ -31,9 +30,8 @@ public class JsonRepositorio implements ILogRepositorio {
         }
     }
 
-    @Override
-    public Cliente getCliente(String dniTotem) throws ClienteNoExistenteException, FileNotFoundException {
-        Cliente retorno = null;
+    public Usuario getCliente(String nombreTotem) {
+        Usuario retorno = null;
         boolean encontro = false;
 
         JSONParser parser = new JSONParser();
@@ -45,24 +43,16 @@ public class JsonRepositorio implements ILogRepositorio {
             for (Object obj : jsonArray) {
                 JSONObject clienteJSON = (JSONObject) obj;
                 String nombre = (String) clienteJSON.get("nombre");
-                String dni = (String) clienteJSON.get("dni");
-                int prioridad = ((Long) clienteJSON.get("prioridad")).intValue();
-                LocalDate fechaNacimiento = LocalDate.parse((String) clienteJSON.get("fechaNacimiento"), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                String ip = (String) clienteJSON.get("ip");
+                String puerto = (String) clienteJSON.get("puerto");
 
-                if (dni.equals(dniTotem)) {
+                if (nombre.equals(nombreTotem)) {
                     encontro = true;
-                    retorno = new Cliente(dni, nombre, prioridad, fechaNacimiento);
+                    retorno = new Usuario();
                     break;
                 }
             }
-
-            if (!encontro) {
-                throw new ClienteNoExistenteException();
-            }
-
-        } catch (IOException | ParseException e) {
-            throw new FileNotFoundException("Hubo un error al leer el repositorio de clientes.");
+            return retorno;
         }
-        return retorno;
     }
 }
