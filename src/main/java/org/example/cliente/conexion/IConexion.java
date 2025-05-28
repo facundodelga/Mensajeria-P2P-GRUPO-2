@@ -6,6 +6,7 @@ import org.example.cliente.modelo.usuario.Contacto;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Observable;
 
 public interface IConexion extends Runnable {
     void conectarServidor(Contacto usuario) throws PuertoEnUsoException, IOException, PerdioConexionException;
@@ -20,4 +21,5 @@ public interface IConexion extends Runnable {
     void conectar(Map.Entry<String, Integer> entry) throws IOException, PuertoEnUsoException;
 
     ArrayList<Contacto> obtenerContactos() throws PerdioConexionException;
+
 }

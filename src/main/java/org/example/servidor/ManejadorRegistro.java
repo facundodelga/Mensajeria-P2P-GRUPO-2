@@ -71,7 +71,7 @@ public class ManejadorRegistro implements Runnable {
                 System.out.println("Objeto recibido de tipo: " + msg.getClass().getName());
                 if (msg instanceof Mensaje) {
                     Mensaje mensaje = (Mensaje) msg;
-                    System.out.println("Soy " + usuario.getNombre() + ": Mensaje recibido de " + mensaje.getEmisor() + ": " + mensaje.getContenidoDesencriptado());
+                    System.out.println("Soy " + usuario.getNombre() + ": Mensaje recibido de " + mensaje.getEmisor() + ": " + mensaje.getContenidoCifrado());
                     enviarMensaje(mensaje);
                 } else if (msg instanceof Contacto) {
                     Contacto contacto = (Contacto) msg;
@@ -128,7 +128,7 @@ public class ManejadorRegistro implements Runnable {
     }
 
     public void enviarMensajeACliente(Mensaje mensaje) throws IOException {
-        System.out.println("Enviando mensaje a " + usuario.getNombre() + ": " + mensaje.getContenidoDesencriptado());
+        System.out.println("Enviando mensaje a " + usuario.getNombre() + ": " + mensaje.getContenidoCifrado());
         salida.writeObject(mensaje);
         salida.flush();
     }
@@ -136,7 +136,7 @@ public class ManejadorRegistro implements Runnable {
     private void enviarMensajesPendientes() throws IOException, InterruptedException {
         for (Mensaje mensaje : servidorDirectorio.getColaMensajes().getMensajesRecibidos()) {
             if (mensaje.getReceptor().equals(usuario)) {
-                System.out.println("Enviando mensaje pendiente a " + usuario.getNombre() + ": " + mensaje.getContenidoDesencriptado());
+                System.out.println("Enviando mensaje pendiente a " + usuario.getNombre() + ": " + mensaje.getContenidoCifrado());
                 salida.writeObject(mensaje);
                 salida.flush();
                 Thread.sleep(50);
