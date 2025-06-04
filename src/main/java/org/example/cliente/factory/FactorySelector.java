@@ -1,34 +1,32 @@
 package org.example.cliente.factory;
 
 
-import org.example.cliente.factory.json.JsonFactory;
-import org.example.cliente.factory.txt.TxtFactory;
-import org.example.cliente.factory.xml.XmlFactory;
+import org.example.cliente.factory.json.PersistenciaJSONFactory;
+import org.example.cliente.factory.txt.PersistenciaTXTFactory;
+import org.example.cliente.modelo.usuario.Contacto;
+//import org.example.cliente.factory.xml.XMLFactory;
 
 public class FactorySelector {
-    private AbstractFactory logFactory;
+    private PersistenciaFactory persistenciaFactory;
 
-    public FactorySelector(String logFactory) {
-        this.logFactory = createLogFactory(logFactory);
+    public FactorySelector(String formato) {
+        this.persistenciaFactory = crearFactory(formato);
     }
 
-    private AbstractFactory createLogFactory(String logFormat) {
-        switch (logFormat.toLowerCase()) {
+    private PersistenciaFactory crearFactory(String formato) {
+        switch (formato.toLowerCase()) {
             case "txt":
-                return new TxtFactory();
+                return new PersistenciaTXTFactory();
             case "json":
-                return new JsonFactory();
-            case "xml":
-                return new XmlFactory();
+                return new PersistenciaJSONFactory();
+//            case "xml":
+//                return new XMLFactory();
             default:
-                throw new IllegalArgumentException("Formato de log no soportado: " + logFormat);
+                throw new IllegalArgumentException("Formato de persistencia no soportado: " + formato);
         }
     }
 
-    public IPersistenciaConversacion logClientLlamado() {
-         return logFactory.createLlamados();
-    }
-    public IPersistenciaContactos clientRepository(){
-        return logFactory.createRepositorio();
+    public IPersistencia getPersistencia(Contacto usuarioDTO) {
+        return persistenciaFactory.crearPersistencia(usuarioDTO);
     }
 }
