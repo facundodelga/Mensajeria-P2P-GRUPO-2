@@ -1,7 +1,10 @@
 package org.example.cliente.controlador;
 
 import org.example.cliente.conexion.*;
+import org.example.cliente.factory.FactorySelector;
+import org.example.cliente.factory.IPersistencia;
 import org.example.cliente.modelo.*;
+import org.example.cliente.modelo.conversacion.Conversacion;
 import org.example.cliente.vista.*;
 
 import org.example.cliente.modelo.mensaje.Mensaje;
@@ -11,13 +14,13 @@ import org.example.servidor.DirectorioDTO;
 
 
 import javax.swing.*;
+import javax.swing.Timer;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Observable;
-import java.util.Observer;
+import java.util.*;
+import java.util.List;
 
 /**
  * Clase Controlador que implementa ActionListener y Observer.
@@ -35,6 +38,8 @@ public class Controlador implements ActionListener, Observer {
     private DirectorioDTO directorioDTO;
     private final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
     private UsuarioServicio usuarioServicio;
+    private FactorySelector factorySelector;
+    private IPersistencia persistencia;
 
     /**
      * Constructor privado para el patrón Singleton.
@@ -84,12 +89,20 @@ public class Controlador implements ActionListener, Observer {
     }
 
     private void cerrarSesion() {
+        // Guardar conversaciones antes de cerrar
+        if (usuarioServicio != null && persistencia != null) {
+            persistencia.guardarConversaciones(conversacionServicio.getConversaciones());
+            System.out.println("Conversaciones guardadas");
+        }
+
         // Cerrar la conexión y limpiar la vista
         if (conexion != null) {
             conexion.cerrarConexiones();
         }
+
         vista.ocultar();
         vista.limpiarCampos();
+
         // Esperar un tiempo para que el sistema libere el puerto
         try {
             Thread.sleep(1000); // Esperar 1 segundo
@@ -99,10 +112,9 @@ public class Controlador implements ActionListener, Observer {
 
         vistaInicioSesion.mostrar();
 
-
         conexion = null;
-
-
+        usuarioServicio = null;
+        persistencia = null;
     }
 
     /**
@@ -177,10 +189,25 @@ public class Controlador implements ActionListener, Observer {
 
             this.usuarioDTO = new Contacto(usuario);
 
+            cargarConversacionesYContactos();
+
             // Registrar en el servidor de directorios
            // registrarEnServidorDirectorio(usuario);
 
             conexion.conectarServidor(usuarioDTO);
+
+            List<Contacto> contactosObtenidos = directorioDTO.getContactos();
+            for (Contacto c : contactosObtenidos) {
+                if (agendaServicio.buscaNombreContacto(c.getNombre()) == null) {
+                    try {
+                        agendaServicio.addContacto(c);
+                        vista.getModeloContactos().addElement(c);
+                    } catch (ContactoRepetidoException e) {
+                        System.out.println(e.getMessage());
+                    }
+                }
+            }
+
 
             new Thread(conexion).start();
             vista.mostrar();
@@ -200,6 +227,34 @@ public class Controlador implements ActionListener, Observer {
         }
     }
 
+    private void cargarConversacionesYContactos() {
+
+        this.factorySelector = new FactorySelector("txt"); // o "json", "xml"
+        this.persistencia = factorySelector.getPersistencia(usuarioDTO);
+        Map<Contacto, Conversacion> conversaciones = persistencia.cargarConversaciones(agendaServicio);
+        System.out.println("Conversaciones cargadas");
+
+//        for (Contacto c : conversaciones.keySet()) {
+//            if (agendaServicio.buscaNombreContacto(c.getNombre()) == null) {
+//                try {
+//                    agendaServicio.addContacto(c);
+//                    vista.getModeloContactos().addElement(c);
+//                } catch (ContactoRepetidoException e) {
+//                    System.out.println(e.getMessage());
+//                }
+//            }
+//        }
+
+        conversacionServicio.setConversaciones(conversaciones);
+
+        for (Contacto c : conversaciones.keySet()) {
+            ChatPantalla chatPantalla = new ChatPantalla(c);
+            if (!vista.getModeloChats().contains(chatPantalla)) {
+                vista.getModeloChats().addElement(chatPantalla);
+            }
+        }
+
+    }
     /**
      * Agrega un nuevo contacto a la agenda y a la vista.
      */
@@ -261,7 +316,7 @@ public class Controlador implements ActionListener, Observer {
                 vista.getModeloChats().addElement(chatPantalla);
                 vista.getModeloContactos().addElement(mensaje.getEmisor());
             }else {
-                vista.getModeloChats().addElement(new ChatPantalla(this.agendaServicio.buscaNombreContacto(mensaje.getEmisor())));
+                vista.getModeloChats().addElement(new ChatPantalla(this.agendaServicio.buscaNombreContacto(mensaje.getEmisor().getNombre())));
             }
         }
 
@@ -398,8 +453,6 @@ public class Controlador implements ActionListener, Observer {
 
         }
     }
-
-
 
 
     public void cerrarMensajeConectando() {
