@@ -5,7 +5,7 @@ import org.example.cliente.modelo.mensaje.Mensaje;
 import org.example.cliente.modelo.usuario.Contacto;
 import org.example.cliente.modelo.usuario.Usuario;
 
-import java.util.List;
+import java.util.*;
 
 /**
  * Clase que proporciona servicios relacionados con las conversaciones de un usuario.
@@ -40,6 +40,11 @@ public class ConversacionServicio implements IConversacion {
     public void agregarConversacion(Contacto contacto) {
         System.out.println("Agregando conversacion");
         usuario.getConversaciones().put(contacto, new Conversacion());
+    }
+
+    public void agregarConversacion(Contacto contacto, Conversacion conversacion) {
+        System.out.println("Agregando conversacion");
+        usuario.getConversaciones().put(contacto, conversacion);
     }
 
     /**
@@ -81,4 +86,13 @@ public class ConversacionServicio implements IConversacion {
             usuario.getConversaciones().get(contacto).setPendiente(false);
         }
     }
+
+    public void setConversaciones(Map<Contacto, Conversacion> conversaciones) {
+        usuario.setConversaciones(conversaciones);
+    }
+
+    public Map<Contacto, Conversacion> getConversaciones() {
+        return usuario.getConversaciones();
+    }
+
 }

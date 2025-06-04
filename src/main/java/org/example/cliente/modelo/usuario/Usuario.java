@@ -60,6 +60,10 @@ public class Usuario implements Serializable {
         return conversaciones;
     }
 
+    public void setConversaciones(Map<Contacto, Conversacion> conversaciones) {
+        this.conversaciones = conversaciones;
+    }
+
     /**
      * Obtiene la lista de contactos del usuario.
      * @return Una lista de los contactos del usuario.

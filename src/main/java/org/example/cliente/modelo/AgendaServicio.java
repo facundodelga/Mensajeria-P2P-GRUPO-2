@@ -38,9 +38,9 @@ public class AgendaServicio implements IAgenda {
      * @return El contacto encontrado, o null si no se encuentra.
      */
     @Override
-    public Contacto buscaNombreContacto(Contacto contacto) {
+    public Contacto buscaNombreContacto(String nombreContacto) {
         for (Contacto c : usuario.getContactos()) {
-            if (c.equals(contacto)) {
+            if (c.getNombre().equals(nombreContacto)) {
                 return c;
             }
         }
