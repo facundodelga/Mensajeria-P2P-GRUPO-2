@@ -2,7 +2,6 @@ package org.example.cliente.factory;
 
 import org.example.cliente.modelo.IAgenda;
 import org.example.cliente.modelo.conversacion.Conversacion;
-import org.example.cliente.modelo.mensaje.Mensaje;
 import org.example.cliente.modelo.usuario.Contacto;
 import java.util.Map;
 

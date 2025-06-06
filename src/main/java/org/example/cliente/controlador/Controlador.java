@@ -179,6 +179,7 @@ public class Controlador implements ActionListener, Observer {
         }
         try {
             int puerto = Integer.parseInt(vistaInicioSesion.getPuerto());
+            String formato = vistaInicioSesion.getFormatoSeleccionado();
             vistaInicioSesion.ocultar();
 
             Usuario usuario = new Usuario(nombre, "127.0.0.1", puerto);
@@ -189,13 +190,14 @@ public class Controlador implements ActionListener, Observer {
 
             this.usuarioDTO = new Contacto(usuario);
 
-            cargarConversacionesYContactos();
+            cargarConversacionesYContactos(formato);
 
             // Registrar en el servidor de directorios
            // registrarEnServidorDirectorio(usuario);
 
             conexion.conectarServidor(usuarioDTO);
 
+            // Actualizo todos los contactos del usuario en la pantalla
             List<Contacto> contactosObtenidos = directorioDTO.getContactos();
             for (Contacto c : contactosObtenidos) {
                 if (agendaServicio.buscaNombreContacto(c.getNombre()) == null) {
@@ -227,9 +229,9 @@ public class Controlador implements ActionListener, Observer {
         }
     }
 
-    private void cargarConversacionesYContactos() {
+    private void cargarConversacionesYContactos(String formato) {
 
-        this.factorySelector = new FactorySelector("txt"); // o "json", "xml"
+        this.factorySelector = new FactorySelector(formato); // "json", "xml" o "txt"
         this.persistencia = factorySelector.getPersistencia(usuarioDTO);
         Map<Contacto, Conversacion> conversaciones = persistencia.cargarConversaciones(agendaServicio);
         System.out.println("Conversaciones cargadas");

@@ -7,6 +7,8 @@ public interface IVistaInicioSesion {
 
     public String getPuerto();
 
+    public String getFormatoSeleccionado();
+
     void ocultar();
 
     void mostrar();
