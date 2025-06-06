@@ -1,5 +1,6 @@
 package org.example.cliente.conexion;
 
+import org.example.cliente.controlador.Controlador;
 import org.example.cliente.modelo.mensaje.Mensaje;
 import org.example.cliente.modelo.usuario.Contacto;
 
@@ -20,6 +21,8 @@ public interface IConexion extends Runnable {
     void reconectar() throws IOException;
     void conectar(Map.Entry<String, Integer> entry) throws IOException, PuertoEnUsoException;
 
+
     ArrayList<Contacto> obtenerContactos() throws PerdioConexionException;
 
+    void setControlador(Controlador controlador);
 }
