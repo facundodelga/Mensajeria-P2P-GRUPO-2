@@ -1,0 +1,4 @@
+#Contacto:usuario2
+R|06/06/2025 20:14|usuario2|hola 1
+R|06/06/2025 20:15|usuario2|hola2
+E|06/06/2025 20:16|usuario2|hola 3

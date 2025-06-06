@@ -192,18 +192,14 @@ public class Controlador implements ActionListener, Observer {
             this.conexion = new Conexion();
 
             this.usuarioDTO = new Contacto(usuario);
+            conexion.conectarServidor(usuarioDTO);
 
             this.persistenciaManager = new PersistenciaManager(formato, usuarioDTO);
 
             cargarDatosUsuario();
 
-
             // Registrar en el servidor de directorios
            // registrarEnServidorDirectorio(usuario);
-
-            conexion.conectarServidor(usuarioDTO);
-
-
             new Thread(conexion).start();
             vista.mostrar();
             vista.titulo("Usuario: " + nombre + " | Ip: "+ "127.0.0.1" + " | Puerto: " + puerto);
