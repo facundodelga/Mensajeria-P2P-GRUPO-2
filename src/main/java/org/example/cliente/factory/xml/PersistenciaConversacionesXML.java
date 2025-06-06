@@ -1,6 +1,6 @@
 package org.example.cliente.factory.xml;
 
-import org.example.cliente.factory.IPersistencia;
+import org.example.cliente.factory.IPersistenciaConversaciones;
 import org.example.cliente.modelo.IAgenda;
 import org.example.cliente.modelo.conversacion.Conversacion;
 import org.example.cliente.modelo.mensaje.Mensaje;
@@ -14,13 +14,13 @@ import java.io.*;
 import java.text.*;
 import java.util.*;
 
-public class PersistenciaXML implements IPersistencia {
+public class PersistenciaConversacionesXML implements IPersistenciaConversaciones {
 
     private static final String BASE_DIR = "conversaciones/";
     private static final SimpleDateFormat FORMATO_FECHA = new SimpleDateFormat("dd/MM/yyyy HH:mm");
     private Contacto usuarioDTO;
 
-    public PersistenciaXML(Contacto usuarioDTO) {
+    public PersistenciaConversacionesXML(Contacto usuarioDTO) {
         this.usuarioDTO = usuarioDTO;
     }
 
@@ -91,8 +91,7 @@ public class PersistenciaXML implements IPersistencia {
 
                 Contacto contacto = agendaServicio.buscaNombreContacto(nombreContacto);
                 if (contacto == null) {
-                    contacto = new Contacto(nombreContacto, "127.0.0.1", -1);
-                    agendaServicio.addContacto(contacto);
+                    continue;
                 }
 
                 List<Mensaje> mensajes = new ArrayList<>();

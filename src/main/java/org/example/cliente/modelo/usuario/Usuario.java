@@ -109,4 +109,7 @@ public class Usuario implements Serializable {
         return Objects.hash(nombre, ip, puerto);
     }
 
+    public void setContactos(List<Contacto> contactos) {
+        this.contactos = contactos;
+    }
 }

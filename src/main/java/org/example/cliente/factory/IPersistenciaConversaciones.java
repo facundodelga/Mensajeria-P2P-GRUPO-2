@@ -5,7 +5,7 @@ import org.example.cliente.modelo.conversacion.Conversacion;
 import org.example.cliente.modelo.usuario.Contacto;
 import java.util.Map;
 
-public interface IPersistencia {
+public interface IPersistenciaConversaciones {
     void guardarConversaciones(Map<Contacto, Conversacion> conversaciones);
     Map<Contacto, Conversacion> cargarConversaciones(IAgenda agendaServicio);
 }
