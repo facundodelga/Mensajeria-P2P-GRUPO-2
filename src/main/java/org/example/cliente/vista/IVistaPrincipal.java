@@ -4,6 +4,7 @@ import org.example.cliente.modelo.usuario.Contacto;
 
 import javax.swing.*;
 import java.awt.event.WindowAdapter;
+import java.util.ArrayList;
 
 public interface IVistaPrincipal {
 
@@ -34,5 +35,6 @@ public interface IVistaPrincipal {
 
     void addWindowListener(WindowAdapter windowAdapter);
 
+    void actualizarListaContactos(ArrayList<Contacto> contactos);
 
 }

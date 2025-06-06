@@ -5,6 +5,7 @@ import org.example.cliente.modelo.usuario.Contacto;
 
 import java.awt.*;
 import java.awt.event.WindowAdapter;
+import java.util.ArrayList;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 
@@ -519,4 +520,26 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         listaChats.clearSelection();
 
     }
+
+    @Override
+    public void actualizarListaContactos(ArrayList<Contacto> contactos) {
+        // 1. **Acción:** Limpia completamente el modelo de la lista.
+        //    Esto elimina todos los elementos visibles actualmente en la JList.
+        System.out.println("DEBUG: Limpiando lista de contactos en la UI...");
+        modeloContactos.clear(); // O modeloContactos.removeAllElements();
+
+        // 2. **Acción:** Itera sobre la nueva lista de contactos recibida.
+        //    Por cada Contacto en la lista, lo añade al modelo.
+        System.out.println("DEBUG: Añadiendo nuevos contactos a la UI:");
+        for (Contacto contacto : contactos) {
+            modeloContactos.addElement(contacto); // Añade el contacto al modelo
+            System.out.println("  - Añadido: " + contacto.getNombre());
+        }
+
+        // 3. **Resultado:** El DefaultListModel notifica a la JList que sus datos han cambiado.
+        //    La JList se redibuja automáticamente para mostrar los nuevos elementos.
+        System.out.println("DEBUG: Lista de contactos en la UI actualizada.");
+    }
+
+
 }
