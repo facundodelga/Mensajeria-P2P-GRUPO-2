@@ -1,6 +1,6 @@
 package org.example.cliente.factory.txt;
 
-import org.example.cliente.factory.IPersistencia;
+import org.example.cliente.factory.IPersistenciaConversaciones;
 import org.example.cliente.modelo.ContactoRepetidoException;
 import org.example.cliente.modelo.IAgenda;
 import org.example.cliente.modelo.conversacion.Conversacion;
@@ -11,13 +11,13 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
-public class PersistenciaTXT implements IPersistencia {
+public class PersistenciaConversacionesTXT implements IPersistenciaConversaciones {
 
     private static final String BASE_DIR = "conversaciones/";
     private static final SimpleDateFormat FORMATO_FECHA = new SimpleDateFormat("dd/MM/yyyy HH:mm");
     private Contacto usuarioDTO;
 
-    public PersistenciaTXT(Contacto usuarioDTO) {
+    public PersistenciaConversacionesTXT(Contacto usuarioDTO) {
         this.usuarioDTO = usuarioDTO;
     }
 
@@ -40,7 +40,7 @@ public class PersistenciaTXT implements IPersistencia {
                 Contacto contacto = entry.getKey();
                 Conversacion conv = entry.getValue();
 
-                writer.write("#Contacto:" + contacto.getNombre() + "|" + contacto.getIp() + "|" + contacto.getPuerto());
+                writer.write("#Contacto:" + contacto.getNombre());
                 writer.newLine();
 
                 for (Mensaje mensaje : conv.getMensajes()) {
@@ -81,16 +81,13 @@ public class PersistenciaTXT implements IPersistencia {
                         conversaciones.put(contactoActual, new Conversacion(new ArrayList<>(mensajes)));
                         mensajes.clear();
                     }
-                    String[] datosContacto = linea.substring("#Contacto:".length()).split("\\|");
-                    String nombreContacto = datosContacto[0];
-                    String ip = datosContacto.length > 1 ? datosContacto[1] : "127.0.0.1";
-                    int puerto = datosContacto.length > 2 ? Integer.parseInt(datosContacto[2]) : -1;
+                    String nombreContacto = linea.substring("#Contacto:".length()).trim();
 
                     Contacto buscado = agendaServicio.buscaNombreContacto(nombreContacto);
                     if (buscado != null) {
                         contactoActual = buscado;
                     } else {
-                        contactoActual = new Contacto(nombreContacto, ip, puerto);
+                        contactoActual = new Contacto(nombreContacto, "", -1);
                         agendaServicio.addContacto(contactoActual);
                     }
 
@@ -100,7 +97,6 @@ public class PersistenciaTXT implements IPersistencia {
 
                     String tipo = partes[0];
                     Date fecha = FORMATO_FECHA.parse(partes[1]);
-                    String otroNombre = partes[2];
                     String contenido = partes[3];
 
                     Contacto emisor, receptor;

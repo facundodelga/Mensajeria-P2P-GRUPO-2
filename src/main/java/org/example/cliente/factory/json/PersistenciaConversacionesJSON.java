@@ -1,6 +1,6 @@
 package org.example.cliente.factory.json;
 
-import org.example.cliente.factory.IPersistencia;
+import org.example.cliente.factory.IPersistenciaConversaciones;
 import org.example.cliente.modelo.ContactoRepetidoException;
 import org.example.cliente.modelo.IAgenda;
 import org.example.cliente.modelo.conversacion.Conversacion;
@@ -14,13 +14,13 @@ import java.text.SimpleDateFormat;
 import java.text.ParseException;
 import java.util.*;
 
-public class PersistenciaJSON implements IPersistencia {
+public class PersistenciaConversacionesJSON implements IPersistenciaConversaciones {
 
     private static final String BASE_DIR = "conversaciones/";
     private static final SimpleDateFormat FORMATO_FECHA = new SimpleDateFormat("dd/MM/yyyy HH:mm");
     private Contacto usuarioDTO;
 
-    public PersistenciaJSON(Contacto usuarioDTO) {
+    public PersistenciaConversacionesJSON(Contacto usuarioDTO) {
         this.usuarioDTO = usuarioDTO;
     }
 
@@ -41,8 +41,6 @@ public class PersistenciaJSON implements IPersistencia {
                 Conversacion conv = entry.getValue();
 
                 writer.write("    \"" + contacto.getNombre() + "\": {\n");
-                writer.write("      \"ip\": \"" + contacto.getIp() + "\",\n");
-                writer.write("      \"puerto\": " + contacto.getPuerto() + ",\n");
                 writer.write("      \"mensajes\": [\n");
 
                 List<Mensaje> mensajes = conv.getMensajes();
@@ -94,13 +92,9 @@ public class PersistenciaJSON implements IPersistencia {
                 String nombreContacto = entrada.split("\":\\s*\\{")[0].replace("\"", "").trim();
                 String datos = entrada.substring(entrada.indexOf("{") + 1, entrada.lastIndexOf("}"));
 
-                String ip = extraerCampo(datos, "ip");
-                int puerto = Integer.parseInt(extraerCampo(datos, "puerto"));
-
                 Contacto contacto = agendaServicio.buscaNombreContacto(nombreContacto);
                 if (contacto == null) {
-                    contacto = new Contacto(nombreContacto, ip, puerto);
-                    agendaServicio.addContacto(contacto);
+                    continue;
                 }
 
                 List<Mensaje> mensajes = new ArrayList<>();
@@ -127,7 +121,7 @@ public class PersistenciaJSON implements IPersistencia {
                 conversaciones.put(contacto, new Conversacion(mensajes));
             }
 
-        } catch (IOException | ParseException | ContactoRepetidoException e) {
+        } catch (IOException | ParseException e) {
             e.printStackTrace();
         }
 

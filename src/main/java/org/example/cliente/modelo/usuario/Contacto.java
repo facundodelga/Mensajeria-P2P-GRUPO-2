@@ -59,12 +59,12 @@ public class Contacto implements Serializable {
         System.out.println("equals");
         System.out.println("this: " + this);
         System.out.println("that: " + that);
-        return puerto == that.puerto && ip.equals(that.ip);
+        return this.nombre.equals(that.nombre);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ip, puerto);
+        return Objects.hash(nombre);
     }
 
     @Override
