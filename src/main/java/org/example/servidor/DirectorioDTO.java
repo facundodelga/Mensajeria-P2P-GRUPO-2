@@ -19,4 +19,15 @@ public class DirectorioDTO implements Serializable {
     public ArrayList<Contacto> getContactos() {
         return contactos;
     }
+
+    public void setContactos(ArrayList<Contacto> contactos) {
+        this.contactos = contactos;
+    }
+
+    @Override
+    public String toString() {
+        return "DirectorioDTO{" +
+                "contactos=" + contactos +
+                '}';
+    }
 }

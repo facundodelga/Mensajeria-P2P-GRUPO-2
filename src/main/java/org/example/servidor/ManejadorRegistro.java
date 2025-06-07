@@ -1,5 +1,4 @@
 // src/main/java/org/example/servidor/ManejadorRegistro.java
-
 package org.example.servidor;
 
 import org.example.cliente.modelo.mensaje.Mensaje;
@@ -9,9 +8,9 @@ import java.io.*;
 import java.net.Socket;
 import java.net.SocketException;
 import java.util.ArrayList;
-import java.util.List; // Importar List para la copia de mensajes pendientes
-import java.util.Map; // Importar Map
-import java.io.Serializable; // Importar Serializable para el Map
+import java.util.List;
+import java.util.Map;
+import java.io.Serializable;
 
 /**
  * Clase que maneja el registro de usuarios en el servidor.
@@ -19,7 +18,7 @@ import java.io.Serializable; // Importar Serializable para el Map
  */
 public class ManejadorRegistro implements Runnable {
     private Socket socket;
-    private ServidorPrincipal servidorDirectorio;
+    private ServidorPrincipal servidorDirectorio; // Nombre un poco confuso, parece ser el ServidorPrincipal
     private boolean corriendo = false;
     private Contacto usuario;
     private ObjectInputStream entrada;
@@ -41,13 +40,13 @@ public class ManejadorRegistro implements Runnable {
             // Registro del usuario
             Contacto usuarioDTO = (Contacto) entrada.readObject();
 
-            boolean estaConectado = servidorDirectorio.getConectados().getUsuarios().containsKey(usuarioDTO.getNombre());
-            boolean estaDirectorio = servidorDirectorio.getDirectorio().getUsuarios().containsKey(usuarioDTO.getNombre());
-
             // La lógica actual: si está en 'conectados' Y en 'directorio', entonces en uso.
             // Si 'conectados' es para sesiones activas, y 'directorio' para todos los usuarios registrados,
             // entonces 'if (estaConectado)' solo podría ser suficiente para "en uso".
             // Pero mantendremos tu lógica si así lo deseas.
+            boolean estaConectado = servidorDirectorio.getConectados().getUsuarios().containsKey(usuarioDTO.getNombre());
+            boolean estaDirectorio = servidorDirectorio.getDirectorio().getUsuarios().containsKey(usuarioDTO.getNombre());
+
             if (estaConectado && estaDirectorio) {
                 salida.writeObject("El nickname ya está en uso.");
                 salida.flush();
@@ -82,7 +81,7 @@ public class ManejadorRegistro implements Runnable {
                     Mensaje mensaje = (Mensaje) msg;
                     System.out.println("Server: Mensaje recibido de " + mensaje.getEmisor().getNombre() + " para " + mensaje.getReceptor().getNombre() + ". Contenido (cifrado): " + mensaje.getContenido());
                     enviarMensaje(mensaje); // This method routes the message
-                } else if (msg instanceof Map) { // <-- ¡¡¡ESTE ES EL BLOQUE CLAVE AÑADIDO PARA EL CIFRADO!!!
+                } else if (msg instanceof Map) {
                     Map<String, Serializable> map = (Map<String, Serializable>) msg;
                     if ("CLAVE_PUBLICA_DH".equals(map.get("tipo"))) {
                         Contacto receptor = (Contacto) map.get("receptor");
@@ -110,9 +109,8 @@ public class ManejadorRegistro implements Runnable {
                     Contacto contacto = (Contacto) msg;
                     System.out.println("Server: Solicitud de contacto recibida de " + usuario.getNombre() + " para: " + contacto.getNombre());
                     if (contacto.getNombre().equals("Contactos")) { // Este es el flag que usa el cliente para pedir la lista de contactos
-                        enviarContactos();
+                        enviarContactos(); // Llama a la función que ahora enviará solo los conectados
                     } else {
-                        // Lógica para buscar un contacto específico si fuera necesario, aunque el cliente pide el directorio completo
                         System.out.println("Server: Solicitud de contacto específico no manejada: " + contacto.getNombre());
                         enviarObjetoACliente("Solicitud de contacto específico no soportada.");
                     }
@@ -122,33 +120,30 @@ public class ManejadorRegistro implements Runnable {
             }
         } catch (SocketException e) {
             System.out.println("Cliente " + usuario.getNombre() + " ha cerrado su conexión o se ha desconectado.");
-        } catch (EOFException e) { // End Of File exception typically means stream closed unexpectedly
+        } catch (EOFException e) {
             System.out.println("Cliente " + usuario.getNombre() + " ha cerrado su stream de entrada.");
         } catch (IOException | ClassNotFoundException e) {
             System.err.println("Error en la conexión con " + usuario.getNombre() + ": " + e.getMessage());
             e.printStackTrace();
         } catch (InterruptedException e) {
             System.err.println("Hilo de " + usuario.getNombre() + " interrumpido: " + e.getMessage());
-            Thread.currentThread().interrupt(); // Restore interrupt status
+            Thread.currentThread().interrupt();
         } finally {
-            // Asegurarse de que el cliente sea desregistrado y los recursos cerrados
             if (usuario != null) {
-                servidorDirectorio.getConectados().getUsuarios().remove(usuario.getNombre());
-                servidorDirectorio.getManejadores().remove(usuario); // Remove from routing map
-                this.servidorDirectorio.setCambios(true); // Notify of client removal
-                System.out.println("Cliente " + usuario.getNombre() + " desconectado y desregistrado.");
+                servidorDirectorio.getConectados().getUsuarios().remove(usuario.getNombre()); // Remover de conectados al desconectar
+                servidorDirectorio.getManejadores().remove(usuario);
+                this.servidorDirectorio.setCambios(true);
+                System.out.println("Cliente " + usuario.getNombre() + " desconectado y desregistrado de conectados.");
             }
             closeResources();
         }
     }
 
-    // Nuevo método para enviar cualquier objeto a este cliente (útil para reenviar Mapas también)
     public synchronized void enviarObjetoACliente(Object obj) throws IOException {
         salida.writeObject(obj);
         salida.flush();
     }
 
-    // Métodos existentes (enviarMensajeACliente es el mismo que enviarObjetoACliente pero específico para Mensaje)
     public void enviarMensajeACliente(Mensaje mensaje) throws IOException {
         System.out.println("Server: Enviando mensaje a " + usuario.getNombre() + " (desde cola/reenvío): " + mensaje.getContenido());
         salida.writeObject(mensaje);
@@ -156,32 +151,35 @@ public class ManejadorRegistro implements Runnable {
     }
 
     private void enviarMensajesPendientes() throws IOException, InterruptedException {
-        // Copia la lista para evitar ConcurrentModificationException
-        ArrayList<Mensaje> mensajesAEnviar = new ArrayList<>();
-        for (Mensaje mensaje : servidorDirectorio.getColaMensajes().getMensajesRecibidos()) {
-            if (mensaje.getReceptor().getNombre().equals(usuario.getNombre())) { // Compara por nombre para simplificar
-                mensajesAEnviar.add(mensaje);
+        // Mejorar: usar un iterador para remover de forma segura o ConcurrentLinkedQueue para ColaMensajes
+        List<Mensaje> mensajesAEnviar = new ArrayList<>();
+        // Recorrer la cola de mensajes de forma segura para evitar ConcurrentModificationException
+        synchronized (servidorDirectorio.getColaMensajes().getMensajesRecibidos()) {
+            for (Mensaje mensaje : servidorDirectorio.getColaMensajes().getMensajesRecibidos()) {
+                if (mensaje.getReceptor().getNombre().equals(usuario.getNombre())) {
+                    mensajesAEnviar.add(mensaje);
+                }
             }
+            servidorDirectorio.getColaMensajes().getMensajesRecibidos().removeAll(mensajesAEnviar); // Eliminar todos de una vez
         }
 
         for (Mensaje mensaje : mensajesAEnviar) {
             System.out.println("Server: Enviando mensaje pendiente a " + usuario.getNombre() + ": " + mensaje.getContenido());
             salida.writeObject(mensaje);
             salida.flush();
-            Thread.sleep(50); // Pequeña pausa para evitar saturación
-            servidorDirectorio.getColaMensajes().getMensajesRecibidos().remove(mensaje); // Eliminar después de enviar
+            Thread.sleep(50);
         }
-        // Mejorar: usar un iterador para remover de forma segura o ConcurrentLinkedQueue para ColaMensajes
-        // Si ColaMensajes.getMensajesRecibidos() devuelve la lista subyacente directamente,
-        // esto podría causar problemas de concurrencia si otro hilo modifica la lista mientras se itera.
-        // Lo ideal sería que ColaMensajes tenga un método "getAndRemovePendingMessagesForUser(Contacto usuario)".
+        if (!mensajesAEnviar.isEmpty()) {
+            this.servidorDirectorio.setCambios(true); // Indicar cambios si se enviaron mensajes
+        }
     }
 
+
     private void enviarContactos() throws IOException {
-        // Enviar todos los usuarios del directorio principal (registrados)
-        ArrayList<Contacto> contactosList = new ArrayList<>(servidorDirectorio.getDirectorio().getUsuarios().values());
-        DirectorioDTO contactos = new DirectorioDTO(contactosList);
-        System.out.println("Server: Enviando lista completa de contactos a " + usuario.getNombre() + ". Total: " + contactosList.size());
+        // MODIFICACIÓN CLAVE: Enviar SOLO los usuarios CONECTADOS
+        ArrayList<Contacto> contactosConectadosList = new ArrayList<>(servidorDirectorio.getConectados().getUsuarios().values());
+        DirectorioDTO contactos = new DirectorioDTO(contactosConectadosList);
+        System.out.println("Server: Enviando lista de contactos CONECTADOS a " + usuario.getNombre() + ". Total: " + contactosConectadosList.size());
         salida.writeObject(contactos);
         salida.flush();
     }
@@ -190,16 +188,16 @@ public class ManejadorRegistro implements Runnable {
         ManejadorRegistro manejadorDestino = servidorDirectorio.getManejadores().get(mensaje.getReceptor());
         if (manejadorDestino != null) {
             try {
-                manejadorDestino.enviarMensajeACliente(mensaje); // Usa el método específico para Mensaje
+                manejadorDestino.enviarMensajeACliente(mensaje);
             } catch (IOException e) {
                 System.out.println("Server: Error al enviar el mensaje a " + mensaje.getReceptor().getNombre() + ". Añadiendo a cola de pendientes.");
                 servidorDirectorio.getColaMensajes().getMensajesRecibidos().add(mensaje);
-                this.servidorDirectorio.setCambios(true); // Indicar que hay cambios en la cola
+                this.servidorDirectorio.setCambios(true);
             }
         } else {
             servidorDirectorio.getColaMensajes().getMensajesRecibidos().add(mensaje);
             System.out.println("Server: El receptor " + mensaje.getReceptor().getNombre() + " no está conectado. El mensaje se almacenará.");
-            this.servidorDirectorio.setCambios(true); // Indicar que hay cambios en la cola
+            this.servidorDirectorio.setCambios(true);
         }
     }
 

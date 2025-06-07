@@ -1,42 +1,33 @@
 // src/main/java/org/example/cliente/conexion/IConexion.java
 package org.example.cliente.conexion;
 
-import org.example.cliente.modelo.mensaje.Mensaje;
 import org.example.cliente.modelo.usuario.Contacto;
+import org.example.cliente.modelo.mensaje.Mensaje;
 
 import java.io.IOException;
-import java.security.PublicKey; // Importar PublicKey
+import java.security.PublicKey;
 import java.util.ArrayList;
 import java.util.Map;
+import java.util.Observer;
+import java.security.KeyPair;
+import java.lang.Runnable; // Importar Runnable
 
-public interface IConexion extends Runnable {
-    void conectarServidor(Contacto usuario) throws PuertoEnUsoException, IOException, PerdioConexionException;
+// CAMBIO AQUÍ: IConexion también debe extender Runnable
+public interface IConexion extends Runnable { //
+    // ... otros métodos existentes en IConexion ...
 
     void esperarMensajes();
-
-    // El mensaje que se envía es con contenido en texto plano. La conexión se encarga de cifrarlo.
-    void enviarMensaje(Contacto usuarioDTO, Mensaje mensaje) throws IOException, EnviarMensajeException, PerdioConexionException;
-
-    void cerrarConexiones();
-    void obtenerMensajesPendientes();
+    ArrayList<Contacto> obtenerContactos() throws PerdioConexionException, IOException, ClassNotFoundException;
+    void enviarMensaje(Contacto contactoRemoto, Mensaje mensaje) throws EnviarMensajeException, IOException, PerdioConexionException;
     void reconectar() throws IOException;
+    void conectarServidor(Contacto usuario) throws PuertoEnUsoException, IOException, PerdioConexionException;
+    void obtenerMensajesPendientes();
     void conectar(Map.Entry<String, Integer> entry) throws IOException, PuertoEnUsoException;
-    ArrayList<Contacto> obtenerContactos() throws PerdioConexionException;
-
-    // --- Nuevos métodos para el intercambio de claves ---
-
-    /**
-     * Inicia el proceso de intercambio de claves con un contacto.
-     * Esto implica enviar nuestra clave pública DH y esperar la del otro.
-     * @param contactoRemoto El contacto con el que se desea establecer la clave.
-     * @throws Exception Si ocurre un error durante el intercambio de claves (generación/envío).
-     */
+    void cerrarConexiones();
     void iniciarIntercambioDeClaves(Contacto contactoRemoto) throws Exception;
 
-    /**
-     * Permite a la Conexión acceder a la clave pública DH del usuario local,
-     * la cual está gestionada por el Controlador.
-     * @return La clave pública DH del usuario local.
-     */
+    // Métodos de Observable/Getter que añadimos previamente (asegúrate de que estén aquí)
+    void addObserver(Observer o);
+    void setMiParClavesDH(KeyPair miParClavesDH);
     PublicKey getMiClavePublicaDH();
 }

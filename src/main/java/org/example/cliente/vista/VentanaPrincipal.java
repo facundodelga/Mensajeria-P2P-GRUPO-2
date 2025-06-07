@@ -1,3 +1,4 @@
+// src/main/java/org/example/cliente/vista/VentanaPrincipal.java
 package org.example.cliente.vista;
 
 import org.example.cliente.controlador.Controlador;
@@ -7,6 +8,7 @@ import java.awt.*;
 import java.awt.event.WindowAdapter;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
+import java.util.ArrayList; // Importar ArrayList para el método actualizarDirectorio
 
 /**
  * Clase que representa la ventana principal de la aplicación de mensajería.
@@ -307,6 +309,7 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
      * Establece el título de la ventana.
      * @param texto El texto a agregar al título.
      */
+    @Override
     public void titulo(String texto) {
         setTitle("App de Mensajeria - " + texto);
     }
@@ -316,6 +319,7 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
      *
      * @return true si el diálogo fue mostrado correctamente
      */
+    @Override
     public boolean mostrarDialogoReconexion() {
         this.setEnabled(false);
         new Thread(() -> {
@@ -365,6 +369,7 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         return true;
     }
 
+    @Override
     public void cerrarDialogoReconexion() {
         setEnabled(true);
         if (dialogoReconexion != null) {
@@ -376,6 +381,7 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
      * Muestra un diálogo para intentar reconectar o salir del programa
      * @return true si el usuario decidió intentar reconectar, false si decidió salir
      */
+    @Override
     public boolean mostrarDialogoReintentarConexion() {
         this.setEnabled(false);
         final boolean[] resultado = new boolean[1];
@@ -443,17 +449,27 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
     }
 
     // Getters
+    @Override
     public JTextField getCampoMensaje() { return textField_Mensaje; }
+    @Override
     public JButton getBotonEnviar() { return botonEnviar; }
+    @Override
     public JList<ChatPantalla> getListaChats() { return listaChats; }
+    @Override
     public DefaultListModel<ChatPantalla> getModeloChats() { return modeloChats; }
+    @Override
     public JLabel getEtiquetaContacto() { return lblContactoChatActual; }
+    @Override
     public JPanel getPanelMensajes() { return panelMensajes; }
+    @Override
     public JPanel getPanelChatActual() { return panel_ChatActual; }
+    @Override
     public JScrollPane getScrollMensajes() { return scrollPane_MensajesChatActual; }
+    @Override
     public JList<Contacto> getListaContactos() { return listaContactos; }
+    @Override
     public DefaultListModel<Contacto> getModeloContactos() { return modeloContactos; }
-    public JButton getBotonCerrarSesion() { return botonCerrarSesion; }
+    public JButton getBotonCerrarSesion() { return botonCerrarSesion; } // No está en IVistaPrincipal
 
     /**
      * Muestra la ventana para agregar un nuevo contacto.
@@ -464,11 +480,17 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
 
         try {
             Controlador.getInstancia().obtenerContactos();
-            Thread.sleep(500);
+            Thread.sleep(500); // Considera si este Thread.sleep es apropiado en un hilo de UI.
+            // Podría congelar la interfaz si la obtención de contactos es lenta.
+            // Preferiblemente, la obtención de contactos debería ser asíncrona.
         } catch (InterruptedException e) {
             e.printStackTrace();
+            Thread.currentThread().interrupt(); // Restablecer el estado de interrupción
         }
 
+        // Asegúrate de que VentanaAgregarContacto (que implementa IVistaAgregarContacto)
+        // se importa y está disponible.
+        // Asegúrate que Controlador.getInstancia().getDirectorioDTO() retorna un DirectorioDTO con los contactos correctos.
         dialog = new VentanaAgregarContacto(this, Controlador.getInstancia().getDirectorioDTO());
 
         dialog.mostrar();
@@ -484,19 +506,32 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
      * Método para que el controlador registre la acción de agregar contacto.
      * @param accion La acción a ejecutar.
      */
+    @Override
     public void setAccionAgregarContacto(Runnable accion) {
-        //itemAgregarContacto.addActionListener(e -> accion.run());
+        // En tu constructor, los botones ya tienen action listeners que apuntan al Controlador.
+        // Si necesitas que un botón específico aquí llame a esta acción,
+        // tendrías que adjuntar el listener a ese botón, por ejemplo:
+        // botonAgregarContacto.addActionListener(e -> accion.run());
+        // Actualmente, tu botonAgregarContacto ya tiene su listener en el constructor.
+        // Esta implementación actual del método setAccionAgregarContacto no hace nada.
+        // Revisa si es realmente necesario o si su funcionalidad ya está cubierta.
     }
 
     /**
      * Método para agregar una burbuja de mensaje al panel de chat.
      * @param mensaje El mensaje a agregar.
      */
+    @Override
     public void addMensajeBurbuja(MensajePantalla mensaje) {
         BurbujaMensaje burbuja = new BurbujaMensaje(mensaje);
         panelMensajes.add(burbuja);
+        // Scroll automático hacia abajo para ver el nuevo mensaje
         panelMensajes.revalidate();
         panelMensajes.repaint();
+        SwingUtilities.invokeLater(() -> {
+            JScrollBar vertical = scrollPane_MensajesChatActual.getVerticalScrollBar();
+            vertical.setValue(vertical.getMaximum());
+        });
     }
 
     @Override
@@ -506,6 +541,7 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         this.lblPuertoUsuario.setText("Puerto: " + contacto.getPuerto());
     }
 
+    @Override
     public void ocultar() {
         setVisible(false);
     }
@@ -522,6 +558,23 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         modeloContactos.clear();
         listaContactos.clearSelection();
         listaChats.clearSelection();
+    }
 
+    /**
+     * Actualiza la lista de contactos mostrada en la interfaz.
+     * @param contactos Una lista de objetos Contacto con los contactos actualizados.
+     */
+    @Override
+    public void actualizarDirectorio(ArrayList<Contacto> contactos) {
+        // Limpiar el modelo actual de contactos
+        modeloContactos.clear();
+        // Agregar los nuevos contactos al modelo
+        for (Contacto contacto : contactos) {
+            // Opcional: Si no quieres agregar el usuario local a su propia lista de contactos
+            // Puedes añadir una condición aquí:
+            // if (!contacto.getNombre().equals(Controlador.getInstancia().getUsuarioLocal().getNombre())) {
+            modeloContactos.addElement(contacto);
+            // }
+        }
     }
 }
