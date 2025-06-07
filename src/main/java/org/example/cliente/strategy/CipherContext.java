@@ -4,7 +4,7 @@ import java.io.BufferedReader;
 import java.io.FileReader;
 
 public class CipherContext implements ICifradoMensajes {
-    private CipherStrategy strategy;
+    private CifradoStrategy strategy;
     private final String key;
 
     public CipherContext() {
@@ -12,13 +12,13 @@ public class CipherContext implements ICifradoMensajes {
             String line = br.readLine();
             switch (line.trim()) {
                 case "1":
-                    strategy = new CaesarCipherStrategy();
+                    strategy = new CesarStrategy();
                     break;
                 case "2":
-                    strategy = new XorCipherStrategy();
+                    strategy = new XORStrategy();
                     break;
                 case "3":
-                    strategy = new AESCipherStrategy();
+                    strategy = new AESStrategy();
                     break;
                 default:
                     throw new IllegalArgumentException("Algoritmo no soportado: " + line);
@@ -39,13 +39,13 @@ public class CipherContext implements ICifradoMensajes {
         char type = mensaje.charAt(0);
         switch (type) {
             case '1':
-                strategy = new CaesarCipherStrategy();
+                strategy = new CesarStrategy();
                 break;
             case '2':
-                strategy = new XorCipherStrategy();
+                strategy = new XORStrategy();
                 break;
             case '3':
-                strategy = new AESCipherStrategy();
+                strategy = new AESStrategy();
                 break;
             default:
                 throw new IllegalArgumentException("Formato de mensaje inválido");

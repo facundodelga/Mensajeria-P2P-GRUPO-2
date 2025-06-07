@@ -1,6 +1,6 @@
 package org.example.cliente.strategy;
 
-public class CaesarCipherStrategy implements CipherStrategy {
+public class CesarStrategy implements CifradoStrategy {
     private static final int SHIFT = 3;
 
     @Override

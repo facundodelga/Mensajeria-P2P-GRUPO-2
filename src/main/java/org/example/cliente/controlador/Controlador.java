@@ -1,14 +1,9 @@
 package org.example.cliente.controlador;
 
 import org.example.cliente.conexion.*;
-import org.example.cliente.factory.FactorySelector;
-import org.example.cliente.factory.IPersistenciaAgenda;
-import org.example.cliente.factory.IPersistenciaConversaciones;
-import org.example.cliente.factory.IPersistenciaFactory;
 import org.example.cliente.modelo.*;
 import org.example.cliente.modelo.conversacion.Conversacion;
 import org.example.cliente.strategy.CipherContext;
-import org.example.cliente.strategy.CipherStrategy;
 import org.example.cliente.strategy.ICifradoMensajes;
 import org.example.cliente.vista.*;
 import org.example.cliente.factory.PersistenciaManager;
@@ -26,7 +21,6 @@ import java.awt.event.*;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.List;
 
 import static java.lang.Thread.sleep;
 

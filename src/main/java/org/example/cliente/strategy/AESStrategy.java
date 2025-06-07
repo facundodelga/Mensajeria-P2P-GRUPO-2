@@ -4,7 +4,7 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.SecretKeySpec;
 import java.util.Base64;
 
-public class AESCipherStrategy implements CipherStrategy {
+public class AESStrategy implements CifradoStrategy {
 
     @Override
     public String encrypt(String message, String key) {

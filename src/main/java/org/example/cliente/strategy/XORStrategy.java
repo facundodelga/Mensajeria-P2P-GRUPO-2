@@ -1,6 +1,6 @@
 package org.example.cliente.strategy;
 
-public class XorCipherStrategy implements CipherStrategy {
+public class XORStrategy implements CifradoStrategy {
 
     @Override
     public String encrypt(String message, String key) {
