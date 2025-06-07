@@ -1,7 +1,7 @@
 package org.example.cliente.modelo.usuario;
 
 import java.io.Serializable;
-import java.util.Objects;
+import java.util.Objects; // Asegúrate de tener esta importación
 
 public class Contacto implements Serializable {
     private String nombre;
@@ -52,31 +52,25 @@ public class Contacto implements Serializable {
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass())
-
             return false;
-
         Contacto that = (Contacto) o;
-        System.out.println("equals");
-        System.out.println("this: " + this);
-        System.out.println("that: " + that);
-        return puerto == that.puerto && ip.equals(that.ip);
+        // CORREGIDO: La igualdad de dos Contacto se basa en su 'nombre' (nickname)
+        // La IP y el puerto son detalles de conexión que pueden cambiar, pero el usuario es el mismo.
+        return Objects.equals(this.nombre, that.nombre);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(ip, puerto);
+        // CORREGIDO: El hashCode debe ser consistente con equals, por lo tanto, se basa en el 'nombre'.
+        return Objects.hash(this.nombre);
     }
 
     @Override
     public String toString() {
-        return "UsuarioDTO{" +
+        return "Contacto{" + // Cambiado de "UsuarioDTO" a "Contacto" para mayor claridad
                 "nombre='" + nombre + '\'' +
                 ", ip='" + ip + '\'' +
                 ", puerto=" + puerto +
                 '}';
     }
-
-
-
-
 }

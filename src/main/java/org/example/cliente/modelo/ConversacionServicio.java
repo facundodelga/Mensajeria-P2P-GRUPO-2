@@ -1,3 +1,4 @@
+// src/main/java/org/example/cliente/modelo/ConversacionServicio.java
 package org.example.cliente.modelo;
 
 import org.example.cliente.modelo.conversacion.Conversacion;
@@ -29,7 +30,11 @@ public class ConversacionServicio implements IConversacion {
      */
     @Override
     public List<Mensaje> getMensajes(Contacto contacto){
-        return usuario.getConversaciones().get(contacto).getMensajes();
+        // Asegurarse de que la conversación existe antes de intentar obtener sus mensajes
+        if (usuario.getConversaciones().containsKey(contacto)) {
+            return usuario.getConversaciones().get(contacto).getMensajes();
+        }
+        return null; // O lanzar una excepción si prefieres que la conversación exista
     }
 
     /**
@@ -39,7 +44,8 @@ public class ConversacionServicio implements IConversacion {
     @Override
     public void agregarConversacion(Contacto contacto) {
         System.out.println("Agregando conversacion");
-        usuario.getConversaciones().put(contacto, new Conversacion());
+        // Solo agregar si no existe ya
+        usuario.getConversaciones().putIfAbsent(contacto, new Conversacion());
     }
 
     /**
@@ -77,8 +83,23 @@ public class ConversacionServicio implements IConversacion {
      */
     @Override
     public void setConversacionPendiente(Contacto contacto) {
-        if(usuario.getConversaciones().get(contacto).isPendiente()){
-            usuario.getConversaciones().get(contacto).setPendiente(false);
+        // Asegurarse de que la conversación existe antes de intentar modificarla
+        if (usuario.getConversaciones().containsKey(contacto)) {
+            Conversacion conversacion = usuario.getConversaciones().get(contacto);
+            if(conversacion.isPendiente()){
+                conversacion.setPendiente(false);
+            }
         }
+    }
+
+    /**
+     * Obtiene la conversación asociada a un contacto específico.
+     * Este método fue añadido para cumplir con la interfaz IConversacion.
+     * @param contacto El contacto para el cual se busca la conversación.
+     * @return La instancia de Conversacion si existe, o null si no.
+     */
+    @Override
+    public Conversacion getConversacion(Contacto contacto) {
+        return usuario.getConversaciones().get(contacto);
     }
 }

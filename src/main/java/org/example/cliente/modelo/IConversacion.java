@@ -1,5 +1,6 @@
 package org.example.cliente.modelo;
 
+import org.example.cliente.modelo.conversacion.Conversacion;
 import org.example.cliente.modelo.mensaje.Mensaje;
 import org.example.cliente.modelo.usuario.Contacto;
 
@@ -11,4 +12,5 @@ public interface IConversacion {
     List<Mensaje> getMensajes(Contacto contacto);
     void agregarConversacion(Contacto contacto);
     void setConversacionPendiente(Contacto contacto);
+    Conversacion getConversacion(Contacto contacto);
 }
