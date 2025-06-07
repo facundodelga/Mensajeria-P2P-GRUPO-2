@@ -7,8 +7,8 @@ import org.example.cliente.vista.*;
 import org.example.cliente.modelo.mensaje.Mensaje;
 import org.example.cliente.modelo.usuario.Usuario;
 import org.example.cliente.modelo.usuario.Contacto;
-import org.example.util.cifrado.Cifrador; // Asumo que esta clase y sus métodos existen
-import org.example.servidor.DirectorioDTO; // Asumo que esta clase existe
+import org.example.util.cifrado.Cifrador;
+import org.example.servidor.DirectorioDTO;
 
 import javax.crypto.SecretKey;
 import javax.swing.*;
@@ -16,15 +16,12 @@ import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.security.NoSuchAlgorithmException;
-import java.time.LocalDateTime; // Clase para manejar fecha y hora moderna
-import java.time.format.DateTimeFormatter; // Clase para formatear LocalDateTime
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List; // Usamos List en lugar de ArrayList para mayor flexibilidad
 import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
-import java.util.Optional; // Para manejo seguro de búsqueda de contactos
 
 /**
  * Clase Controlador que implementa ActionListener y Observer.
@@ -35,17 +32,13 @@ public class Controlador implements ActionListener, Observer {
     private IVistaPrincipal vista;
     private IVistaInicioSesion vistaInicioSesion;
 
-    // Servicios del modelo
-    private IAgenda agendaServicio; // Representa el servicio para gestionar contactos (AgendaServicio)
-    private IConversacion conversacionServicio; // Representa el servicio para gestionar conversaciones (ConversacionServicio)
-    private UsuarioServicio usuarioServicio; // Servicio para gestionar al Usuario (incluye getUsuario())
-
-    private Conexion conexion; // Objeto para manejar la conexión de red
-    private Contacto usuarioDTO; // Representa el propio usuario como un Contacto
-    private DirectorioDTO directorioDTO; // El directorio de contactos recibido del servidor
-
-    // Formateador para las marcas de tiempo de los mensajes (para la UI)
-    private final DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
+    private IAgenda agendaServicio;
+    private IConversacion conversacionServicio;
+    private Conexion conexion; // Tipo concreto Conexion, ya que es quien tendrá setControlador
+    private Contacto usuarioDTO;
+    private DirectorioDTO directorioDTO;
+    private final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
+    private UsuarioServicio usuarioServicio;
 
     // Mapa para almacenar las claves secretas AES para cada conversación/contacto
     private Map<Contacto, SecretKey> clavesConversacion = new HashMap<>();
@@ -54,12 +47,12 @@ public class Controlador implements ActionListener, Observer {
      * Constructor privado para el patrón Singleton.
      */
     private Controlador() {
-        directorioDTO = new DirectorioDTO(); // Inicializa el directorio (vacío al principio)
+        directorioDTO = new DirectorioDTO();
     }
 
     /**
-     * Obtiene la instancia única de la clase Controlador (patrón Singleton).
-     * @return La única instancia de Controlador.
+     * Obtiene la instancia única de la clase Controlador.
+     * @return instancia de Controlador
      */
     public static Controlador getInstancia() {
         if (instancia == null) {
@@ -70,7 +63,7 @@ public class Controlador implements ActionListener, Observer {
 
     /**
      * Maneja los eventos de acción de la interfaz de usuario.
-     * @param e El evento de acción disparado.
+     * @param e el evento de acción
      */
     @Override
     public void actionPerformed(ActionEvent e) {
@@ -91,105 +84,66 @@ public class Controlador implements ActionListener, Observer {
                 cerrarSesion();
                 break;
             case "ObtenerContactos":
-                obtenerContactos(); // Obtener y actualizar la lista de contactos del servidor
-                break;
-            default:
-                System.out.println("DEBUG: Acción no reconocida: " + e.getActionCommand());
+                obtenerContactos();
                 break;
         }
     }
 
-    /**
-     * Cierra la sesión del usuario, cierra conexiones y resetea el estado.
-     */
     private void cerrarSesion() {
         if (conexion != null) {
             conexion.cerrarConexiones();
         }
         vista.ocultar();
-        vista.limpiarCampos(); // Limpiar campos de la vista principal
+        vista.limpiarCampos();
         try {
-            // Dar un pequeño tiempo para que el cierre de conexiones se propague.
-            Thread.sleep(500);
+            Thread.sleep(1000);
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt(); // Restaurar el estado de interrupción
-            System.err.println("Cierre de sesión interrumpido: " + e.getMessage());
+            e.printStackTrace();
         }
 
-        // Resetear todos los atributos a su estado inicial
-        vistaInicioSesion.mostrar(); // Vuelve a mostrar la vista de inicio de sesión
+        vistaInicioSesion.mostrar();
         conexion = null;
         clavesConversacion.clear();
-        usuarioServicio = null;
-        agendaServicio = null;
-        conversacionServicio = null;
-        usuarioDTO = null;
-        directorioDTO = new DirectorioDTO();
-        System.out.println("Sesión cerrada y estado reseteado.");
     }
 
     /**
-     * Inicia un nuevo chat con el contacto seleccionado en la lista de contactos.
-     * Genera o recupera una clave AES para la conversación.
+     * Inicia un nuevo chat con el contacto seleccionado.
      */
     private void iniciarChat() {
-        System.out.println("DEBUG: Intentando iniciar chat...");
+        System.out.println("Inicio de chat");
         Contacto selectedValue = vista.getListaContactos().getSelectedValue();
 
-        if (selectedValue == null) {
-            mostrarMensajeFlotante("Seleccione un contacto para iniciar chat.", Color.ORANGE);
-            return;
-        }
+        if (selectedValue != null) {
+            ChatPantalla chatPantallaExistente = new ChatPantalla(selectedValue);
+            if (!vista.getModeloChats().contains(chatPantallaExistente)) {
+                System.out.println("inicio de chat " + selectedValue);
+                this.conversacionServicio.agregarConversacion(selectedValue);
 
-        // IMPORTANTE: Asegurarse de usar la misma instancia de Contacto en todo el controlador
-        // para las claves y conversaciones, especialmente si Contacto.equals/hashCode se basan en referencias.
-        // Aquí buscamos el Contacto en la agenda real del usuario para obtener la instancia gestionada.
-        Optional<Contacto> contactoEnAgendaOptional = usuarioServicio.getUsuario().getContactos().stream()
-                .filter(c -> c.equals(selectedValue))
-                .findFirst();
-        // Si por alguna razón el contacto seleccionado no está en la agenda (lo cual no debería pasar si fue agregado),
-        // usamos el valor seleccionado.
-        Contacto contactoParaChat = contactoEnAgendaOptional.orElse(selectedValue);
+                // Generar/Obtener una clave para esta nueva conversación
+                try {
+                    SecretKey nuevaClave = Cifrador.generarClaveAES();
+                    clavesConversacion.put(selectedValue, nuevaClave);
+                    System.out.println("DEBUG: Clave AES generada para " + selectedValue.getNombre() + ": " + Cifrador.claveATexto(nuevaClave));
+                } catch (NoSuchAlgorithmException e) {
+                    mostrarMensajeFlotante("Error al generar clave de cifrado: " + e.getMessage(), Color.RED);
+                    e.printStackTrace();
+                    return;
+                }
 
-
-        ChatPantalla chatPantallaExistente = new ChatPantalla(contactoParaChat);
-        // Verificar si el chat ya está abierto en la vista
-        if (vista.getModeloChats().contains(chatPantallaExistente)) {
-            mostrarMensajeFlotante("El chat con " + contactoParaChat.getNombre() + " ya está iniciado.", Color.ORANGE);
-            vista.getListaChats().setSelectedValue(chatPantallaExistente, true); // Lo selecciona si ya está abierto
-            cargarConversacion(chatPantallaExistente); // Cargar mensajes existentes para este chat
-            return;
-        }
-
-        System.out.println("DEBUG: Iniciando chat con " + contactoParaChat.getNombre());
-        // Agrega la conversación al modelo (si no existe, ConversacionServicio la creará)
-        this.conversacionServicio.agregarConversacion(contactoParaChat);
-
-        // Generar o recuperar una clave AES para esta conversación si no existe
-        if (!clavesConversacion.containsKey(contactoParaChat)) {
-            try {
-                SecretKey nuevaClave = Cifrador.generarClaveAES();
-                clavesConversacion.put(contactoParaChat, nuevaClave); // Asocia la clave con la instancia del Contacto
-                System.out.println("DEBUG: Clave AES generada para " + contactoParaChat.getNombre() + ": " + Cifrador.claveATexto(nuevaClave));
-            } catch (NoSuchAlgorithmException e) {
-                mostrarMensajeFlotante("Error al generar clave de cifrado: " + e.getMessage(), Color.RED);
-                e.printStackTrace();
-                return; // No continuar si la clave no se pudo generar
+                vista.getModeloChats().addElement(new ChatPantalla(selectedValue));
+                vista.getListaChats().setSelectedValue(selectedValue, true);
+                vista.getPanelMensajes().revalidate();
+                vista.getPanelMensajes().repaint();
+            } else {
+                mostrarMensajeFlotante("El contacto " + selectedValue.getNombre() + " ya tiene un chat iniciado", Color.RED);
             }
+        } else {
+            mostrarMensajeFlotante("Seleccione un contacto", Color.RED);
         }
-
-        // Agrega el chat a la lista visible en la interfaz
-        vista.getModeloChats().addElement(chatPantallaExistente);
-        vista.getListaChats().setSelectedValue(chatPantallaExistente, true); // Selecciona el chat recién creado
-        // Asegurarse de que el panel de mensajes se actualice
-        vista.getPanelMensajes().revalidate();
-        vista.getPanelMensajes().repaint();
-        cargarConversacion(chatPantallaExistente); // Cargar mensajes existentes para este chat
     }
 
     /**
-     * Envía un mensaje al contacto seleccionado en el chat activo.
-     * Cifra el mensaje antes de enviarlo por la red.
+     * Envía un mensaje al contacto seleccionado.
      */
     private void enviarMensaje()  {
         ChatPantalla selectedChat = vista.getListaChats().getSelectedValue();
@@ -208,7 +162,7 @@ public class Controlador implements ActionListener, Observer {
         SecretKey claveConversacion = clavesConversacion.get(receptor);
         if (claveConversacion == null) {
             mostrarMensajeFlotante("ERROR: No hay clave de cifrado para la conversación con " + receptor.getNombre() + ". Mensaje no enviado.", Color.RED);
-            System.err.println("ERROR: No se encontró clave para " + receptor.getNombre() + ". Mensaje no enviado.");
+            System.err.println("No se encontró clave para " + receptor.getNombre() + ". Mensaje no enviado.");
             return;
         }
 
@@ -222,75 +176,55 @@ public class Controlador implements ActionListener, Observer {
             return;
         }
 
-        // 1. Crear el Mensaje con el contenido CIFRADO para enviar por la red
-        Mensaje mensajeParaEnviar = new Mensaje(this.usuarioDTO.getNombre(), receptor.getNombre(), contenidoCifrado, LocalDateTime.now());
+        Mensaje mensaje = new Mensaje(this.usuarioDTO.getNombre(), receptor.getNombre(), contenidoCifrado);
 
         try {
-            // 2. Enviar el mensaje cifrado a través de la conexión
-            conexion.enviarMensaje(receptor, mensajeParaEnviar);
-            // 3. Guardar el mensaje (cifrado) en el historial de conversaciones del usuario local
-            this.conversacionServicio.addMensajeSaliente(receptor, mensajeParaEnviar);
+            conexion.enviarMensaje(receptor, mensaje);
+            this.conversacionServicio.addMensajeSaliente(receptor, mensaje);
+            vista.getCampoMensaje().setText("");
 
-            vista.getCampoMensaje().setText(""); // Limpiar el campo de texto después de enviar
-
-            // 4. Crear un Mensaje nuevo (o una copia) con el contenido en TEXTO PLANO
-            //    para mostrarlo en la burbuja de chat de la propia UI.
-            Mensaje mensajeParaVistaPropio = new Mensaje(this.usuarioDTO.getNombre(), receptor.getNombre(), contenidoTextoPlano, mensajeParaEnviar.getTimestamp());
             vista.addMensajeBurbuja(MensajePantalla.mensajeToMensajePantalla(
-                    mensajeParaVistaPropio, // Usa el mensaje con el texto plano
-                    true, // Es un mensaje propio
-                    mensajeParaVistaPropio.getTimestamp().format(dtf))); // Formatea la fecha con DateTimeFormatter
+                    new Mensaje(this.usuarioDTO.getNombre(), receptor.getNombre(), contenidoTextoPlano),
+                    true,
+                    sdf.format(mensaje.getTimestamp())));
         } catch (PerdioConexionException e){
-            mostrarMensajeFlotante("Conexión perdida. Intentando reconectar...", Color.RED);
             reconectar();
         } catch (EnviarMensajeException | IOException e) {
-            mostrarMensajeFlotante("Error al enviar mensaje: " + e.getMessage(), Color.RED);
-            e.printStackTrace();
+            mostrarMensajeFlotante(e.getMessage(), Color.RED);
         }
     }
 
     /**
-     * Inicia el servidor de conexión con los datos proporcionados por la vista de inicio de sesión.
+     * Inicia el servidor con los datos proporcionados por la vista de inicio de sesión.
      */
     public void iniciarServidor() {
-        vistaInicioSesion.mostrar(); // Asegurarse de que la vista de inicio de sesión esté visible al inicio
+        vistaInicioSesion.mostrar();
         String nombre = vistaInicioSesion.getNombre();
-        if(nombre.trim().isEmpty()){
-            mostrarMensajeFlotante("El nombre de usuario no puede estar vacío.", Color.RED);
+        if(nombre.isEmpty()){
+            mostrarMensajeFlotante("El nombre no puede estar vacío", Color.RED);
             return;
         }
         try {
             int puerto = Integer.parseInt(vistaInicioSesion.getPuerto());
-            if (puerto < 0 || puerto > 65535) {
-                throw new NumberFormatException(); // Lanzar para que el catch lo capture
-            }
+            vistaInicioSesion.ocultar();
 
-            vistaInicioSesion.ocultar(); // Ocultar la vista de inicio de sesión
-
-            // 1. Crear el objeto Usuario para el usuario actual
-            Usuario usuarioActual = new Usuario(nombre, "127.0.0.1", puerto);
-
-            // 2. Inicializar los servicios con la instancia de Usuario
-            this.usuarioServicio = new UsuarioServicio(usuarioActual); // Servicio que gestiona al Usuario
-            this.agendaServicio = new AgendaServicio(usuarioActual); // Servicio para la agenda del usuario
-            this.conversacionServicio = new ConversacionServicio(usuarioActual); // Servicio para las conversaciones del usuario
-
+            Usuario usuario = new Usuario(nombre, "127.0.0.1", puerto);
+            this.usuarioServicio = new UsuarioServicio(usuario);
+            this.agendaServicio = new AgendaServicio(usuario);
+            this.conversacionServicio = new ConversacionServicio(usuario);
             this.conexion = new Conexion(); // Instanciar la clase concreta Conexion
-            this.usuarioDTO = new Contacto(usuarioActual); // El propio usuario como un Contacto
 
-            // 3. Conectar al servidor
+            this.usuarioDTO = new Contacto(usuario);
+
             conexion.conectarServidor(usuarioDTO);
             conexion.setControlador(this); // Pasar la instancia de Controlador a Conexion
             new Thread(conexion).start(); // Inicia el hilo de Conexion (que a su vez iniciará ManejadorEntradas)
 
-            // 4. Actualizar la vista principal
             vista.mostrar();
-            vista.titulo("Usuario: " + nombre + " | Ip: " + "127.0.0.1" + " | Puerto: " + puerto);
+            vista.titulo("Usuario: " + nombre + " | Ip: "+ "127.0.0.1" + " | Puerto: " + puerto);
             vista.informacionDelUsuario(usuarioDTO);
 
-            // 5. Generar una clave AES para la "conversación" del propio usuario consigo mismo
-            // Esto es útil si tienes alguna funcionalidad de auto-mensajes o para asegurar
-            // que siempre hay una clave base asociada a la identidad del usuario.
+            // Para el propio usuario, inicializa su clave de conversación consigo mismo
             try {
                 SecretKey selfKey = Cifrador.generarClaveAES();
                 clavesConversacion.put(usuarioDTO, selfKey);
@@ -301,46 +235,42 @@ public class Controlador implements ActionListener, Observer {
             }
 
         }catch (NumberFormatException e) {
-            mostrarMensajeFlotante("El puerto debe ser un número entero entre 0 y 65535.", Color.RED);
-            vistaInicioSesion.mostrar(); // Vuelve a mostrar la vista de inicio para corregir
+            mostrarMensajeFlotante("El puerto debe ser un número entre 0 y 65535", Color.RED);
+
         }catch (PuertoEnUsoException e){
             mostrarMensajeFlotante(e.getMessage(), Color.RED);
-            vistaInicioSesion.mostrar(); // Vuelve a mostrar la vista de inicio para corregir
-        } catch (IOException e) {
-            mostrarMensajeFlotante("Error de conexión inicial al servidor: " + e.getMessage(), Color.RED);
-            e.printStackTrace();
-            reconectar(); // Intenta reconectar si la conexión inicial falla
-            // Si la reconexión es exitosa, la vista ya estará visible.
-            // Si no, el método reconectar() puede manejar el cierre de la app.
+            vistaInicioSesion.mostrar();
+        } catch (IOException | PerdioConexionException e) {
+            reconectar();
+            vista.mostrar();
+            vista.titulo("Usuario: " + nombre + " | Ip: "+ "127.0.0.1" + " | Puerto: " + usuarioDTO.getPuerto());
+            vista.informacionDelUsuario(usuarioDTO);
         }
     }
 
     /**
-     * Agrega un nuevo contacto a la agenda del usuario y a la vista de contactos.
-     * Genera una clave AES para la futura conversación con este contacto.
+     * Agrega un nuevo contacto a la agenda y a la vista.
      */
     public void agregarNuevoContacto() {
-        Contacto nuevoContacto = vista.mostrarAgregarContacto(); // Obtiene el contacto de la UI
+        Contacto nuevoContacto = null;
+        nuevoContacto = vista.mostrarAgregarContacto();
 
         if(nuevoContacto != null) {
             try {
-                // Agregar el contacto al modelo de agenda del usuario
                 agendaServicio.addContacto(nuevoContacto);
-                // Agregar el contacto a la lista visible en la interfaz
                 vista.getModeloContactos().addElement(nuevoContacto);
                 mostrarMensajeFlotante("Contacto agregado: " + nuevoContacto.getNombre(), Color.GREEN);
 
-                // Generar una clave AES para la futura conversación con este nuevo contacto
-                if (!clavesConversacion.containsKey(nuevoContacto)) { // Solo si no tiene una clave ya
-                    try {
-                        SecretKey nuevaClave = Cifrador.generarClaveAES();
-                        clavesConversacion.put(nuevoContacto, nuevaClave);
-                        System.out.println("DEBUG: Clave AES generada para nuevo contacto " + nuevoContacto.getNombre() + ": " + Cifrador.claveATexto(nuevaClave));
-                    } catch (NoSuchAlgorithmException e) {
-                        mostrarMensajeFlotante("Error al generar clave para nuevo contacto: " + e.getMessage(), Color.RED);
-                        e.printStackTrace();
-                    }
+                // Si se agrega un nuevo contacto, establecer una clave para la conversación con él.
+                try {
+                    SecretKey nuevaClave = Cifrador.generarClaveAES();
+                    clavesConversacion.put(nuevoContacto, nuevaClave);
+                    System.out.println("DEBUG: Clave AES generada para nuevo contacto " + nuevoContacto.getNombre() + ": " + Cifrador.claveATexto(nuevaClave));
+                } catch (NoSuchAlgorithmException e) {
+                    mostrarMensajeFlotante("Error al generar clave para nuevo contacto: " + e.getMessage(), Color.RED);
+                    e.printStackTrace();
                 }
+
             } catch (ContactoRepetidoException e) {
                 mostrarMensajeFlotante(e.getMessage(), Color.RED);
             }
@@ -348,329 +278,268 @@ public class Controlador implements ActionListener, Observer {
     }
 
     /**
-     * Muestra un mensaje flotante temporal en la interfaz de usuario.
-     * @param texto El texto del mensaje a mostrar.
-     * @param fondo El color de fondo del mensaje.
+     * Muestra un mensaje flotante en la interfaz de usuario.
+     * @param texto el texto del mensaje
+     * @param fondo el color de fondo del mensaje
      */
     private void mostrarMensajeFlotante(String texto, Color fondo) {
         JDialog mensaje = new JDialog((Frame) vista, false);
-        mensaje.setUndecorated(true); // Sin bordes ni barra de título
+        mensaje.setUndecorated(true);
         mensaje.getContentPane().setBackground(fondo);
 
         JLabel label = new JLabel("<html><div style='text-align: center;'>" + texto + "</div></html>", SwingConstants.CENTER);
         label.setForeground(Color.WHITE);
         label.setFont(new Font("Arial", Font.BOLD, 13));
-        label.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20)); // Relleno interno
+        label.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
         mensaje.getContentPane().add(label);
 
-        mensaje.pack(); // Ajustar tamaño al contenido
-        mensaje.setLocationRelativeTo((Component) vista); // Centrar respecto a la vista principal
-        mensaje.setAlwaysOnTop(true); // Siempre visible encima de otras ventanas
+        mensaje.pack();
+        mensaje.setLocationRelativeTo((Component) vista);
+        mensaje.setAlwaysOnTop(true);
         mensaje.setVisible(true);
 
-        // Temporizador para cerrar el mensaje automáticamente después de 2 segundos
         new Timer(2000, e -> mensaje.dispose()).start();
     }
 
     /**
-     * Recibe un mensaje de la red, lo descifra, lo agrega a la conversación
-     * y actualiza la interfaz de usuario.
-     * Este método es llamado directamente por la clase `Conexion` (NO por `update`).
-     * @param mensajeRecibido El mensaje recibido (contiene el contenido cifrado).
+     * Recibe un mensaje y lo agrega a la conversación correspondiente.
+     * Este método es llamado directamente por la clase `Conexion`.
+     * @param mensajeRecibido el mensaje recibido (el Mensaje que viene cifrado de la red)
      */
     public void recibirMensaje(Mensaje mensajeRecibido){
-        System.out.println("DEBUG: Mensaje recibido en Controlador: " + mensajeRecibido.getEmisor() + " -> " + mensajeRecibido.getReceptor());
+        Contacto emisorContacto = null;
 
-        // 1. Encontrar el Contacto correspondiente al emisor en la agenda del usuario.
-        // Es crucial usar la misma instancia de Contacto que está en el mapa de claves y conversaciones.
-        // Asumo que Contacto.equals() y Contacto.hashCode() están bien implementados (basado en nombre, IP, Puerto).
-        Optional<Contacto> emisorContactoOptional = usuarioServicio.getUsuario().getContactos().stream()
-                .filter(c -> c.getNombre().equals(mensajeRecibido.getEmisor()))
-                .findFirst();
-        Contacto emisorContacto;
-
-        // Si el emisor no es un contacto conocido en la agenda, crea un Contacto "temporal".
-        if (emisorContactoOptional.isEmpty()) {
-            // Nota: Aquí se crea un Contacto con IP y puerto nulos/0. Esto podría necesitar ser mejorado
-            // si más adelante necesitas la IP/Puerto del emisor para alguna funcionalidad.
-            emisorContacto = new Contacto(mensajeRecibido.getEmisor(), "0.0.0.0", 0); // IP y puerto dummy
-            System.out.println("DEBUG: Emisor " + mensajeRecibido.getEmisor() + " no encontrado en contactos. Creando contacto temporal.");
-            // Generar una clave para este nuevo contacto no conocido si no tiene una
-            if (!clavesConversacion.containsKey(emisorContacto)) {
-                try {
-                    SecretKey nuevaClave = Cifrador.generarClaveAES();
-                    clavesConversacion.put(emisorContacto, nuevaClave);
-                    System.out.println("DEBUG: Clave AES generada para contacto recibido (nuevo): " + Cifrador.claveATexto(nuevaClave));
-                } catch (NoSuchAlgorithmException e) {
-                    System.err.println("Error al generar clave para contacto recibido temporal: " + e.getMessage());
-                    mostrarMensajeFlotante("Error interno al procesar mensaje de un nuevo emisor.", Color.RED);
-                }
+        // Primero, intenta encontrar el contacto en la agenda existente
+        // Es crucial que la instancia de Contacto sea la misma si ya existe.
+        // Asumo que Contacto tiene un buen método equals/hashCode basado en el nombre.
+        for (Contacto c : agendaServicio.getUsuario().getContactos()) {
+            if (c.getNombre().equals(mensajeRecibido.getEmisor())) {
+                emisorContacto = c;
+                break;
             }
-        } else {
-            emisorContacto = emisorContactoOptional.get();
+        }
+        // Si no se encuentra en la agenda, crea un nuevo Contacto "temporal"
+        // Y LO AÑADE A LAS CLAVES DE CONVERSACION CON UNA CLAVE GENERADA.
+        if (emisorContacto == null) {
+            emisorContacto = new Contacto(mensajeRecibido.getEmisor(), null, 0); // Solo el nombre
+            try {
+                SecretKey nuevaClave = Cifrador.generarClaveAES();
+                clavesConversacion.put(emisorContacto, nuevaClave); // NUEVO: Generar clave para nuevo contacto
+                System.out.println("DEBUG: Clave AES generada para contacto recibido (nuevo): " + Cifrador.claveATexto(nuevaClave));
+            } catch (NoSuchAlgorithmException e) {
+                System.err.println("Error al generar clave para contacto recibido: " + e.getMessage());
+                // Podrías mostrar un mensaje de error al usuario o loguear
+            }
         }
 
-        // 2. Obtener la clave de cifrado para el emisor
+
         SecretKey claveConversacion = clavesConversacion.get(emisorContacto);
         if (claveConversacion == null) {
             System.err.println("ERROR: No hay clave de cifrado para la conversación con " + mensajeRecibido.getEmisor() + ". Mensaje no descifrado.");
             mostrarMensajeFlotante("Mensaje cifrado de " + mensajeRecibido.getEmisor() + " no pudo ser descifrado (clave no disponible).", Color.RED);
-            String contenidoVisible = "MENSAJE CIFRADO (sin clave)"; // Texto por defecto para la UI
-
-            // Agregamos el mensaje "ilegible" al historial de conversaciones y a la vista
-            Mensaje mensajeParaGuardarYMostrar = new Mensaje(mensajeRecibido.getEmisor(), mensajeRecibido.getReceptor(), contenidoVisible, mensajeRecibido.getTimestamp());
-            this.conversacionServicio.addMensajeEntrante(mensajeParaGuardarYMostrar);
+            String contenidoVisible = "MENSAJE CIFRADO (sin clave)";
+            this.conversacionServicio.addMensajeEntrante(new Mensaje(mensajeRecibido.getEmisor(), mensajeRecibido.getReceptor(), contenidoVisible));
+            // También agregarlo a la vista para que el usuario vea el mensaje ilegible
             vista.addMensajeBurbuja(MensajePantalla.mensajeToMensajePantalla(
-                    mensajeParaGuardarYMostrar,
-                    false, // Es un mensaje ajeno
-                    mensajeParaGuardarYMostrar.getTimestamp().format(dtf))); // Formatear con DateTimeFormatter
+                    new Mensaje(mensajeRecibido.getEmisor(), mensajeRecibido.getReceptor(), contenidoVisible),
+                    false,
+                    sdf.format(java.sql.Timestamp.valueOf(mensajeRecibido.getTimestamp()))));
             return;
         }
 
-        // 3. Descifrar el contenido del mensaje
         String contenidoDescifrado = null;
         try {
             contenidoDescifrado = Cifrador.descifrar(mensajeRecibido.getContenidoCifrado(), claveConversacion);
             System.out.println("DEBUG: Mensaje descifrado: " + contenidoDescifrado);
-            mensajeRecibido.setContenido(contenidoDescifrado); // Almacenar el contenido descifrado en el Mensaje original
         } catch (Exception e) {
-            System.err.println("ERROR: Fallo al descifrar el mensaje de " + mensajeRecibido.getEmisor() + ": " + e.getMessage());
+            System.err.println("Error al descifrar el mensaje: " + e.getMessage());
             e.printStackTrace();
             contenidoDescifrado = "ERROR AL DESCIFRAR";
-            mensajeRecibido.setContenido(contenidoDescifrado); // Almacenar el error en el Mensaje
         }
 
-        // 4. Agregar el mensaje (con contenido descifrado/error) al historial de conversaciones del usuario
-        this.conversacionServicio.addMensajeEntrante(mensajeRecibido);
+        Mensaje mensajeParaProcesar = new Mensaje(
+                mensajeRecibido.getEmisor(),
+                mensajeRecibido.getReceptor(),
+                contenidoDescifrado
+        );
 
-        // 5. Encontrar o crear la ChatPantalla correspondiente en la UI
+        String fechaFormateada = sdf.format(java.sql.Timestamp.valueOf(mensajeRecibido.getTimestamp()));
+
         ChatPantalla chatPantalla = new ChatPantalla(emisorContacto);
-        int chatIndex = vista.getModeloChats().indexOf(chatPantalla);
 
-        if(chatIndex == -1){ // Si el chat no existe en la lista de chats de la vista
-            // Si el contacto es nuevo (no estaba en la agenda), añadirlo a la lista de contactos de la UI
+        if(!vista.getModeloChats().contains(chatPantalla)){
+            // Si el chat no existe, agregarlo. Primero verifica si el contacto está en la lista de contactos.
+            // Si el contacto ya fue creado como temporal (arriba) y no está en la agenda, esto lo agrega a la vista.
             if(!vista.getModeloContactos().contains(emisorContacto)){
                 vista.getModeloContactos().addElement(emisorContacto);
             }
-            vista.getModeloChats().addElement(chatPantalla); // Agrega el nuevo chat a la vista
-            vista.getListaChats().setSelectedValue(chatPantalla, true); // Seleccionar el chat recién añadido
+            vista.getModeloChats().addElement(chatPantalla);
+            vista.getListaChats().setSelectedValue(chatPantalla, true); // Seleccionar el nuevo chat
         }
 
-        // 6. Actualizar la vista de mensajes (burbujas de chat)
-        // Comprobar si el chat actualmente visible es el que recibió el mensaje.
+        this.conversacionServicio.addMensajeEntrante(mensajeParaProcesar);
+
+        // Actualizar la vista de mensajes si el chat actual es el que recibió el mensaje
         if(vista.getListaChats().getSelectedValue() != null
                 && emisorContacto.equals(vista.getListaChats().getSelectedValue().getContacto())) {
-            // Si es el chat activo, añadir el mensaje directamente a la vista
             vista.addMensajeBurbuja(MensajePantalla.mensajeToMensajePantalla(
-                    mensajeRecibido, // Mensaje con contenido descifrado/error
-                    false, // Es un mensaje ajeno
-                    mensajeRecibido.getTimestamp().format(dtf))); // Formatear con DateTimeFormatter
-            this.conversacionServicio.setConversacionPendiente(emisorContacto); // Marcar como NO pendiente si está abierto
+                    mensajeParaProcesar,
+                    false,
+                    fechaFormateada));
         } else {
-            // Si no es el chat activo, marcarlo como pendiente para notificar al usuario
+            // Notificar visualmente que hay un nuevo mensaje en un chat no seleccionado
             int index = vista.getModeloChats().indexOf(chatPantalla);
             if (index >= 0) {
                 ChatPantalla chatConNotificacion = vista.getModeloChats().get(index);
-                chatConNotificacion.setPendiente(); // Marcar como pendiente
-                vista.getModeloChats().set(index, chatConNotificacion); // Actualizar el elemento en el modelo
-                vista.getListaChats().repaint(); // Forzar repintado para mostrar la notificación visual
+                chatConNotificacion.setPendiente();
+                vista.getModeloChats().set(index, chatConNotificacion);
+                vista.getListaChats().repaint(); // Forzar repintado para mostrar notificación
             }
         }
     }
 
     /**
-     * Este método es el observador general que recibe notificaciones de la clase `Conexion`.
-     * Solo se usa para información no-mensaje (ej: DirectorioDTO, errores de conexión).
-     * Los mensajes de chat son manejados por `recibirMensaje(Mensaje)` directamente.
-     * @param o El objeto observable (normalmente `Conexion`).
-     * @param arg El argumento pasado al método `notifyObservers`.
+     * Actualiza la vista con la información recibida (DirectorioDTO o excepciones).
+     * Este método solo debería ser llamado por `Conexion` para información NO-MENSAJE.
+     * Los mensajes son manejados por `recibirMensaje(Mensaje)`.
+     * @param o el objeto observable (será null si es llamado por Conexion.update)
+     * @param arg el argumento pasado al método notifyObservers
      */
     @Override
     public void update(Observable o, Object arg) {
+        // La parte de 'arg instanceof Mensaje' se elimina o comenta aquí,
+        // ya que `recibirMensaje(Mensaje)` es llamado directamente por `Conexion`.
+        // if(arg instanceof Mensaje) {
+        //    Mensaje mensaje = (Mensaje) arg;
+        //    System.out.println("Mensaje recibido en update (DEBERÍA SER VIA recibirMensaje): " + mensaje);
+        //    recibirMensaje(mensaje); // Esto podría causar doble procesamiento si Conexion también llama a update con Mensaje
+        // } else
         if (arg instanceof DirectorioDTO) {
             DirectorioDTO contactos = (DirectorioDTO) arg;
-            System.out.println("DEBUG: DirectorioDTO recibido en update: " + contactos.getContactos().size() + " contactos.");
-            // Remueve el propio usuario de la lista de contactos para no chatear consigo mismo en la UI
-            contactos.getContactos().removeIf(c -> c.equals(usuarioDTO)); // Usa equals para comparar Contactos
+            System.out.println("Contactos recibidos en update: " + contactos);
+            contactos.getContactos().removeIf(c -> c.getNombre().equals(usuarioDTO.getNombre()));
             this.directorioDTO = contactos;
             vista.actualizarListaContactos(contactos.getContactos()); // Actualizar la vista de contactos
         } else if (arg instanceof PerdioConexionException) {
             PerdioConexionException e = (PerdioConexionException) arg;
-            System.err.println("ERROR: Conexión perdida notificada al Controlador: " + e.getMessage());
-            mostrarMensajeFlotante("Conexión perdida: " + e.getMessage(), Color.RED);
-            // Podrías iniciar un intento de reconexión automática aquí o esperar la acción del usuario
+            System.err.println("Error de conexión notificado al Controlador: " + e.getMessage());
+            mostrarMensajeFlotante("Error de conexión: " + e.getMessage(), Color.RED);
+            // reconectar(); // Podrías disparar la reconexión aquí si quieres que sea automática
         } else if (arg instanceof Exception) { // Captura otras excepciones generales
             Exception e = (Exception) arg;
-            System.err.println("ERROR: Excepción general notificada al Controlador: " + e.getMessage());
+            System.err.println("Excepción general notificada al Controlador: " + e.getMessage());
             mostrarMensajeFlotante("Error inesperado: " + e.getMessage(), Color.RED);
-            e.printStackTrace(); // Imprime el stack trace para depuración
         }
     }
 
-    /**
-     * Obtiene el DTO del directorio de contactos actual.
-     * @return El objeto DirectorioDTO.
-     */
     public DirectorioDTO getDirectorioDTO() {
         return directorioDTO;
     }
 
     /**
-     * Establece la vista de inicio de sesión para el controlador.
-     * @param vistaInicioSesion La implementación de IVistaInicioSesion.
+     * Establece la vista de inicio de sesión.
+     * @param vistaInicioSesion la vista de inicio de sesión
      */
     public void setVistaInicioSesion(IVistaInicioSesion vistaInicioSesion) {
         this.vistaInicioSesion = vistaInicioSesion;
     }
 
     /**
-     * Establece la vista principal para el controlador.
-     * @param vista La implementación de IVistaPrincipal.
+     * Establece la vista principal.
+     * @param vista la vista principal
      */
     public void setVistaPrincipal(IVistaPrincipal vista) {
         this.vista = vista;
     }
 
     /**
-     * Carga los mensajes de la conversación seleccionada en el panel de mensajes de la vista.
-     * Descifra los mensajes guardados antes de mostrarlos.
-     * @param selectedValue El objeto ChatPantalla seleccionado (que contiene el Contacto).
+     * Carga la conversación seleccionada en la vista.
+     * @param selectedValue el chat seleccionado
      */
     public void cargarConversacion(ChatPantalla selectedValue) {
-        if (selectedValue == null) {
-            vista.getPanelMensajes().removeAll(); // Limpiar el panel si no hay chat seleccionado
-            vista.getPanelMensajes().revalidate();
-            vista.getPanelMensajes().repaint();
-            return;
-        }
-
-        // Obtener la instancia de Contacto gestionada por el modelo
-        Optional<Contacto> contactoEnAgendaOptional = usuarioServicio.getUsuario().getContactos().stream()
-                .filter(c -> c.equals(selectedValue.getContacto()))
-                .findFirst();
-        Contacto contactoParaCargar = contactoEnAgendaOptional.orElse(selectedValue.getContacto());
-
-        int index = vista.getModeloChats().indexOf(new ChatPantalla(contactoParaCargar));
+        int index = vista.getModeloChats().indexOf(selectedValue);
 
         if (index >= 0) {
-            ChatPantalla chatEnModelo = vista.getModeloChats().get(index);
-            chatEnModelo.setLeido(); // Marcar el chat como leído en el modelo de la vista
-            vista.getModeloChats().set(index, chatEnModelo); // Actualizar el elemento en el DefaultListModel
+            ChatPantalla chatConNotificacion = vista.getModeloChats().get(index);
+            chatConNotificacion.setLeido();
+            vista.getModeloChats().set(index, chatConNotificacion);
+            ArrayList<Mensaje> mensajesCifrados = (ArrayList<Mensaje>) this.conversacionServicio.getMensajes(chatConNotificacion.getContacto());
 
-            // Obtener la clave de cifrado para este contacto
-            SecretKey claveConversacion = clavesConversacion.get(contactoParaCargar);
+            SecretKey claveConversacion = clavesConversacion.get(chatConNotificacion.getContacto());
             if (claveConversacion == null) {
-                mostrarMensajeFlotante("ERROR: No hay clave para cargar conversación con " + contactoParaCargar.getNombre(), Color.RED);
-                System.err.println("No se puede cargar conversación: clave no disponible para " + contactoParaCargar.getNombre());
-                vista.getPanelMensajes().removeAll(); // Limpiar el panel
-                vista.getPanelMensajes().revalidate();
-                vista.getPanelMensajes().repaint();
+                mostrarMensajeFlotante("ERROR: No hay clave para cargar conversación con " + chatConNotificacion.getContacto().getNombre(), Color.RED);
+                System.err.println("No se puede cargar conversación: clave no disponible para " + chatConNotificacion.getContacto().getNombre());
                 return;
             }
 
-            // Limpiar el panel de mensajes antes de cargar los nuevos
-            vista.getPanelMensajes().removeAll();
+            vista.getPanelMensajes().removeAll(); // Limpiar el panel de mensajes
 
-            // Obtener los mensajes del servicio de conversación
-            // La lista devuelta puede ser List<Mensaje> o ArrayList<Mensaje>
-            List<Mensaje> mensajesGuardados = this.conversacionServicio.getMensajes(contactoParaCargar);
-
-            for(Mensaje mensajeGuardado : mensajesGuardados) {
+            for(Mensaje mensajeCifrado : mensajesCifrados) {
                 String contenidoDescifrado = null;
-                boolean esMensajePropio = mensajeGuardado.getEmisor().equals(usuarioDTO.getNombre()); // Determinar si es propio
+                boolean esMensajePropio = false;
 
                 try {
-                    // Si el mensaje fue guardado con contenido plano (ej. al enviar o ya descifrado al recibir),
-                    // usa ese contenido. De lo contrario, descifra el contenido cifrado.
-                    if (mensajeGuardado.getContenido() != null && !mensajeGuardado.getContenido().trim().isEmpty()) {
-                        contenidoDescifrado = mensajeGuardado.getContenido();
-                    } else if (mensajeGuardado.getContenidoCifrado() != null && !mensajeGuardado.getContenidoCifrado().trim().isEmpty()) {
-                        contenidoDescifrado = Cifrador.descifrar(mensajeGuardado.getContenidoCifrado(), claveConversacion);
-                    } else {
-                        contenidoDescifrado = "MENSAJE VACÍO/ILEGIBLE"; // Caso de mensaje sin contenido ni cifrado válido
-                    }
+                    // El emisor del mensaje cifrado es el que determina si es propio o ajeno.
+                    // La clave ya la obtuvimos del contacto asociado al chat.
+                    contenidoDescifrado = Cifrador.descifrar(mensajeCifrado.getContenidoCifrado(), claveConversacion);
+                    esMensajePropio = mensajeCifrado.getEmisor().equals(usuarioDTO.getNombre());
                 } catch (Exception e) {
                     System.err.println("Error al descifrar mensaje al cargar conversación: " + e.getMessage());
                     e.printStackTrace();
                     contenidoDescifrado = "ERROR AL DESCIFRAR";
                 }
 
-                // Formatear el timestamp usando DateTimeFormatter
-                String fechaFormateada = mensajeGuardado.getTimestamp().format(dtf);
+                String fechaFormateada = sdf.format(java.sql.Timestamp.valueOf(mensajeCifrado.getTimestamp()));
 
-                // Añadir el mensaje a la burbuja de la vista
                 vista.addMensajeBurbuja(MensajePantalla.mensajeToMensajePantalla(
-                        new Mensaje(mensajeGuardado.getEmisor(), mensajeGuardado.getReceptor(), contenidoDescifrado, mensajeGuardado.getTimestamp()), // Crear un nuevo Mensaje para la vista con contenido plano y timestamp original
+                        new Mensaje(mensajeCifrado.getEmisor(), mensajeCifrado.getReceptor(), contenidoDescifrado),
                         esMensajePropio,
                         fechaFormateada));
             }
 
             vista.getPanelMensajes().revalidate();
             vista.getPanelMensajes().repaint();
-        } else {
-            System.err.println("ERROR: Chat seleccionado para cargar no encontrado en el modelo de chats de la vista. Esto no debería ocurrir.");
         }
     }
 
-    /**
-     * Solicita la lista de contactos al servidor y la actualiza en la vista.
-     * @return Una lista de Contacto obtenida del servidor.
-     */
-    public List<Contacto> obtenerContactos() {
-        List<Contacto> contactosObtenidos = new ArrayList<>();
+
+    public ArrayList<Contacto> obtenerContactos() {
+        ArrayList<Contacto> contactos = new ArrayList<>();
         try {
-            contactosObtenidos = this.conexion.obtenerContactos();
-            // El método 'update' del controlador ya debería manejar la actualización de la vista
-            // una vez que el DirectorioDTO es recibido por la conexión.
-            // Esta llamada es principalmente para disparar la solicitud.
+            contactos = this.conexion.obtenerContactos();
         } catch (PerdioConexionException e) {
-            mostrarMensajeFlotante("Conexión perdida al obtener contactos. Intentando reconectar.", Color.RED);
             reconectar();
         }
-        return contactosObtenidos;
+        return contactos;
     }
 
-    /**
-     * Intenta reconectar con el servidor si la conexión se ha perdido.
-     * Muestra diálogos al usuario para reintentar o salir.
-     */
     void reconectar(){
-        abrirMensajeConectando(); // Muestra el mensaje "Conectando..."
         try {
             this.conexion.reconectar();
-            cerrarMensajeConectando(); // Si la reconexión es exitosa, cierra el mensaje
-            mostrarMensajeFlotante("Reconexión exitosa.", Color.GREEN);
+            // No es necesario iniciar un nuevo hilo de conexión aquí,
+            // ya que `conexion.reconectar()` ya debería manejar la reconexión
+            // y la re-inicialización del ManejadorEntradas dentro de `Conexion`.
+            // La línea `new Thread(conexion).start();` en el `catch` de `iniciarServidor`
+            // es solo para el primer inicio.
         } catch (IOException e) {
-            System.err.println("Fallo al reconectar: " + e.getMessage());
-            e.printStackTrace();
-            cerrarMensajeConectando(); // Cierra el mensaje de "Conectando..."
-            mostrarMensajeFlotante("Fallo al reconectar. " + e.getMessage(), Color.RED);
-
-            // Pregunta al usuario si quiere reintentar
             if(this.vista.mostrarDialogoReintentarConexion()){
-                reconectar(); // Llamada recursiva para reintentar
+                try {
+                    this.conexion.reconectar();
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex); // Lanzar excepción en caso de falla repetida
+                }
             }else{
-                this.vista.cerrarDialogoReconexion(); // Asegurarse de que el diálogo esté cerrado
-                System.exit(0); // Cierra la aplicación si el usuario no quiere reintentar
+                this.vista.cerrarDialogoReconexion();
+                System.exit(0);
             }
         }
     }
 
-    /**
-     * Cierra el diálogo de "Conectando..." en la interfaz de usuario.
-     */
     public void cerrarMensajeConectando() {
-        if (this.vista != null) {
-            this.vista.cerrarDialogoReconexion();
-        }
+        this.vista.cerrarDialogoReconexion();
     }
 
-    /**
-     * Abre el diálogo de "Conectando..." en la interfaz de usuario.
-     */
     public void abrirMensajeConectando() {
-        if (this.vista != null) {
-            this.vista.mostrarDialogoReconexion();
-        }
+        this.vista.mostrarDialogoReconexion();
     }
 }

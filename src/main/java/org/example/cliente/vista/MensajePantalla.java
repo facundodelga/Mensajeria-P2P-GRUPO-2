@@ -54,6 +54,6 @@ package org.example.cliente.vista;
          * @return Un nuevo objeto MensajePantalla.
          */
         public static MensajePantalla mensajeToMensajePantalla(Mensaje mensaje, boolean esMio, String hora) {
-            return new MensajePantalla(mensaje.getContenidoCifrado(), esMio, hora);
+            return new MensajePantalla(mensaje.getContenido(), esMio, hora);
         }
     }
