@@ -3,14 +3,13 @@ package org.example.cliente.conexion;
 import org.example.cliente.controlador.Controlador;
 import org.example.cliente.modelo.mensaje.Mensaje;
 import org.example.cliente.modelo.usuario.Contacto;
+import org.example.servidor.DirectorioDTO;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ConnectException;
 import java.net.Socket;
-import java.net.SocketException;
-import java.util.ArrayList;
 import java.util.Observable;
 
 /**
@@ -19,13 +18,13 @@ import java.util.Observable;
  */
 public class Conexion extends Observable implements Runnable {
     private Socket socket;
-    private ObjectInputStream entrada;
-    private ObjectOutputStream salida;
+    private ObjectOutputStream outputStream;
+    private ObjectInputStream inputStream;
     private ManejadorEntradas manejadorEntradas; // Ahora es una clase externa
     private Controlador controlador; // Referencia al controlador para notificarle eventos
 
-    private String ip = "127.0.0.1";
-    private int puerto = 8080;
+    private String serverIp = "127.0.0.1";
+    private int serverPort = 8080;
     private Contacto usuarioDTOOriginal;
 
     private volatile boolean conectado = false; // Estado de la conexión
@@ -55,31 +54,31 @@ public class Conexion extends Observable implements Runnable {
     public void conectarServidor(Contacto usuarioDTO) throws IOException, PuertoEnUsoException {
         this.usuarioDTOOriginal = usuarioDTO;
         try {
-            socket = new Socket(ip, puerto);
-            System.out.println("DEBUG: Socket conectado a " + ip + ":" + puerto);
+            socket = new Socket(serverIp, serverPort);
+            System.out.println("DEBUG: Socket conectado a " + serverIp + ":" + serverPort);
             conectado = true;
 
-            // 1. Crear el ObjectOutputStream PRIMERO
-            salida = new ObjectOutputStream(socket.getOutputStream());
-            salida.flush();
+            // 1. Crear el ObjectOutputStream PRIMERO en el cliente
+            outputStream = new ObjectOutputStream(socket.getOutputStream());
+            outputStream.flush(); // IMPORTANTE: Envía la cabecera de serialización
             System.out.println("DEBUG: ObjectOutputStream inicializado y flusheado.");
 
-            // 2. Crear el ObjectInputStream DESPUÉS
-            entrada = new ObjectInputStream(socket.getInputStream());
+            // 2. Crear el ObjectInputStream DESPUÉS en el cliente
+            inputStream = new ObjectInputStream(socket.getInputStream());
             System.out.println("DEBUG: ObjectInputStream inicializado.");
 
             // 3. Enviar el objeto de usuario inicial
-            salida.writeObject(usuarioDTO);
-            salida.flush();
+            outputStream.writeObject(usuarioDTO);
+            outputStream.flush();
             System.out.println("DEBUG: Usuario " + usuarioDTO.getNombre() + " enviado al servidor.");
 
             // 4. Inicializar el ManejadorEntradas (la clase externa)
-            this.manejadorEntradas = new ManejadorEntradas(socket, entrada, this); // Pasa 'this' como conexionPadre
+            this.manejadorEntradas = new ManejadorEntradas(socket, inputStream, this); // Pasa 'this' como conexionPadre
             System.out.println("DEBUG: ManejadorEntradas inicializado en Conexion.");
 
         } catch (ConnectException e) {
             conectado = false;
-            throw new IOException("No se pudo conectar al servidor en " + ip + ":" + puerto + ". " + e.getMessage(), e);
+            throw new IOException("No se pudo conectar al servidor en " + serverIp + ":" + serverPort + ". " + e.getMessage(), e);
         } catch (IOException e) {
             conectado = false;
             if (e.getMessage() != null && e.getMessage().contains("Address already in use")) {
@@ -116,11 +115,10 @@ public class Conexion extends Observable implements Runnable {
     @Override
     public void run() {
         if (manejadorEntradas != null) {
-            new Thread(manejadorEntradas).start();
+            new Thread(manejadorEntradas, "ManejadorEntradas-Cliente").start(); // Asignar un nombre al hilo
             System.out.println("DEBUG: Hilo de ManejadorEntradas iniciado.");
         } else {
             System.err.println("ERROR: ManejadorEntradas es null. No se puede iniciar el hilo de escucha.");
-            // Si esto ocurre, la conexión no se estableció correctamente en conectarServidor()
             setChanged();
             notifyObservers(new IOException("Error interno: Fallo al inicializar el manejador de entradas."));
         }
@@ -135,19 +133,18 @@ public class Conexion extends Observable implements Runnable {
      * @throws EnviarMensajeException Si hay un problema al escribir el objeto.
      */
     public void enviarMensaje(Contacto receptor, Mensaje mensaje) throws IOException, PerdioConexionException, EnviarMensajeException {
-        if (!conectado || socket == null || socket.isClosed() || salida == null) {
+        if (!conectado || socket == null || socket.isClosed() || outputStream == null) {
             throw new PerdioConexionException("Conexión no activa. No se puede enviar mensaje.");
         }
         try {
-            salida.writeObject(mensaje);
-            salida.flush();
+            outputStream.writeObject(mensaje);
+            outputStream.flush();
+            // ¡¡¡CORRECCIÓN AQUÍ!!! Usamos getEmisor() y getReceptor() directamente (son Strings)
             System.out.println("DEBUG: Mensaje enviado: " + mensaje.getEmisor() + " -> " + mensaje.getReceptor());
-        } catch (SocketException e) {
+        } catch (IOException e) {
             conectado = false;
             // Notificar al controlador que la conexión se perdió
-            notificarConexionPerdida("Error de socket al enviar mensaje: " + e.getMessage(), e);
-            throw new PerdioConexionException("Conexión perdida al enviar mensaje.", e);
-        } catch (IOException e) {
+            notificarConexionPerdida("Error de I/O al enviar mensaje: " + e.getMessage(), e);
             throw new EnviarMensajeException("Error al escribir mensaje en el stream: " + e.getMessage(), e);
         }
     }
@@ -157,37 +154,29 @@ public class Conexion extends Observable implements Runnable {
      * @throws IOException Si ocurre un error de E/S.
      * @throws PerdioConexionException Si la conexión no está activa.
      */
-    public ArrayList<Contacto> obtenerContactos() throws PerdioConexionException {
-        try {
-
-            Contacto c = new Contacto("Contactos", "111", 0);
-            this.salida.writeObject(c);
-            this.salida.flush();
-
-            return null;
-        }catch (SocketException e){
-            throw new PerdioConexionException("Error: No se pudo conectar al servidor en el puerto " + this.puerto + ". Asegúrese de que el servidor esté en ejecución.");
-        }catch (Exception e){
-            e.printStackTrace();
+    public void obtenerContactos() throws IOException, PerdioConexionException {
+        if (!conectado || socket == null || socket.isClosed() || outputStream == null) {
+            throw new PerdioConexionException("Conexión no activa. No se puede obtener el directorio.");
         }
-        return null;
+        try {
+            outputStream.writeObject("SOLICITAR_DIRECTORIO"); // Puedes usar un enum o una clase específica para esto
+            outputStream.flush();
+            System.out.println("DEBUG: Solicitud de directorio enviada.");
+        } catch (IOException e) {
+            conectado = false;
+            notificarConexionPerdida("Error de I/O al solicitar directorio: " + e.getMessage(), e);
+            throw new IOException("Error al enviar solicitud de directorio: " + e.getMessage(), e);
+        }
     }
 
-
     /**
-     * Notifica al Controlador (observador) con un objeto recibido del servidor.
-     * Este método es llamado por ManejadorEntradas.
+     * Método llamado por ManejadorEntradas para procesar objetos recibidos.
+     * Esta clase (Conexion) luego notifica a sus observadores (el Controlador).
      * @param objetoRecibido El objeto recibido del servidor (Mensaje, DirectorioDTO, etc.).
      */
-    public void notificarControlador(Object objetoRecibido) {
-        setChanged();
-        if (objetoRecibido instanceof Mensaje) {
-            if (controlador != null) {
-                controlador.recibirMensaje((Mensaje) objetoRecibido); // Los mensajes se manejan directamente
-            }
-        } else {
-            notifyObservers(objetoRecibido); // Otros objetos se notifican vía Observer
-        }
+    public void procesarObjetoRecibido(Object objetoRecibido) {
+        setChanged(); // Marca que el estado de este Observable ha cambiado
+        notifyObservers(objetoRecibido); // Notifica a todos los Observadores (el Controlador)
     }
 
     /**
@@ -231,19 +220,18 @@ public class Conexion extends Observable implements Runnable {
             manejadorEntradas.detener(); // Detener el hilo de escucha del manejador
         }
         try {
-            if (salida != null) salida.close();
-            if (entrada != null) entrada.close();
+            if (outputStream != null) outputStream.close();
+            if (inputStream != null) inputStream.close();
             if (socket != null && !socket.isClosed()) socket.close();
             System.out.println("DEBUG: Conexiones cerradas.");
         } catch (IOException e) {
             System.err.println("Error al cerrar conexiones: " + e.getMessage());
             e.printStackTrace();
         } finally {
-            salida = null;
-            entrada = null;
+            outputStream = null;
+            inputStream = null;
             socket = null;
             manejadorEntradas = null;
         }
     }
-
 }

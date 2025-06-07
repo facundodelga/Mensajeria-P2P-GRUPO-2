@@ -44,14 +44,14 @@ public class ManejadorEntradas implements Runnable {
                 Object objetoRecibido = entrada.readObject();
                 if (objetoRecibido != null) {
                     System.out.println("DEBUG: ManejadorEntradas - Objeto recibido: " + objetoRecibido.getClass().getSimpleName());
-                    // Notifica a la instancia de Conexion padre
-                    conexionPadre.notificarControlador(objetoRecibido);
+                    // Notifica a la instancia de Conexion padre para que procese el objeto
+                    conexionPadre.procesarObjetoRecibido(objetoRecibido);
                 }
             } catch (EOFException e) {
                 // Fin del stream, el servidor cerró la conexión limpiamente
                 System.out.println("DEBUG: ManejadorEntradas - Fin de stream (EOFException). Servidor desconectado.");
                 ejecutando = false;
-                // Notifica al controlador a través de la conexión padre que la conexión se perdió
+                // Notifica a la conexión padre que la conexión se perdió
                 conexionPadre.notificarConexionPerdida("El servidor cerró la conexión.");
             } catch (SocketException e) {
                 // Error de socket (ej. conexión reseteada, socket cerrado inesperadamente)
@@ -89,7 +89,7 @@ public class ManejadorEntradas implements Runnable {
             if (entrada != null) {
                 entrada.close(); // Cierra el stream para desbloquear readObject
             }
-            if (socket != null && !socket.isClosed()) {
+            if (socket != null) { // No es necesario verificar si está cerrado, close() lo maneja
                 socket.close(); // Cierra el socket para forzar la salida
             }
         } catch (IOException e) {
