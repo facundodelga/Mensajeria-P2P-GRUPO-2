@@ -7,6 +7,9 @@ import org.example.cliente.factory.IPersistenciaConversaciones;
 import org.example.cliente.factory.IPersistenciaFactory;
 import org.example.cliente.modelo.*;
 import org.example.cliente.modelo.conversacion.Conversacion;
+import org.example.cliente.strategy.CipherContext;
+import org.example.cliente.strategy.CipherStrategy;
+import org.example.cliente.strategy.ICifradoMensajes;
 import org.example.cliente.vista.*;
 import org.example.cliente.factory.PersistenciaManager;
 
@@ -42,6 +45,7 @@ public class Controlador implements ActionListener, Observer {
     private final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
     private UsuarioServicio usuarioServicio;
     private PersistenciaManager persistenciaManager;
+    private ICifradoMensajes cifradoMensajes;
 
     /**
      * Constructor privado para el patrón Singleton.
@@ -92,6 +96,12 @@ public class Controlador implements ActionListener, Observer {
 
     private void cerrarSesion() {
 
+        boolean rta = vista.mostrarConfirmacionCerrarSesion();
+
+        if (!rta) {
+            return; // Si el usuario no confirma, no hacemos nada
+        }
+
         guardarDatosUsuario();
 
         // Cerrar la conexión y limpiar la vista
@@ -109,14 +119,14 @@ public class Controlador implements ActionListener, Observer {
             e.printStackTrace();
         }
 
-        vistaInicioSesion.mostrar();
-
         conexion = null;
         usuarioServicio = null;
         agendaServicio = null;
         conversacionServicio = null;
         usuarioDTO = null;
         persistenciaManager = null;
+
+        System.exit(0); // Cerrar la aplicación
 
     }
 
@@ -148,12 +158,21 @@ public class Controlador implements ActionListener, Observer {
     private void enviarMensaje()  {
         Contacto receptor = vista.getListaChats().getSelectedValue().getContacto();
         String contenido = vista.getCampoMensaje().getText();
+
+        contenido = this.cifradoMensajes.cifrar(contenido);
+
         Mensaje mensaje = new Mensaje(contenido, this.usuarioDTO, receptor);
 
         try {
 
             conexion.enviarMensaje(vista.getListaChats().getSelectedValue().getContacto(), mensaje);
+
+            mensaje.setContenido(
+                    this.cifradoMensajes.descifrar(mensaje.getContenido())
+            );
+
             this.conversacionServicio.addMensajeSaliente(vista.getListaChats().getSelectedValue().getContacto(), mensaje);
+
             vista.getCampoMensaje().setText("");
 
             //agregar el mensaje a la vista
@@ -204,6 +223,8 @@ public class Controlador implements ActionListener, Observer {
             vista.mostrar();
             vista.titulo("Usuario: " + nombre + " | Ip: "+ "127.0.0.1" + " | Puerto: " + puerto);
             vista.informacionDelUsuario(usuarioDTO);
+            // Configurar el cifrado de mensajes
+            this.cifradoMensajes = new CipherContext();
         }catch (NumberFormatException e) {
             mostrarMensajeFlotante("El puerto debe ser un número entre 0 y 65535", Color.RED);
 
@@ -325,6 +346,8 @@ public class Controlador implements ActionListener, Observer {
             }
         }
 
+        String contenidoMensaje = this.cifradoMensajes.descifrar(mensaje.getContenido());
+        mensaje.setContenido(contenidoMensaje);
         this.conversacionServicio.addMensajeEntrante(mensaje);
         String fechaFormateada = sdf.format(mensaje.getFecha());
 

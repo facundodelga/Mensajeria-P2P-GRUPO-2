@@ -505,6 +505,25 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         setVisible(false);
     }
 
+    /**
+     * Muestra un diálogo de confirmación para cerrar sesión.
+     * @return true si el usuario confirma que quiere cerrar sesión, false en caso contrario
+     */
+    public boolean mostrarConfirmacionCerrarSesion() {
+        int respuesta = JOptionPane.showOptionDialog(
+                this,
+                "¿Está seguro que desea cerrar sesión?",
+                "Confirmar cierre de sesión",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                new Object[]{"Sí", "No"}, // Botones personalizados
+                "No" // Opción por defecto
+        );
+
+        return respuesta == JOptionPane.YES_OPTION;
+    }
+
     @Override
     public void limpiarCampos() {
         textField_Mensaje.setText("");

@@ -59,4 +59,7 @@ public class Mensaje implements Serializable {
     }
 
 
+    public void setContenido(String contenidoMensaje) {
+        this.contenido = contenidoMensaje;
+    }
 }
