@@ -135,7 +135,7 @@ public class Conexion implements IConexion, Observer {
         } else {
             System.out.println("Intentando enviar mensaje a " + usuarioDTO);
             try {
-                System.out.println("Enviando mensaje a " + usuarioDTO + ": " + mensaje.getContenidoCifrado());
+                System.out.println("Enviando mensaje a " + usuarioDTO + ": " + mensaje.getContenido());
                 salida.writeObject(mensaje);
                 salida.flush();
 

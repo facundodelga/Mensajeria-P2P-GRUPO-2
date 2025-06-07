@@ -46,8 +46,4 @@ public class AgendaServicio implements IAgenda {
         }
         return null;
     }
-
-    public Usuario getUsuario() {
-        return usuario;
-    }
 }

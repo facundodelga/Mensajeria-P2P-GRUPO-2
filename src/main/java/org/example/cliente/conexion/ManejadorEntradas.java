@@ -52,7 +52,7 @@ public class ManejadorEntradas extends Observable implements Runnable {
                     notifyObservers(mensaje);
                 } else if (msg instanceof Mensaje) {
                     Mensaje mensaje = (Mensaje) msg;
-                    System.out.println("Mensaje recibido de " + mensaje.getEmisor() + ": " + mensaje.getContenidoCifrado());
+                    System.out.println("Mensaje recibido de " + mensaje.getEmisor() + ": " + mensaje.getContenido());
                     setChanged();
                     notifyObservers(mensaje);
                 } else if (msg instanceof DirectorioDTO) {

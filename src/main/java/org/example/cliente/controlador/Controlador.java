@@ -7,21 +7,22 @@ import org.example.cliente.vista.*;
 import org.example.cliente.modelo.mensaje.Mensaje;
 import org.example.cliente.modelo.usuario.Usuario;
 import org.example.cliente.modelo.usuario.Contacto;
-import org.example.util.cifrado.Cifrador;
+import org.example.util.cifrado.Cifrador; // Keep this import
 import org.example.servidor.DirectorioDTO;
 
-import javax.crypto.SecretKey;
+import javax.crypto.SecretKey; // Keep this import
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
-import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchAlgorithmException; // Keep this import
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Observable;
-import java.util.Observer;
+import java.util.HashMap; // Keep this import
+import java.util.Map; // Keep this import
+
+import java.util.Observable; // Keep this import if Observer is still intended, but we discussed removing it
+import java.util.Observer; // Keep this import if Observer is still intended, but we discussed removing it
 
 /**
  * Clase Controlador que implementa ActionListener y Observer.
@@ -34,7 +35,7 @@ public class Controlador implements ActionListener, Observer {
 
     private IAgenda agendaServicio;
     private IConversacion conversacionServicio;
-    private Conexion conexion; // Tipo concreto Conexion, ya que es quien tendrá setControlador
+    private Conexion conexion;
     private Contacto usuarioDTO;
     private DirectorioDTO directorioDTO;
     private final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
@@ -114,8 +115,8 @@ public class Controlador implements ActionListener, Observer {
         Contacto selectedValue = vista.getListaContactos().getSelectedValue();
 
         if (selectedValue != null) {
-            ChatPantalla chatPantallaExistente = new ChatPantalla(selectedValue);
-            if (!vista.getModeloChats().contains(chatPantallaExistente)) {
+            ChatPantalla newChat = new ChatPantalla(selectedValue);
+            if (!vista.getModeloChats().contains(newChat)) { // Check if chat already exists using a ChatPantalla object
                 System.out.println("inicio de chat " + selectedValue);
                 this.conversacionServicio.agregarConversacion(selectedValue);
 
@@ -130,8 +131,8 @@ public class Controlador implements ActionListener, Observer {
                     return;
                 }
 
-                vista.getModeloChats().addElement(new ChatPantalla(selectedValue));
-                vista.getListaChats().setSelectedValue(selectedValue, true);
+                vista.getModeloChats().addElement(newChat); // Add the new ChatPantalla object
+                vista.getListaChats().setSelectedValue(newChat, true); // Select the new ChatPantalla object
                 vista.getPanelMensajes().revalidate();
                 vista.getPanelMensajes().repaint();
             } else {
@@ -189,6 +190,7 @@ public class Controlador implements ActionListener, Observer {
                     sdf.format(mensaje.getTimestamp())));
         } catch (PerdioConexionException e){
             reconectar();
+
         } catch (EnviarMensajeException | IOException e) {
             mostrarMensajeFlotante(e.getMessage(), Color.RED);
         }
@@ -253,6 +255,7 @@ public class Controlador implements ActionListener, Observer {
      */
     public void agregarNuevoContacto() {
         Contacto nuevoContacto = null;
+
         nuevoContacto = vista.mostrarAgregarContacto();
 
         if(nuevoContacto != null) {
@@ -312,7 +315,7 @@ public class Controlador implements ActionListener, Observer {
         // Primero, intenta encontrar el contacto en la agenda existente
         // Es crucial que la instancia de Contacto sea la misma si ya existe.
         // Asumo que Contacto tiene un buen método equals/hashCode basado en el nombre.
-        for (Contacto c : agendaServicio.getUsuario().getContactos()) {
+        for (Contacto c : agendaServicio.getContactos()) { // CORRECTED LINE: Access via agendaServicio.getContactos()
             if (c.getNombre().equals(mensajeRecibido.getEmisor())) {
                 emisorContacto = c;
                 break;
@@ -322,6 +325,10 @@ public class Controlador implements ActionListener, Observer {
         // Y LO AÑADE A LAS CLAVES DE CONVERSACION CON UNA CLAVE GENERADA.
         if (emisorContacto == null) {
             emisorContacto = new Contacto(mensajeRecibido.getEmisor(), null, 0); // Solo el nombre
+            // Add the new contact to the view's model if it's not already there
+            if (!vista.getModeloContactos().contains(emisorContacto)) {
+                vista.getModeloContactos().addElement(emisorContacto);
+            }
             try {
                 SecretKey nuevaClave = Cifrador.generarClaveAES();
                 clavesConversacion.put(emisorContacto, nuevaClave); // NUEVO: Generar clave para nuevo contacto
@@ -332,16 +339,17 @@ public class Controlador implements ActionListener, Observer {
             }
         }
 
-
         SecretKey claveConversacion = clavesConversacion.get(emisorContacto);
         if (claveConversacion == null) {
             System.err.println("ERROR: No hay clave de cifrado para la conversación con " + mensajeRecibido.getEmisor() + ". Mensaje no descifrado.");
             mostrarMensajeFlotante("Mensaje cifrado de " + mensajeRecibido.getEmisor() + " no pudo ser descifrado (clave no disponible).", Color.RED);
             String contenidoVisible = "MENSAJE CIFRADO (sin clave)";
-            this.conversacionServicio.addMensajeEntrante(new Mensaje(mensajeRecibido.getEmisor(), mensajeRecibido.getReceptor(), contenidoVisible));
+            // Create a new Mensaje object with the visible content for storage and display
+            Mensaje messageForDisplay = new Mensaje(mensajeRecibido.getEmisor(), mensajeRecibido.getReceptor(), contenidoVisible, mensajeRecibido.getTimestamp());
+            this.conversacionServicio.addMensajeEntrante(messageForDisplay);
             // También agregarlo a la vista para que el usuario vea el mensaje ilegible
             vista.addMensajeBurbuja(MensajePantalla.mensajeToMensajePantalla(
-                    new Mensaje(mensajeRecibido.getEmisor(), mensajeRecibido.getReceptor(), contenidoVisible),
+                    messageForDisplay,
                     false,
                     sdf.format(java.sql.Timestamp.valueOf(mensajeRecibido.getTimestamp()))));
             return;
@@ -360,40 +368,45 @@ public class Controlador implements ActionListener, Observer {
         Mensaje mensajeParaProcesar = new Mensaje(
                 mensajeRecibido.getEmisor(),
                 mensajeRecibido.getReceptor(),
-                contenidoDescifrado
+                contenidoDescifrado,
+                mensajeRecibido.getTimestamp() // Keep the original timestamp
         );
 
         String fechaFormateada = sdf.format(java.sql.Timestamp.valueOf(mensajeRecibido.getTimestamp()));
 
         ChatPantalla chatPantalla = new ChatPantalla(emisorContacto);
 
-        if(!vista.getModeloChats().contains(chatPantalla)){
-            // Si el chat no existe, agregarlo. Primero verifica si el contacto está en la lista de contactos.
-            // Si el contacto ya fue creado como temporal (arriba) y no está en la agenda, esto lo agrega a la vista.
-            if(!vista.getModeloContactos().contains(emisorContacto)){
-                vista.getModeloContactos().addElement(emisorContacto);
+        int chatIndex = -1;
+        for (int i = 0; i < vista.getModeloChats().size(); i++) {
+            if (vista.getModeloChats().getElementAt(i).getContacto().equals(emisorContacto)) {
+                chatPantalla = vista.getModeloChats().getElementAt(i);
+                chatIndex = i;
+                break;
             }
+        }
+
+        if (chatIndex == -1) { // If chat doesn't exist, add it
+            this.conversacionServicio.agregarConversacion(emisorContacto); // Ensure conversation is added to model
             vista.getModeloChats().addElement(chatPantalla);
-            vista.getListaChats().setSelectedValue(chatPantalla, true); // Seleccionar el nuevo chat
+            // After adding, find its new index to select it
+            chatIndex = vista.getModeloChats().size() - 1;
         }
 
         this.conversacionServicio.addMensajeEntrante(mensajeParaProcesar);
 
-        // Actualizar la vista de mensajes si el chat actual es el que recibió el mensaje
-        if(vista.getListaChats().getSelectedValue() != null
-                && emisorContacto.equals(vista.getListaChats().getSelectedValue().getContacto())) {
+        // Update view if current chat is the one that received the message
+        ChatPantalla currentSelectedChat = vista.getListaChats().getSelectedValue();
+        if(currentSelectedChat != null && emisorContacto.equals(currentSelectedChat.getContacto())) {
             vista.addMensajeBurbuja(MensajePantalla.mensajeToMensajePantalla(
                     mensajeParaProcesar,
-                    false,
+                    false, // It's an incoming message
                     fechaFormateada));
         } else {
-            // Notificar visualmente que hay un nuevo mensaje en un chat no seleccionado
-            int index = vista.getModeloChats().indexOf(chatPantalla);
-            if (index >= 0) {
-                ChatPantalla chatConNotificacion = vista.getModeloChats().get(index);
-                chatConNotificacion.setPendiente();
-                vista.getModeloChats().set(index, chatConNotificacion);
-                vista.getListaChats().repaint(); // Forzar repintado para mostrar notificación
+            // Visually notify that there's a new message in an unselected chat
+            if (chatIndex >= 0) {
+                chatPantalla.setPendiente(); // Mark as pending
+                vista.getModeloChats().set(chatIndex, chatPantalla); // Update the element in the model
+                vista.getListaChats().repaint(); // Force repaint to show notification
             }
         }
     }
@@ -407,25 +420,20 @@ public class Controlador implements ActionListener, Observer {
      */
     @Override
     public void update(Observable o, Object arg) {
-        // La parte de 'arg instanceof Mensaje' se elimina o comenta aquí,
-        // ya que `recibirMensaje(Mensaje)` es llamado directamente por `Conexion`.
-        // if(arg instanceof Mensaje) {
-        //    Mensaje mensaje = (Mensaje) arg;
-        //    System.out.println("Mensaje recibido en update (DEBERÍA SER VIA recibirMensaje): " + mensaje);
-        //    recibirMensaje(mensaje); // Esto podría causar doble procesamiento si Conexion también llama a update con Mensaje
-        // } else
+        // The part 'arg instanceof Mensaje' is removed or commented here,
+        // since `recibirMensaje(Mensaje)` is called directly by `Conexion`.
         if (arg instanceof DirectorioDTO) {
             DirectorioDTO contactos = (DirectorioDTO) arg;
-            System.out.println("Contactos recibidos en update: " + contactos);
+            System.out.println("Contactos recibidos: " + contactos);
             contactos.getContactos().removeIf(c -> c.getNombre().equals(usuarioDTO.getNombre()));
             this.directorioDTO = contactos;
-            vista.actualizarListaContactos(contactos.getContactos()); // Actualizar la vista de contactos
+            vista.actualizarListaContactos(contactos.getContactos()); // Update contact view
         } else if (arg instanceof PerdioConexionException) {
             PerdioConexionException e = (PerdioConexionException) arg;
             System.err.println("Error de conexión notificado al Controlador: " + e.getMessage());
             mostrarMensajeFlotante("Error de conexión: " + e.getMessage(), Color.RED);
-            // reconectar(); // Podrías disparar la reconexión aquí si quieres que sea automática
-        } else if (arg instanceof Exception) { // Captura otras excepciones generales
+            // reconectar(); // You could trigger reconnection here if you want it to be automatic
+        } else if (arg instanceof Exception) { // Capture other general exceptions
             Exception e = (Exception) arg;
             System.err.println("Excepción general notificada al Controlador: " + e.getMessage());
             mostrarMensajeFlotante("Error inesperado: " + e.getMessage(), Color.RED);
@@ -472,15 +480,15 @@ public class Controlador implements ActionListener, Observer {
                 return;
             }
 
-            vista.getPanelMensajes().removeAll(); // Limpiar el panel de mensajes
+            vista.getPanelMensajes().removeAll(); // Clear message panel
 
             for(Mensaje mensajeCifrado : mensajesCifrados) {
                 String contenidoDescifrado = null;
                 boolean esMensajePropio = false;
 
                 try {
-                    // El emisor del mensaje cifrado es el que determina si es propio o ajeno.
-                    // La clave ya la obtuvimos del contacto asociado al chat.
+                    // The sender of the encrypted message determines if it's ours or someone else's.
+                    // The key was already obtained from the contact associated with the chat.
                     contenidoDescifrado = Cifrador.descifrar(mensajeCifrado.getContenidoCifrado(), claveConversacion);
                     esMensajePropio = mensajeCifrado.getEmisor().equals(usuarioDTO.getNombre());
                 } catch (Exception e) {
@@ -502,7 +510,6 @@ public class Controlador implements ActionListener, Observer {
         }
     }
 
-
     public ArrayList<Contacto> obtenerContactos() {
         ArrayList<Contacto> contactos = new ArrayList<>();
         try {
@@ -516,17 +523,12 @@ public class Controlador implements ActionListener, Observer {
     void reconectar(){
         try {
             this.conexion.reconectar();
-            // No es necesario iniciar un nuevo hilo de conexión aquí,
-            // ya que `conexion.reconectar()` ya debería manejar la reconexión
-            // y la re-inicialización del ManejadorEntradas dentro de `Conexion`.
-            // La línea `new Thread(conexion).start();` en el `catch` de `iniciarServidor`
-            // es solo para el primer inicio.
         } catch (IOException e) {
             if(this.vista.mostrarDialogoReintentarConexion()){
                 try {
                     this.conexion.reconectar();
                 } catch (IOException ex) {
-                    throw new RuntimeException(ex); // Lanzar excepción en caso de falla repetida
+                    throw new RuntimeException(ex); // Re-throw exception in case of repeated failure
                 }
             }else{
                 this.vista.cerrarDialogoReconexion();
