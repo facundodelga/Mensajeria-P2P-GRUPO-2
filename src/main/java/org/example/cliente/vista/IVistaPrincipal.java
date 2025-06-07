@@ -7,6 +7,11 @@ import java.awt.event.WindowAdapter;
 
 public interface IVistaPrincipal {
 
+    /**
+     * Muestra un diálogo de confirmación para cerrar sesión.
+     * @return true si el usuario confirma que quiere cerrar sesión, false en caso contrario
+     */
+    public boolean mostrarConfirmacionCerrarSesion() ;
 
     JTextField getCampoMensaje();
     JButton getBotonEnviar();

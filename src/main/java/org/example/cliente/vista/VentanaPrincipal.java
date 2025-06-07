@@ -1,5 +1,6 @@
 package org.example.cliente.vista;
 
+import org.example.cliente.conexion.PerdioConexionException;
 import org.example.cliente.controlador.Controlador;
 import org.example.cliente.modelo.usuario.Contacto;
 
@@ -42,7 +43,18 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
         getContentPane().setBackground(new Color(32, 32, 32));
         setTitle("App de Mensajeria");
         setSize(900, 600);
-        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+
+        addWindowListener(
+            new WindowAdapter() {
+                @Override
+                public void windowClosing(java.awt.event.WindowEvent e) {
+                    Controlador.getInstancia().cerrarSesion();
+                }
+            }
+        );
+
+
         setLocationRelativeTo(null);
 
         // Cambiamos a BorderLayout para el contenido principal
@@ -298,10 +310,20 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
      * Agrega un listener de ventana.
      * @param listener El listener de ventana a agregar.
      */
+
     @Override
     public void addWindowListener(WindowAdapter listener) {
-        super.addWindowListener(listener);
+        super.addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(java.awt.event.WindowEvent e) {
+                Controlador.getInstancia().cerrarSesion();
+            }
+        });
     }
+
+
+
+
 
     /**
      * Establece el título de la ventana.
@@ -450,6 +472,8 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
     public DefaultListModel<Contacto> getModeloContactos() { return modeloContactos; }
     public JButton getBotonCerrarSesion() { return botonCerrarSesion; }
 
+
+
     /**
      * Muestra la ventana para agregar un nuevo contacto.
      * @return El nuevo contacto agregado.
@@ -503,6 +527,25 @@ public class VentanaPrincipal extends JFrame implements IVistaPrincipal {
 
     public void ocultar() {
         setVisible(false);
+    }
+
+    /**
+     * Muestra un diálogo de confirmación para cerrar sesión.
+     * @return true si el usuario confirma que quiere cerrar sesión, false en caso contrario
+     */
+    public boolean mostrarConfirmacionCerrarSesion() {
+        int respuesta = JOptionPane.showOptionDialog(
+                this,
+                "¿Está seguro que desea cerrar sesión?",
+                "Confirmar cierre de sesión",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE,
+                null,
+                new Object[]{"Sí", "No"}, // Botones personalizados
+                "No" // Opción por defecto
+        );
+
+        return respuesta == JOptionPane.YES_OPTION;
     }
 
     @Override

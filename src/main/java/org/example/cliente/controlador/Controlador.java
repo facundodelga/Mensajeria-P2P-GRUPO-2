@@ -1,12 +1,10 @@
 package org.example.cliente.controlador;
 
 import org.example.cliente.conexion.*;
-import org.example.cliente.factory.FactorySelector;
-import org.example.cliente.factory.IPersistenciaAgenda;
-import org.example.cliente.factory.IPersistenciaConversaciones;
-import org.example.cliente.factory.IPersistenciaFactory;
 import org.example.cliente.modelo.*;
 import org.example.cliente.modelo.conversacion.Conversacion;
+import org.example.cliente.strategy.CipherContext;
+import org.example.cliente.strategy.ICifradoMensajes;
 import org.example.cliente.vista.*;
 import org.example.cliente.factory.PersistenciaManager;
 
@@ -23,7 +21,8 @@ import java.awt.event.*;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
-import java.util.List;
+
+import static java.lang.Thread.sleep;
 
 /**
  * Clase Controlador que implementa ActionListener y Observer.
@@ -42,6 +41,7 @@ public class Controlador implements ActionListener, Observer {
     private final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
     private UsuarioServicio usuarioServicio;
     private PersistenciaManager persistenciaManager;
+    private ICifradoMensajes cifradoMensajes;
 
     /**
      * Constructor privado para el patrón Singleton.
@@ -90,7 +90,13 @@ public class Controlador implements ActionListener, Observer {
         }
     }
 
-    private void cerrarSesion() {
+    public void cerrarSesion() {
+
+        boolean rta = vista.mostrarConfirmacionCerrarSesion();
+
+        if (!rta) {
+            return; // Si el usuario no confirma, no hacemos nada
+        }
 
         guardarDatosUsuario();
 
@@ -104,12 +110,10 @@ public class Controlador implements ActionListener, Observer {
 
         // Esperar un tiempo para que el sistema libere el puerto
         try {
-            Thread.sleep(1000); // Esperar 1 segundo
+            sleep(1000); // Esperar 1 segundo
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
-
-        vistaInicioSesion.mostrar();
 
         conexion = null;
         usuarioServicio = null;
@@ -117,6 +121,8 @@ public class Controlador implements ActionListener, Observer {
         conversacionServicio = null;
         usuarioDTO = null;
         persistenciaManager = null;
+
+        System.exit(0); // Cerrar la aplicación
 
     }
 
@@ -148,12 +154,21 @@ public class Controlador implements ActionListener, Observer {
     private void enviarMensaje()  {
         Contacto receptor = vista.getListaChats().getSelectedValue().getContacto();
         String contenido = vista.getCampoMensaje().getText();
+
+        contenido = this.cifradoMensajes.cifrar(contenido);
+
         Mensaje mensaje = new Mensaje(contenido, this.usuarioDTO, receptor);
 
         try {
 
             conexion.enviarMensaje(vista.getListaChats().getSelectedValue().getContacto(), mensaje);
+
+            mensaje.setContenido(
+                    this.cifradoMensajes.descifrar(mensaje.getContenido())
+            );
+
             this.conversacionServicio.addMensajeSaliente(vista.getListaChats().getSelectedValue().getContacto(), mensaje);
+
             vista.getCampoMensaje().setText("");
 
             //agregar el mensaje a la vista
@@ -195,7 +210,7 @@ public class Controlador implements ActionListener, Observer {
             conexion.conectarServidor(usuarioDTO);
 
             this.persistenciaManager = new PersistenciaManager(formato, usuarioDTO);
-
+            this.cifradoMensajes = new CipherContext();
             cargarDatosUsuario();
 
             // Registrar en el servidor de directorios
@@ -204,6 +219,8 @@ public class Controlador implements ActionListener, Observer {
             vista.mostrar();
             vista.titulo("Usuario: " + nombre + " | Ip: "+ "127.0.0.1" + " | Puerto: " + puerto);
             vista.informacionDelUsuario(usuarioDTO);
+            // Configurar el cifrado de mensajes
+
         }catch (NumberFormatException e) {
             mostrarMensajeFlotante("El puerto debe ser un número entre 0 y 65535", Color.RED);
 
@@ -325,6 +342,8 @@ public class Controlador implements ActionListener, Observer {
             }
         }
 
+        String contenidoMensaje = this.cifradoMensajes.descifrar(mensaje.getContenido());
+        mensaje.setContenido(contenidoMensaje);
         this.conversacionServicio.addMensajeEntrante(mensaje);
         String fechaFormateada = sdf.format(mensaje.getFecha());
 
@@ -448,6 +467,17 @@ public class Controlador implements ActionListener, Observer {
         } catch (PerdioConexionException e) {
             //intentar reconectar
             reconectar();
+             // Esperar un segundo antes de intentar nuevamente
+            try {
+                sleep(1000);
+                contactos = this.conexion.obtenerContactos();
+            } catch (PerdioConexionException ex) {
+                ex.printStackTrace();
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
+
+
         }
         return contactos;
     }
