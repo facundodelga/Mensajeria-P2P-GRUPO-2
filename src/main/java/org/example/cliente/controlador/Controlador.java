@@ -1,8 +1,14 @@
 package org.example.cliente.controlador;
 
 import org.example.cliente.conexion.*;
+import org.example.cliente.factory.FactorySelector;
+import org.example.cliente.factory.IPersistenciaAgenda;
+import org.example.cliente.factory.IPersistenciaConversaciones;
+import org.example.cliente.factory.IPersistenciaFactory;
 import org.example.cliente.modelo.*;
+import org.example.cliente.modelo.conversacion.Conversacion;
 import org.example.cliente.vista.*;
+import org.example.cliente.factory.PersistenciaManager;
 
 import org.example.cliente.modelo.mensaje.Mensaje;
 import org.example.cliente.modelo.usuario.Usuario;
@@ -11,13 +17,13 @@ import org.example.servidor.DirectorioDTO;
 
 
 import javax.swing.*;
+import javax.swing.Timer;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Observable;
-import java.util.Observer;
+import java.util.*;
+import java.util.List;
 
 /**
  * Clase Controlador que implementa ActionListener y Observer.
@@ -35,6 +41,7 @@ public class Controlador implements ActionListener, Observer {
     private DirectorioDTO directorioDTO;
     private final SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy HH:mm");
     private UsuarioServicio usuarioServicio;
+    private PersistenciaManager persistenciaManager;
 
     /**
      * Constructor privado para el patrón Singleton.
@@ -84,12 +91,17 @@ public class Controlador implements ActionListener, Observer {
     }
 
     private void cerrarSesion() {
+
+        guardarDatosUsuario();
+
         // Cerrar la conexión y limpiar la vista
         if (conexion != null) {
             conexion.cerrarConexiones();
         }
+
         vista.ocultar();
         vista.limpiarCampos();
+
         // Esperar un tiempo para que el sistema libere el puerto
         try {
             Thread.sleep(1000); // Esperar 1 segundo
@@ -99,9 +111,12 @@ public class Controlador implements ActionListener, Observer {
 
         vistaInicioSesion.mostrar();
 
-
         conexion = null;
-
+        usuarioServicio = null;
+        agendaServicio = null;
+        conversacionServicio = null;
+        usuarioDTO = null;
+        persistenciaManager = null;
 
     }
 
@@ -167,6 +182,7 @@ public class Controlador implements ActionListener, Observer {
         }
         try {
             int puerto = Integer.parseInt(vistaInicioSesion.getPuerto());
+            String formato = vistaInicioSesion.getFormatoSeleccionado();
             vistaInicioSesion.ocultar();
 
             Usuario usuario = new Usuario(nombre, "127.0.0.1", puerto);
@@ -176,12 +192,14 @@ public class Controlador implements ActionListener, Observer {
             this.conexion = new Conexion();
 
             this.usuarioDTO = new Contacto(usuario);
+            conexion.conectarServidor(usuarioDTO);
+
+            this.persistenciaManager = new PersistenciaManager(formato, usuarioDTO);
+
+            cargarDatosUsuario();
 
             // Registrar en el servidor de directorios
            // registrarEnServidorDirectorio(usuario);
-
-            conexion.conectarServidor(usuarioDTO);
-
             new Thread(conexion).start();
             vista.mostrar();
             vista.titulo("Usuario: " + nombre + " | Ip: "+ "127.0.0.1" + " | Puerto: " + puerto);
@@ -197,6 +215,48 @@ public class Controlador implements ActionListener, Observer {
             vista.mostrar();
             vista.titulo("Usuario: " + nombre + " | Ip: "+ "127.0.0.1" + " | Puerto: " + usuarioDTO.getPuerto());
             vista.informacionDelUsuario(usuarioDTO);
+        }
+    }
+
+    private void cargarDatosUsuario() {
+        try {
+            // 1. Cargar agenda
+            agendaServicio.setContactos(persistenciaManager.cargarAgenda());
+
+            // 2. Cargar conversaciones (usando agenda actualizada)
+            Map<Contacto, Conversacion> conversaciones = persistenciaManager.cargarConversaciones(agendaServicio);
+            conversacionServicio.setConversaciones(conversaciones);
+
+            // 3. Actualizar vista
+            for (Contacto c : agendaServicio.getContactos()) {
+                vista.getModeloContactos().addElement(c);
+            }
+
+            for (Contacto c : conversaciones.keySet()) {
+                if (!vista.getModeloChats().contains(new ChatPantalla(c))) {
+                    vista.getModeloChats().addElement(new ChatPantalla(c));
+                }
+            }
+
+        } catch (Exception e) {
+            mostrarMensajeFlotante("Error al cargar datos del usuario", Color.RED);
+            e.printStackTrace();
+        }
+    }
+
+    private void guardarDatosUsuario() {
+        try {
+            // 1. Guardar agenda
+            System.out.println("AGENDA DEL USUARIO:" + agendaServicio.getContactos());
+            persistenciaManager.guardarAgenda(agendaServicio.getContactos());
+
+            // 2. Guardar conversaciones
+            persistenciaManager.guardarConversaciones(conversacionServicio.getConversaciones());
+
+            System.out.println("Datos del usuario guardados correctamente.");
+        } catch (Exception e) {
+            mostrarMensajeFlotante("Error al guardar los datos del usuario", Color.RED);
+            e.printStackTrace();
         }
     }
 
@@ -248,7 +308,23 @@ public class Controlador implements ActionListener, Observer {
      * Recibe un mensaje y lo agrega a la conversación correspondiente.
      * @param mensaje el mensaje recibido
      */
-    public void recibirMensaje(Mensaje mensaje){
+    public void recibirMensaje(Mensaje mensaje) {
+
+        // Verificar si el contacto existe
+        if (agendaServicio.buscaNombreContacto(mensaje.getEmisor().getNombre()) == null) {
+            // Si no existe, crear un nuevo contacto (nombre puede ser temporal o sacado del mensaje)
+            String nombre = mensaje.getEmisor().getNombre(); // si tenés este campo
+            String ip = mensaje.getEmisor().getIp();
+            int puerto = mensaje.getEmisor().getPuerto();
+
+            Contacto nuevoContacto = new Contacto(nombre, ip, puerto);
+            try {
+                agendaServicio.addContacto(nuevoContacto);
+            } catch (ContactoRepetidoException e) {
+                throw new RuntimeException(e);
+            }
+        }
+
         this.conversacionServicio.addMensajeEntrante(mensaje);
         String fechaFormateada = sdf.format(mensaje.getFecha());
 
@@ -261,7 +337,7 @@ public class Controlador implements ActionListener, Observer {
                 vista.getModeloChats().addElement(chatPantalla);
                 vista.getModeloContactos().addElement(mensaje.getEmisor());
             }else {
-                vista.getModeloChats().addElement(new ChatPantalla(this.agendaServicio.buscaNombreContacto(mensaje.getEmisor())));
+                vista.getModeloChats().addElement(new ChatPantalla(this.agendaServicio.buscaNombreContacto(mensaje.getEmisor().getNombre())));
             }
         }
 
@@ -398,8 +474,6 @@ public class Controlador implements ActionListener, Observer {
 
         }
     }
-
-
 
 
     public void cerrarMensajeConectando() {

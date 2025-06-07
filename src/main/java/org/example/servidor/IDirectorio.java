@@ -16,6 +16,8 @@ public interface IDirectorio extends Serializable {
 
    // Socket getSocket(Contacto receptor);
 
+    public Contacto getContacto(String nombre);
+
     Directorio clonar();
 
 }

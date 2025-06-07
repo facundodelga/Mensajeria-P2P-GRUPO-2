@@ -3,6 +3,8 @@ package org.example.cliente.modelo;
 import org.example.cliente.modelo.usuario.Contacto;
 import org.example.cliente.modelo.usuario.Usuario;
 
+import java.util.List;
+
 /**
  * Clase que proporciona servicios relacionados con la agenda de contactos de un usuario.
  * Implementa la interfaz IAgenda.
@@ -34,16 +36,24 @@ public class AgendaServicio implements IAgenda {
 
     /**
      * Busca un contacto en la lista de contactos del usuario por nombre.
-     * @param contacto El contacto a buscar.
+     * @param nombreContacto El contacto a buscar.
      * @return El contacto encontrado, o null si no se encuentra.
      */
     @Override
-    public Contacto buscaNombreContacto(Contacto contacto) {
+    public Contacto buscaNombreContacto(String nombreContacto) {
         for (Contacto c : usuario.getContactos()) {
-            if (c.equals(contacto)) {
+            if (c.getNombre().equals(nombreContacto)) {
                 return c;
             }
         }
         return null;
+    }
+
+    public void setContactos(List<Contacto> contactos) {
+        this.usuario.setContactos(contactos);
+    }
+
+    public List<Contacto> getContactos() {
+        return this.usuario.getContactos();
     }
 }

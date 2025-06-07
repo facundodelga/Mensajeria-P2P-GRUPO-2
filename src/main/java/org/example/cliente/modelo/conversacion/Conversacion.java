@@ -9,8 +9,10 @@ public class Conversacion {
     private List<Mensaje> mensajes = new ArrayList<>();
     private boolean pendiente = true;
 
-    public Conversacion() {
+    public Conversacion() {}
 
+    public Conversacion(List<Mensaje> mensajes) {
+        this.mensajes = mensajes;
     }
 
     public List<Mensaje> getMensajes() {
@@ -26,6 +28,10 @@ public class Conversacion {
         this.pendiente = pendiente;
     }
 
-
-
+    @Override
+    public String toString() {
+        return "Conversacion{" +
+                "mensajes=" + mensajes +
+                '}';
+    }
 }

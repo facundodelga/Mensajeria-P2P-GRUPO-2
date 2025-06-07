@@ -29,7 +29,9 @@ public class Directorio implements IDirectorio {
         usuarios.remove(nombre, usuario);
     }
 
-
+    public Contacto getContacto(String nombre) {
+        return usuarios.get(nombre);
+    }
 
     @Override
     public Directorio clonar() {

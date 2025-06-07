@@ -14,6 +14,7 @@ public class VentanaInicioSesion extends JFrame implements IVistaInicioSesion {
     private JTextField textField_CampoNombre;
     private JTextField TextField_CampoPuerto;
     private JButton botonLogin;
+    private JComboBox<String> comboFormato;
 
     /**
      * Constructor de la clase VentanaInicioSesion.
@@ -60,6 +61,20 @@ public class VentanaInicioSesion extends JFrame implements IVistaInicioSesion {
         Label_ConfigurarUsuario.setFont(new Font("Tahoma", Font.PLAIN, 20));
         getContentPane().add(Label_ConfigurarUsuario);
 
+        JLabel Label_Formato = new JLabel("Formato de almacenamiento:");
+        Label_Formato.setBounds(82, 260, 180, 25);
+        Label_Formato.setFont(new Font("Tahoma", Font.PLAIN, 14));
+        Label_Formato.setForeground(Color.WHITE);
+        getContentPane().add(Label_Formato);
+
+        String[] formatos = {"TXT", "XML", "JSON"};
+        comboFormato = new JComboBox<>(formatos);
+        comboFormato.setBounds(82, 290, 180, 25);
+        getContentPane().add(comboFormato);
+
+        // Reposicionar botón login para no superponerse
+        botonLogin.setBounds(102, 330, 130, 30);
+
         setVisible(true);
     }
 
@@ -90,5 +105,9 @@ public class VentanaInicioSesion extends JFrame implements IVistaInicioSesion {
     @Override
     public void mostrar() {
         setVisible(true);
+    }
+
+    public String getFormatoSeleccionado() {
+        return (String) comboFormato.getSelectedItem();
     }
 }

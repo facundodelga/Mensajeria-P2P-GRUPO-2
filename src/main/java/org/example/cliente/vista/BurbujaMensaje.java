@@ -40,7 +40,7 @@ public class BurbujaMensaje extends JPanel {
         g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
         FontMetrics fm = g2.getFontMetrics();
-        int padding = 10;
+        int padding = 15;
         int maxAncho = 250;
         int textoDisponible = maxAncho - 2 * padding;
 
