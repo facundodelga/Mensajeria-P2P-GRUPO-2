@@ -28,6 +28,8 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 
+import static java.lang.Thread.sleep;
+
 /**
  * Clase Controlador que implementa ActionListener y Observer.
  * Maneja la lógica de la aplicación y la interacción entre la vista y el modelo.
@@ -94,7 +96,7 @@ public class Controlador implements ActionListener, Observer {
         }
     }
 
-    private void cerrarSesion() {
+    public void cerrarSesion() {
 
         boolean rta = vista.mostrarConfirmacionCerrarSesion();
 
@@ -114,7 +116,7 @@ public class Controlador implements ActionListener, Observer {
 
         // Esperar un tiempo para que el sistema libere el puerto
         try {
-            Thread.sleep(1000); // Esperar 1 segundo
+            sleep(1000); // Esperar 1 segundo
         } catch (InterruptedException e) {
             e.printStackTrace();
         }
@@ -214,7 +216,7 @@ public class Controlador implements ActionListener, Observer {
             conexion.conectarServidor(usuarioDTO);
 
             this.persistenciaManager = new PersistenciaManager(formato, usuarioDTO);
-
+            this.cifradoMensajes = new CipherContext();
             cargarDatosUsuario();
 
             // Registrar en el servidor de directorios
@@ -224,7 +226,7 @@ public class Controlador implements ActionListener, Observer {
             vista.titulo("Usuario: " + nombre + " | Ip: "+ "127.0.0.1" + " | Puerto: " + puerto);
             vista.informacionDelUsuario(usuarioDTO);
             // Configurar el cifrado de mensajes
-            this.cifradoMensajes = new CipherContext();
+
         }catch (NumberFormatException e) {
             mostrarMensajeFlotante("El puerto debe ser un número entre 0 y 65535", Color.RED);
 
@@ -471,6 +473,17 @@ public class Controlador implements ActionListener, Observer {
         } catch (PerdioConexionException e) {
             //intentar reconectar
             reconectar();
+             // Esperar un segundo antes de intentar nuevamente
+            try {
+                sleep(1000);
+                contactos = this.conexion.obtenerContactos();
+            } catch (PerdioConexionException ex) {
+                ex.printStackTrace();
+            } catch (InterruptedException ex) {
+                throw new RuntimeException(ex);
+            }
+
+
         }
         return contactos;
     }
