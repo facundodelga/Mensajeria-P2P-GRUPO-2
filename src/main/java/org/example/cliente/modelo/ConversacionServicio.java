@@ -6,6 +6,8 @@ import org.example.cliente.modelo.usuario.Contacto;
 import org.example.cliente.modelo.usuario.Usuario;
 
 import java.util.List;
+import java.util.Optional;
+import java.util.ArrayList; // Necesario si usas new ArrayList<>() para List.of() en Java 8
 
 /**
  * Clase que proporciona servicios relacionados con las conversaciones de un usuario.
@@ -29,7 +31,13 @@ public class ConversacionServicio implements IConversacion {
      */
     @Override
     public List<Mensaje> getMensajes(Contacto contacto){
-        return usuario.getConversaciones().get(contacto).getMensajes();
+        Conversacion conversacion = usuario.getConversaciones().get(contacto);
+        if (conversacion != null) {
+            return conversacion.getMensajes();
+        }
+        // Si no hay conversación, devuelve una lista vacía para evitar NullPointerException.
+        // Usa List.of() para Java 9+ o new ArrayList<>() para versiones anteriores.
+        return new ArrayList<>(); // Para compatibilidad con Java 8 o si prefieres Listas mutables
     }
 
     /**
@@ -49,11 +57,24 @@ public class ConversacionServicio implements IConversacion {
      */
     @Override
     public void addMensajeEntrante(Mensaje mensaje) {
-        // Me fijo si la conversacion ya existe y si no, la creo (La linea me la recomendo IntelliJ jajaja)
-        usuario.getConversaciones().computeIfAbsent(mensaje.getEmisor(), k -> new Conversacion());
-        // agrego el mensaje a la conversacion
-        usuario.getConversaciones().get(mensaje.getEmisor())
-                .getMensajes().add(mensaje);
+        // CORRECCIÓN: Buscamos el objeto Contacto real en la lista de contactos del usuario.
+        // Asumimos que usuario.getContactos() devuelve la List<Contacto> del usuario.
+        Optional<Contacto> emisorContactoOptional = usuario.getContactos()
+                .stream()
+                .filter(c -> c.getNombre().equals(mensaje.getEmisor()))
+                .findFirst();
+
+        emisorContactoOptional.ifPresent(contactoEncontrado -> {
+            usuario.getConversaciones().computeIfAbsent(contactoEncontrado, k -> new Conversacion());
+            usuario.getConversaciones().get(contactoEncontrado).getMensajes().add(mensaje);
+        });
+
+        // Si el emisor no está en el directorio del usuario, el mensaje no se añade a ninguna conversación.
+        // Esto puede ocurrir si un usuario desconocido te envía un mensaje.
+        if (emisorContactoOptional.isEmpty()) {
+            System.err.println("Advertencia: Mensaje recibido de un emisor (" + mensaje.getEmisor() + ") que no está en el directorio del usuario. Mensaje no añadido a ninguna conversación.");
+            // Aquí podrías decidir si quieres agregar el Contacto automáticamente o notificar al usuario.
+        }
     }
 
     /**
@@ -64,9 +85,9 @@ public class ConversacionServicio implements IConversacion {
      */
     @Override
     public void addMensajeSaliente(Contacto contacto, Mensaje mensaje) {
-        // Me fijo si la conversacion ya existe y si no, la creo (La linea me la recomendo IntelliJ jajaja)
+        // Si la conversación no existe, se crea una nueva automáticamente.
         usuario.getConversaciones().computeIfAbsent(contacto, k -> new Conversacion());
-        // agrego el mensaje a la conversacion
+        // Agrega el mensaje a la conversación
         usuario.getConversaciones().get(contacto)
                 .getMensajes().add(mensaje);
     }
@@ -77,8 +98,10 @@ public class ConversacionServicio implements IConversacion {
      */
     @Override
     public void setConversacionPendiente(Contacto contacto) {
-        if(usuario.getConversaciones().get(contacto).isPendiente()){
-            usuario.getConversaciones().get(contacto).setPendiente(false);
+        Conversacion conversacion = usuario.getConversaciones().get(contacto);
+        // Solo marca como no pendiente si la conversación existe y está pendiente.
+        if (conversacion != null && conversacion.isPendiente()){
+            conversacion.setPendiente(false);
         }
     }
 }

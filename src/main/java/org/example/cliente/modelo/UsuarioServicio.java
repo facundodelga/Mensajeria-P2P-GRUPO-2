@@ -18,6 +18,15 @@ public class UsuarioServicio implements IUsuario {
     }
 
     /**
+     * **¡ESTE ES EL MÉTODO QUE FALTABA!**
+     * Obtiene la instancia completa del objeto Usuario que este servicio está gestionando.
+     * @return El objeto Usuario completo.
+     */
+    public Usuario getUsuario() {
+        return this.usuario;
+    }
+
+    /**
      * Obtiene el nombre del usuario.
      * @return El nombre del usuario.
      */
