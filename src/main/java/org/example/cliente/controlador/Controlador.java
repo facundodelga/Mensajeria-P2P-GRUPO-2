@@ -276,7 +276,7 @@ public class Controlador implements ActionListener, Observer {
             this.conversacionServicio = new ConversacionServicio(usuarioActual); // Servicio para las conversaciones del usuario
 
             this.conexion = new Conexion(); // Instanciar la clase concreta Conexion
-            this.usuarioDTO = new Contacto(usuarioActual.getNombre(),usuarioActual.getIp(),usuarioActual.getPuerto()); // El propio usuario como un Contacto
+            this.usuarioDTO = new Contacto(usuarioActual); // El propio usuario como un Contacto
 
             // 3. Conectar al servidor
             conexion.conectarServidor(usuarioDTO);
@@ -619,15 +619,13 @@ public class Controlador implements ActionListener, Observer {
     public List<Contacto> obtenerContactos() {
         List<Contacto> contactosObtenidos = new ArrayList<>();
         try {
-            this.conexion.obtenerContactos();
+            contactosObtenidos = this.conexion.obtenerContactos();
             // El método 'update' del controlador ya debería manejar la actualización de la vista
             // una vez que el DirectorioDTO es recibido por la conexión.
             // Esta llamada es principalmente para disparar la solicitud.
         } catch (PerdioConexionException e) {
             mostrarMensajeFlotante("Conexión perdida al obtener contactos. Intentando reconectar.", Color.RED);
             reconectar();
-        } catch (IOException e) {
-            throw new RuntimeException(e);
         }
         return contactosObtenidos;
     }
