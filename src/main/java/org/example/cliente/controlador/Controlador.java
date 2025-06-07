@@ -315,7 +315,7 @@ public class Controlador implements ActionListener, Observer {
         // Primero, intenta encontrar el contacto en la agenda existente
         // Es crucial que la instancia de Contacto sea la misma si ya existe.
         // Asumo que Contacto tiene un buen método equals/hashCode basado en el nombre.
-        for (Contacto c : agendaServicio.getContactos()) { // CORRECTED LINE: Access via agendaServicio.getContactos()
+        for (Contacto c : agendaServicio.getContactos()) {
             if (c.getNombre().equals(mensajeRecibido.getEmisor())) {
                 emisorContacto = c;
                 break;

@@ -3,6 +3,7 @@ package org.example.cliente.conexion;
 import org.example.cliente.controlador.Controlador;
 import org.example.cliente.modelo.mensaje.Mensaje;
 import org.example.cliente.modelo.usuario.Contacto;
+import org.example.servidor.DirectorioDTO;
 
 import java.io.*;
 import java.net.*;
@@ -10,35 +11,26 @@ import java.util.*;
 
 import static java.lang.Thread.sleep;
 
-/**
- * Clase que representa una conexión de servidor.
- * Implementa la interfaz IConexion.
- */
 public class Conexion implements IConexion, Observer {
 
     private Socket socket;
     private ObjectInputStream entrada;
     private ObjectOutputStream salida;
-    private PrintWriter registroOut;
     private String ip;
     private Contacto usuario;
     private ArrayList<Map.Entry<String, Integer>> servers;
     private int serverActivo;
     private int puertoRespaldo;
     private int puerto;
+    private Controlador controlador;
 
-
-    /**
-     * Constructor de la clase Conexion.
-     */
     public Conexion() {
     }
 
-    /**
-     * Verifica si un puerto está en uso.
-     * @param puerto El puerto a verificar.
-     * @return true si el puerto está en uso, false en caso contrario.
-     */
+    public void setControlador(Controlador controlador) {
+        this.controlador = controlador;
+    }
+
     private boolean elPuertoEstaEnUso(int puerto) {
         try (ServerSocket ignored = new ServerSocket(puerto)) {
             return false;
@@ -47,219 +39,207 @@ public class Conexion implements IConexion, Observer {
         }
     }
 
-    /**
-     * Inicia el servidor en el puerto especificado.
-     *
-     */
     @Override
     public void conectarServidor(Contacto usuario) throws PuertoEnUsoException, IOException, PerdioConexionException {
         this.usuario = usuario;
-//        if (elPuertoEstaEnUso(puerto)) {
-//            throw new PuertoEnUsoException("El puerto " + puerto + " ya está en uso.");
-//        }
-        try {
-            this.socket = new Socket();
 
+        try {
             try (BufferedReader reader = new BufferedReader(new FileReader("clienteConfig.txt"))) {
                 ip = reader.readLine().trim();
                 puerto = Integer.parseInt(reader.readLine().trim());
                 puertoRespaldo = Integer.parseInt(reader.readLine().trim());
 
             } catch (NumberFormatException e) {
-                throw new RuntimeException("Error al leer el puerto desde el archivo de configuracion");
+                throw new RuntimeException("Error al leer el puerto desde el archivo de configuracion: " + e.getMessage());
             } catch (IOException e) {
-                throw new RuntimeException("Error al abrir el archivo de configuracion");
+                throw new RuntimeException("Error al abrir el archivo de configuracion: " + e.getMessage());
             }
 
             this.servers = new ArrayList<>();
             this.servers.add(new AbstractMap.SimpleEntry<>(this.ip, this.puerto));
             this.servers.add(new AbstractMap.SimpleEntry<>(this.ip, this.puertoRespaldo));
 
-            // Conexión a servidor
             this.serverActivo = 0;
 
             conectar(this.servers.get(this.serverActivo));
 
         } catch (UnknownHostException e) {
-            System.err.println("Error: Host desconocido.");
+            System.err.println("Error: Host desconocido: " + e.getMessage());
+            throw e;
         }
     }
 
-
-
     public void obtenerMensajesPendientes(){
         try {
-            this.salida.writeObject("MensajesPendientes");
-            this.salida.flush();
+            if (salida != null) {
+                this.salida.writeObject("MensajesPendientes");
+                this.salida.flush();
+            } else {
+                System.err.println("Error: Salida de objetos no inicializada al intentar obtener mensajes pendientes.");
+            }
         } catch (IOException e) {
+            System.err.println("Error al obtener mensajes pendientes: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
     public ArrayList<Contacto> obtenerContactos() throws PerdioConexionException {
         try {
-
+            if (salida == null) {
+                throw new PerdioConexionException("Error: La conexión no está activa. No se puede obtener contactos.");
+            }
             Contacto c = new Contacto("Contactos", "111", 0);
             this.salida.writeObject(c);
             this.salida.flush();
 
             return null;
-        }catch (SocketException e){
-            throw new PerdioConexionException("Error: No se pudo conectar al servidor en el puerto " + puerto + ". Asegúrese de que el servidor esté en ejecución.");
-        }catch (Exception e){
+        } catch (SocketException e){
+            throw new PerdioConexionException("Error de socket al obtener contactos: " + e.getMessage() + ". Asegúrese de que el servidor esté en ejecución.");
+        } catch (IOException e) {
+            System.err.println("Error de E/S al obtener contactos: " + e.getMessage());
             e.printStackTrace();
+            throw new PerdioConexionException("Error de E/S al obtener contactos: " + e.getMessage());
+        } catch (Exception e){
+            System.err.println("Error inesperado al obtener contactos: " + e.getMessage());
+            e.printStackTrace();
+            throw new PerdioConexionException("Error inesperado al obtener contactos: " + e.getMessage());
         }
-        return null;
     }
 
-    /**
-     * Espera conexiones entrantes y maneja los mensajes recibidos.
-     */
     @Override
     public void esperarMensajes() {
-
-        new Thread(new ManejadorEntradas(socket, entrada,this)).start();
-
+        new Thread(new ManejadorEntradas(socket, entrada, this.controlador)).start();
     }
 
-    /**
-     * Envía un mensaje a un usuario específico.
-     * @param usuarioDTO El usuario al que se enviará el mensaje.
-     * @param mensaje El mensaje que se enviará.
-     * @throws EnviarMensajeException Si ocurre un error al enviar el mensaje.
-     */
     @Override
     public void enviarMensaje(Contacto usuarioDTO, Mensaje mensaje) throws EnviarMensajeException, IOException, PerdioConexionException {
-        if (salida == null) {
-            throw new IOException("El canal de salida no está inicializado.");
+        if (salida == null || socket == null || !socket.isConnected()) {
+            throw new PerdioConexionException("Error: La conexión no está activa o el canal de salida no está inicializado.");
         } else {
-            System.out.println("Intentando enviar mensaje a " + usuarioDTO);
+            System.out.println("Intentando enviar mensaje a " + usuarioDTO.getNombre());
             try {
-                System.out.println("Enviando mensaje a " + usuarioDTO + ": " + mensaje.getContenido());
+                System.out.println("Enviando mensaje a " + usuarioDTO.getNombre() + ": " + mensaje.getContenidoCifrado());
                 salida.writeObject(mensaje);
                 salida.flush();
-
-            }catch (SocketException e){
-                throw new PerdioConexionException("Error: No se pudo conectar al servidor en el puerto " + puerto + ". Asegúrese de que el servidor esté en ejecución.");
+            } catch (SocketException e){
+                throw new PerdioConexionException("Error de socket al enviar mensaje: " + e.getMessage() + ". Posiblemente se perdió la conexión.");
             } catch (IOException e) {
-                throw new EnviarMensajeException("Error al enviar el mensaje a " + usuarioDTO, e);
+                throw new EnviarMensajeException("Error al enviar el mensaje a " + usuarioDTO.getNombre(), e);
             }
         }
     }
 
-    /**
-     * Cierra las conexiones del servidor y del socket.
-     */
     @Override
     public void cerrarConexiones() {
         try {
-
+            System.out.println("Cerrando conexiones...");
+            if (salida != null) {
+                salida.flush();
+                salida.close();
+                salida = null;
+            }
             if (entrada != null) {
                 entrada.close();
                 entrada = null;
             }
-            if (salida != null) {
-                salida.flush(); // Asegurar que todos los datos sean enviados
-                salida.close();
-                salida = null;
-            }
             if (socket != null) {
-
                 socket.close();
                 socket = null;
             }
-            System.gc(); // Sugerencia al recolector de basura (no garantiza nada)
+            System.out.println("Conexiones cerradas.");
         } catch (IOException e) {
+            System.err.println("Error al cerrar conexiones: " + e.getMessage());
             e.printStackTrace();
         }
     }
 
-
     public void conectar(Map.Entry<String, Integer> entry) throws IOException, PuertoEnUsoException {
         try {
+            this.ip = entry.getKey();
+            this.puerto = entry.getValue();
 
+            System.out.println("Intentando conectar al servidor " + ip + ":" + puerto + ".");
             this.socket = new Socket();
-            System.out.println("Intentando conectar al servidor " + ip + ":" + entry.getValue() + ".");
-            this.socket.connect(new InetSocketAddress(ip, entry.getValue()));
-            System.out.println("Estoy aca?");
-            this.socket.setReuseAddress(true);
-
-            // Enviar intento de conexion
-            this.registroOut = new PrintWriter(socket.getOutputStream(), true);
-            this.registroOut.println("CLIENTE");
-
-            sleep(50);
-
+            this.socket.connect(new InetSocketAddress(ip, puerto), 5000);
 
             this.salida = new ObjectOutputStream(socket.getOutputStream());
             this.entrada = new ObjectInputStream(socket.getInputStream());
 
-            sleep(50);
+            this.salida.writeObject("CLIENTE_HANDSHAKE");
+            this.salida.flush();
 
-            System.out.println(usuario.toString());
-            // Enviar el objeto UsuarioDTO al servidor
+            System.out.println("Enviando UsuarioDTO: " + usuario.toString());
             this.salida.writeObject(usuario);
             this.salida.flush();
 
-            String estaOcupado = (String) this.entrada.readObject();
-
-            if ("El nickname ya está en uso.".equals(estaOcupado)) {
-                throw new PuertoEnUsoException("El nickname ya está en uso.");
+            Object response = this.entrada.readObject();
+            if (response instanceof String) {
+                String serverResponse = (String) response;
+                if ("El nickname ya está en uso.".equals(serverResponse)) {
+                    throw new PuertoEnUsoException("El nickname ya está en uso.");
+                } else if ("CONEXION_ESTABLECIDA".equals(serverResponse)) {
+                    System.out.println("Conexión establecida con el servidor en el puerto: " + puerto);
+                } else {
+                    System.out.println("Respuesta inesperada del servidor: " + serverResponse);
+                }
             } else {
-                System.out.println("Conexión establecida con el servidor en el puerto: " + puerto);
-
+                System.out.println("Respuesta de objeto inesperada del servidor: " + response.getClass().getName());
             }
 
+        } catch (SocketTimeoutException e) {
+            throw new IOException("Tiempo de espera agotado al conectar al servidor " + ip + ":" + puerto + ". " + e.getMessage());
+        } catch (ConnectException e) {
+            throw new IOException("Conexión rechazada por el servidor " + ip + ":" + puerto + ". " + e.getMessage());
         } catch (UnknownHostException e) {
-            System.err.println("Error: Host desconocido.");
+            System.err.println("Error: Host desconocido: " + e.getMessage());
+            throw e;
+        } catch (ClassNotFoundException e) {
+            System.err.println("Error: Clase no encontrada al leer objeto del servidor: " + e.getMessage());
+            throw new IOException("Error de serialización/deserialización con el servidor: " + e.getMessage());
         }
-        catch (InterruptedException e) {
-            System.err.println("Error: Hilo interrumpido.");
-        }
-        catch (ClassNotFoundException e) {
-            System.err.println("Error: Clase no encontrada.");
-        }
-
     }
 
     public void reconectar() throws IOException {
         this.abrirMensajeConectando();
-        System.out.println("Intentando reconectar al servidor " + ip + ":" + puerto + ".");
-        boolean conectado= false;
-        for(int i= 5; i>0 && !conectado; i--){
+        System.out.println("Intentando reconectar al servidor.");
+        boolean conectado = false;
+        int attempts = 5;
 
-            try{
+        for (int i = 0; i < attempts && !conectado; i++) {
+            try {
+                cerrarConexiones();
+
+                System.out.println("Intento " + (i + 1) + ": Conectando a " + this.servers.get(this.serverActivo).getKey() + ":" + this.servers.get(this.serverActivo).getValue());
                 this.conectar(servers.get(this.serverActivo));
-                conectado=true;
+                conectado = true;
+                System.out.println("Reconexión exitosa al servidor " + servers.get(this.serverActivo).getValue());
 
-            }catch (IOException e) {
-                try {
-                    sleep(3000);
-                } catch (InterruptedException ex) {
-                    throw new RuntimeException(ex);
+            } catch (IOException e) {
+                System.err.println("Fallo el intento " + (i + 1) + " de reconexión: " + e.getMessage());
+                if (i < attempts - 1) {
+                    try {
+                        sleep(3000);
+                    } catch (InterruptedException ex) {
+                        throw new RuntimeException(ex);
+                    }
+                    if(serverActivo==1){
+                        this.serverActivo=0;
+                    }else {
+                        System.out.println("Intentando cambiar al servidor de respaldo " + ip + ":" + puertoRespaldo + ".");
+                        this.serverActivo=1;
+                    }
                 }
-                if(serverActivo==1){
-                    this.serverActivo=0;
-                }else {
-                    System.out.println("Intentando reconectar al servidor " + ip + ":" + puertoRespaldo + ".");
-                    this.serverActivo=1;
-                }
-            }catch(PuertoEnUsoException e){
-                System.out.println("reconectado");
+            } catch(PuertoEnUsoException e){
+                System.out.println("Reconectado (nickname en uso, verificar lógica): " + e.getMessage()); // This case indicates server accepted, but nickname issue
+                conectado = true; // Still counts as connected for reconn. loop
             }
-
         }
 
         this.cerrarMensajeConectando();
 
         if (!conectado) {
-
-            throw new IOException("No se pudo conectar a ninguno de los servidores disponibles.");
+            throw new IOException("No se pudo conectar a ninguno de los servidores disponibles después de varios reintentos.");
         }
-
-
-
-
     }
 
     private void cerrarMensajeConectando() {
@@ -270,24 +250,16 @@ public class Conexion implements IConexion, Observer {
         Controlador.getInstancia().abrirMensajeConectando();
     }
 
-    /**
-     * Método que ejecuta el hilo del servidor para esperar mensajes.
-     */
     @Override
     public void run() {
         esperarMensajes();
     }
 
-    /**
-     * Obtiene el Socket de la conexión actual.
-     * @return El Socket de la conexión actual.
-     */
     public Socket getSocket() {
         return socket;
     }
 
     @Override
     public void update(Observable o, Object arg) {
-
     }
 }

@@ -13,7 +13,7 @@ import java.util.Map;
 public class ServidorPrincipal implements ServidorState{
     private ServerSocket serverSocket;
     private Servidor servidor;
-    private Map<Contacto, ManejadorRegistro> manejadores;
+    private Map<String, ManejadorRegistro> manejadores; // Changed from Contacto to String
     private IDirectorio directorio;
     private IColaMensajes colaMensajes;
     private IDirectorio conectados;
@@ -27,13 +27,13 @@ public class ServidorPrincipal implements ServidorState{
         this.directorio = new Directorio();
         this.conectados = new Directorio();
         this.colaMensajes = new ColaMensajes();
-        this.manejadores = new HashMap<>();
+        this.manejadores = new HashMap<>(); // Now HashMap<String, ManejadorRegistro>
         this.cambios = false;
     }
 
     public ServidorPrincipal(Servidor servidor, IDirectorio directorio, IColaMensajes colaMensajes, boolean cambios) throws IOException {
         this(servidor);
-        this.manejadores = new HashMap<>();
+        this.manejadores = new HashMap<>(); // Now HashMap<String, ManejadorRegistro>
         this.directorio = directorio;
         this.conectados = new Directorio();
         this.colaMensajes = colaMensajes;
@@ -41,7 +41,6 @@ public class ServidorPrincipal implements ServidorState{
     }
 
     public void setCambios(boolean cambios) {
-        // Implementación del método para manejar cambios
         this.cambios = cambios;
     }
     public boolean hayCambios () {
@@ -52,10 +51,10 @@ public class ServidorPrincipal implements ServidorState{
     public void esperarConexiones() {
         try {
             Socket socket = this.serverSocket.accept();
-            new Thread(() -> { // En otro thread para no interferir con la conexión de nuevas terminales
+            new Thread(() -> {
                 try {
                     BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                    String msg = in.readLine(); // Recibe identificación
+                    String msg = in.readLine();
                     System.out.println("INTENTO DE CONEXION DE: " + msg);
                     if ("CLIENTE".equals(msg)) {
                         new Thread(new ManejadorRegistro(socket, this)).start();
@@ -89,13 +88,17 @@ public class ServidorPrincipal implements ServidorState{
         return colaMensajes;
     }
 
-    public Map<Contacto, ManejadorRegistro> getManejadores() {
+    public Map<String, ManejadorRegistro> getManejadores() { // Changed return type key to String
         return manejadores;
     }
 
-
-    public void addManejador(Contacto usuario, ManejadorRegistro manejador) {
-        manejadores.put(usuario, manejador);
+    public void addManejador(String nombreUsuario, ManejadorRegistro manejador) { // Changed parameter type to String
+        manejadores.put(nombreUsuario, manejador);
         System.out.println(manejadores);
+    }
+
+    public void removeManejador(String nombreUsuario) { // Changed parameter type to String
+        manejadores.remove(nombreUsuario);
+        System.out.println("Manejador para " + nombreUsuario + " eliminado.");
     }
 }

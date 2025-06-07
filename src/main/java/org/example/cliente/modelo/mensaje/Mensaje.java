@@ -8,7 +8,6 @@ public class Mensaje implements Serializable {
     private String receptor;
     private String contenidoCifrado; // Ahora almacenamos el contenido cifrado
     private LocalDateTime timestamp;
-    // Otros campos que puedas tener, como tipo de mensaje, etc.
 
     // Constructor para mensajes YA CIFRADOS o para crear el objeto antes de cifrar
     public Mensaje(String emisor, String receptor, String contenidoCifrado) {
@@ -17,6 +16,15 @@ public class Mensaje implements Serializable {
         this.contenidoCifrado = contenidoCifrado;
         this.timestamp = LocalDateTime.now();
     }
+
+    // Constructor to include timestamp if creating from deserialized message
+    public Mensaje(String emisor, String receptor, String contenidoCifrado, LocalDateTime timestamp) {
+        this.emisor = emisor;
+        this.receptor = receptor;
+        this.contenidoCifrado = contenidoCifrado;
+        this.timestamp = timestamp;
+    }
+
 
     public String getEmisor() {
         return emisor;
