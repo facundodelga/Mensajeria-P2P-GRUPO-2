@@ -22,6 +22,7 @@ import java.security.KeyPair;
 import java.security.PublicKey;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.List; // Importar List
 import java.util.Map;
 import java.util.Observable;
 import java.util.Observer;
@@ -360,7 +361,7 @@ public class Controlador extends Observable implements ActionListener, Observer 
                     // Si ya está establecida, el intercambio está completo y no necesitamos enviar más claves.
                     // Si no está establecida, pero ya enviamos nuestra clave, significa que estamos esperando la suya.
                     // Si no está establecida Y no hemos enviado nuestra clave, entonces este es el momento de responder.
-                    if (conversacionDeRespuesta != null && conversacionDeRespuesta.getClaveSecretaAes() == null && !conversacionDeRespuesta.isMyPublicKeySent()) {
+                    if (conversacionDeRespuesta != null && !conversacionDeRespuesta.isMyPublicKeySent()) { // Simplificado: Solo verificar si MY clave NO ha sido enviada
                         System.out.println("Controlador: Respondiendo al intercambio de claves con " + emisorRemoto.getNombre() + " enviando mi clave pública...");
                         try {
                             conexion.iniciarIntercambioDeClaves(emisorRemoto);
@@ -436,6 +437,7 @@ public class Controlador extends Observable implements ActionListener, Observer 
         return null;
     }
 
+    // Método corregido para la ClassCastException
     public void cargarConversacion(ChatPantalla selectedValue) {
         int index = vista.getModeloChats().indexOf(selectedValue);
 
@@ -443,15 +445,18 @@ public class Controlador extends Observable implements ActionListener, Observer 
             ChatPantalla chatConNotificacion = vista.getModeloChats().get(index);
             chatConNotificacion.setLeido();
             vista.getModeloChats().set(index, chatConNotificacion);
-            ArrayList<Mensaje> mensajes = (ArrayList<Mensaje>) this.conversacionServicio.getMensajes(chatConNotificacion.getContacto());
+            // CORRECCIÓN: Cambiado ArrayList<Mensaje> a List<Mensaje> y se eliminó el cast explícito
+            List<Mensaje> mensajes = this.conversacionServicio.getMensajes(chatConNotificacion.getContacto());
             vista.getPanelMensajes().removeAll();
 
-            for (Mensaje mensaje : mensajes) {
-                String fechaFormateada = sdf.format(mensaje.getFecha());
-                vista.addMensajeBurbuja(MensajePantalla.mensajeToMensajePantalla(
-                        mensaje,
-                        mensaje.getEmisor().equals(usuarioDTO),
-                        fechaFormateada));
+            if (mensajes != null) { // Asegurarse de que la lista no es nula antes de iterar
+                for (Mensaje mensaje : mensajes) {
+                    String fechaFormateada = sdf.format(mensaje.getFecha());
+                    vista.addMensajeBurbuja(MensajePantalla.mensajeToMensajePantalla(
+                            mensaje,
+                            mensaje.getEmisor().equals(usuarioDTO),
+                            fechaFormateada));
+                }
             }
 
             vista.getPanelMensajes().revalidate();
