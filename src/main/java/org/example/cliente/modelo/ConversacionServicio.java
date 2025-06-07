@@ -6,6 +6,7 @@ import org.example.cliente.modelo.usuario.Contacto;
 import org.example.cliente.modelo.usuario.Usuario;
 
 import java.util.List;
+import java.util.Map; // Necesario para trabajar con el mapa de conversaciones
 
 /**
  * Clase que proporciona servicios relacionados con las conversaciones de un usuario.
@@ -29,7 +30,13 @@ public class ConversacionServicio implements IConversacion {
      */
     @Override
     public List<Mensaje> getMensajes(Contacto contacto){
-        return usuario.getConversaciones().get(contacto).getMensajes();
+        // Asegúrate de que la conversación existe antes de intentar obtener mensajes.
+        // Si no existe, devuelve una lista vacía o maneja el error según tu lógica.
+        Conversacion conv = usuario.getConversaciones().get(contacto);
+        if (conv != null) {
+            return conv.getMensajes();
+        }
+        return new java.util.ArrayList<>(); // Devuelve una lista vacía si no hay conversación
     }
 
     /**
@@ -39,7 +46,8 @@ public class ConversacionServicio implements IConversacion {
     @Override
     public void agregarConversacion(Contacto contacto) {
         System.out.println("Agregando conversacion");
-        usuario.getConversaciones().put(contacto, new Conversacion());
+        // Solo agrega si no existe ya para evitar sobrescribir una existente
+        usuario.getConversaciones().putIfAbsent(contacto, new Conversacion());
     }
 
     /**
@@ -49,11 +57,21 @@ public class ConversacionServicio implements IConversacion {
      */
     @Override
     public void addMensajeEntrante(Mensaje mensaje) {
-        // Me fijo si la conversacion ya existe y si no, la creo (La linea me la recomendo IntelliJ jajaja)
-        usuario.getConversaciones().computeIfAbsent(mensaje.getEmisor(), k -> new Conversacion());
-        // agrego el mensaje a la conversacion
-        usuario.getConversaciones().get(mensaje.getEmisor())
+        // Necesitamos encontrar el objeto Contacto correspondiente al emisor del mensaje.
+        // Si tu Contacto tiene un constructor solo con el nombre, lo usamos.
+        // Asumo que el Contacto tiene un buen `equals` y `hashCode` basado en el nombre.
+        Contacto emisorContacto = new Contacto(mensaje.getEmisor(), null, 0); // Crea un Contacto "temporal" con el nombre
+
+        // Me fijo si la conversacion ya existe y si no, la creo
+        // Usa el objeto Contacto como clave
+        usuario.getConversaciones().computeIfAbsent(emisorContacto, k -> new Conversacion());
+
+        // Agrego el mensaje a la conversación
+        usuario.getConversaciones().get(emisorContacto) // Usa el objeto Contacto para obtener la Conversacion
                 .getMensajes().add(mensaje);
+
+        // Opcional: Marcar la conversación como pendiente si es un mensaje entrante
+        usuario.getConversaciones().get(emisorContacto).setPendiente(true);
     }
 
     /**
@@ -64,10 +82,11 @@ public class ConversacionServicio implements IConversacion {
      */
     @Override
     public void addMensajeSaliente(Contacto contacto, Mensaje mensaje) {
-        // Me fijo si la conversacion ya existe y si no, la creo (La linea me la recomendo IntelliJ jajaja)
+        // Me fijo si la conversacion ya existe y si no, la creo
+        // Usa el objeto Contacto como clave
         usuario.getConversaciones().computeIfAbsent(contacto, k -> new Conversacion());
         // agrego el mensaje a la conversacion
-        usuario.getConversaciones().get(contacto)
+        usuario.getConversaciones().get(contacto) // Usa el objeto Contacto para obtener la Conversacion
                 .getMensajes().add(mensaje);
     }
 
@@ -77,8 +96,9 @@ public class ConversacionServicio implements IConversacion {
      */
     @Override
     public void setConversacionPendiente(Contacto contacto) {
-        if(usuario.getConversaciones().get(contacto).isPendiente()){
-            usuario.getConversaciones().get(contacto).setPendiente(false);
+        Conversacion conv = usuario.getConversaciones().get(contacto);
+        if (conv != null) {
+            conv.setPendiente(false);
         }
     }
 }

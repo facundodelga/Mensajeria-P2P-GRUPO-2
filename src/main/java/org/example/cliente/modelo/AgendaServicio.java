@@ -3,6 +3,9 @@ package org.example.cliente.modelo;
 import org.example.cliente.modelo.usuario.Contacto;
 import org.example.cliente.modelo.usuario.Usuario;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Clase que proporciona servicios relacionados con la agenda de contactos de un usuario.
  * Implementa la interfaz IAgenda.
@@ -49,5 +52,11 @@ public class AgendaServicio implements IAgenda {
 
     public Usuario getUsuario() {
         return usuario;
+    }
+
+
+    @Override
+    public List<Contacto> getContactos() {
+        return usuario.getContactos();
     }
 }

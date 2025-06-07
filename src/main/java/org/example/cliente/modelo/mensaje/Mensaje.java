@@ -6,16 +6,26 @@ import java.time.LocalDateTime;
 public class Mensaje implements Serializable {
     private String emisor;
     private String receptor;
-    private String contenidoCifrado; // Ahora almacenamos el contenido cifrado
+    private String contenidoCifrado;
+    private String contenidoPlano; // NUEVO CAMPO
     private LocalDateTime timestamp;
-    // Otros campos que puedas tener, como tipo de mensaje, etc.
 
-    // Constructor para mensajes YA CIFRADOS o para crear el objeto antes de cifrar
+    // Constructor para mensajes CIFRADOS (para la red)
     public Mensaje(String emisor, String receptor, String contenidoCifrado) {
         this.emisor = emisor;
         this.receptor = receptor;
         this.contenidoCifrado = contenidoCifrado;
         this.timestamp = LocalDateTime.now();
+        this.contenidoPlano = null; // No disponible en este constructor
+    }
+
+    // NUEVO CONSTRUCTOR: Para crear un Mensaje para la VISTA/almacenamiento interno con contenido PLANO y timestamp original
+    public Mensaje(String emisor, String receptor, String contenidoPlano, LocalDateTime timestamp) {
+        this.emisor = emisor;
+        this.receptor = receptor;
+        this.contenidoPlano = contenidoPlano;
+        this.timestamp = timestamp;
+        this.contenidoCifrado = null; // No disponible en este constructor (o podrías cifrarlo aquí si quieres)
     }
 
     public String getEmisor() {
@@ -30,20 +40,26 @@ public class Mensaje implements Serializable {
         return contenidoCifrado;
     }
 
+    public String getContenidoPlano() { // NUEVO GETTER
+        return contenidoPlano;
+    }
+
     public LocalDateTime getTimestamp() {
         return timestamp;
     }
 
-    // Si tu mensaje también tenía un contenido en texto plano para mostrarlo,
-    // es mejor que lo descifres en el momento de mostrarlo, no que lo guardes aquí.
-    // Esto es para asegurar que el Mensaje transportado siempre esté cifrado.
+    // Puedes añadir un setter para contenidoPlano si necesitas modificarlo después de la creación
+    public void setContenidoPlano(String contenidoPlano) {
+        this.contenidoPlano = contenidoPlano;
+    }
 
     @Override
     public String toString() {
         return "Mensaje{" +
                 "emisor='" + emisor + '\'' +
                 ", receptor='" + receptor + '\'' +
-                ", contenidoCifrado='" + contenidoCifrado.substring(0, Math.min(contenidoCifrado.length(), 20)) + "...'" + // Muestra solo una parte
+                ", contenidoCifrado='" + (contenidoCifrado != null ? contenidoCifrado.substring(0, Math.min(contenidoCifrado.length(), 20)) + "..." : "N/A") + "'" +
+                ", contenidoPlano='" + (contenidoPlano != null ? contenidoPlano.substring(0, Math.min(contenidoPlano.length(), 20)) + "..." : "N/A") + "'" +
                 ", timestamp=" + timestamp +
                 '}';
     }
