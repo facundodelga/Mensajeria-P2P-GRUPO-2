@@ -9,7 +9,7 @@ import org.example.cliente.vista.*;
 import org.example.cliente.modelo.mensaje.Mensaje;
 import org.example.cliente.modelo.usuario.Usuario;
 import org.example.cliente.modelo.usuario.Contacto;
-import org.example.servidor.DirectorioDTO; // Importar DirectorioDTO del paquete servidor
+import org.example.servidor.DirectorioDTO;
 import org.example.util.cifrado.ClaveUtil;
 import org.example.util.Cifrador;
 
@@ -81,8 +81,6 @@ public class Controlador extends Observable implements ActionListener, Observer 
                 cerrarSesion();
                 break;
             case "ObtenerContactos":
-                // Este botón ahora podría llamar a cargarContactosIniciales()
-                // si quieres que se actualice la UI al hacer clic.
                 cargarContactosIniciales();
                 break;
         }
@@ -91,7 +89,6 @@ public class Controlador extends Observable implements ActionListener, Observer 
     private void cerrarSesion() {
         if (conexion != null) {
             conexion.cerrarConexiones();
-            // Limpiar la instancia de conexión para que se cree una nueva al iniciar sesión
             conexion = null;
         }
         vista.ocultar();
@@ -99,7 +96,7 @@ public class Controlador extends Observable implements ActionListener, Observer 
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt(); // Restablecer el estado de interrupción
+            Thread.currentThread().interrupt();
             e.printStackTrace();
         }
         vistaInicioSesion.mostrar();
@@ -124,11 +121,13 @@ public class Controlador extends Observable implements ActionListener, Observer 
                 conversacionActual = conversacionServicio.getConversacion(selectedValue);
             }
 
-            if (conversacionActual != null && conversacionActual.getClaveSecretaAes() == null) {
+            // MODIFICACIÓN CLAVE DH: Solo iniciar el intercambio si la clave AES no está establecida
+            // Y SI NO HEMOS ENVIADO YA NUESTRA CLAVE PÚBLICA para esta conversación.
+            if (conversacionActual != null && conversacionActual.getClaveSecretaAes() == null && !conversacionActual.isMyPublicKeySent()) {
                 try {
                     mostrarMensajeFlotante("Iniciando intercambio de claves con " + selectedValue.getNombre() + "...", Color.BLUE);
-                    // ESTO ENVÍA MI CLAVE PÚBLICA A SELECTEDVALUE
                     conexion.iniciarIntercambioDeClaves(selectedValue);
+                    conversacionActual.setMyPublicKeySent(true); // Marcar que ya enviamos nuestra clave
                 } catch (Exception e) {
                     mostrarMensajeFlotante("Error al iniciar intercambio de claves: " + e.getMessage(), Color.RED);
                     e.printStackTrace();
@@ -136,7 +135,10 @@ public class Controlador extends Observable implements ActionListener, Observer 
                 }
             } else if (conversacionActual != null && conversacionActual.getClaveSecretaAes() != null) {
                 mostrarMensajeFlotante("Clave secreta ya establecida con " + selectedValue.getNombre(), Color.GREEN);
+            } else if (conversacionActual != null && conversacionActual.isMyPublicKeySent()) {
+                mostrarMensajeFlotante("Clave pública ya enviada a " + selectedValue.getNombre() + ". Esperando su respuesta.", Color.ORANGE);
             }
+
 
             vista.getModeloChats().addElement(chatPantallaExistente);
             vista.getListaChats().setSelectedValue(chatPantallaExistente, true);
@@ -198,28 +200,22 @@ public class Controlador extends Observable implements ActionListener, Observer 
             this.agendaServicio = new AgendaServicio(usuario);
             this.conversacionServicio = new ConversacionServicio(usuario);
 
-            // Si la conexión ya existe de una sesión anterior, asegúrate de cerrarla antes de crear una nueva.
             if (this.conexion != null) {
                 this.conexion.cerrarConexiones();
             }
-            this.conexion = new Conexion(); // ¡Importante! Creamos una nueva instancia de Conexion por sesión.
-            this.conexion.addObserver(this); // <-- Registrar como observer
-            // Asegúrate de pasar el KeyPair DH al objeto Conexion, para que pueda usarlo al enviar claves públicas
-            this.conexion.setMiParClavesDH(this.miParClavesDH); // <-- Asegúrate de tener este setter en Conexion
+            this.conexion = new Conexion();
+            this.conexion.addObserver(this);
+            this.conexion.setMiParClavesDH(this.miParClavesDH);
 
             this.usuarioDTO = new Contacto(usuario);
 
             conexion.conectarServidor(usuarioDTO);
 
-            new Thread(conexion).start(); // Inicia el hilo de la conexión para esperar mensajes
+            new Thread(conexion).start();
             vista.mostrar();
             vista.titulo("Usuario: " + nombre + " | Ip: " + "127.0.0.1" + " | Puerto: " + puerto);
             vista.informacionDelUsuario(usuarioDTO);
 
-            // ***************************************************************
-            // *** MODIFICADO: Cargar contactos iniciales al iniciar sesión ***
-            // *** Solo envía la solicitud. La actualización es asíncrona. ***
-            // ***************************************************************
             cargarContactosIniciales();
 
         } catch (NumberFormatException e) {
@@ -228,10 +224,9 @@ public class Controlador extends Observable implements ActionListener, Observer 
             mostrarMensajeFlotante(e.getMessage(), Color.RED);
             vistaInicioSesion.mostrar();
         } catch (IOException | PerdioConexionException e) {
-            // Si hay un error inicial de conexión, intentar reconectar o informar al usuario.
             mostrarMensajeFlotante("Error al conectar inicialmente: " + e.getMessage(), Color.RED);
             e.printStackTrace();
-            vistaInicioSesion.mostrar(); // Vuelve a la pantalla de inicio de sesión
+            vistaInicioSesion.mostrar();
         }
     }
 
@@ -242,9 +237,9 @@ public class Controlador extends Observable implements ActionListener, Observer 
         if (nuevoContacto != null) {
             try {
                 agendaServicio.addContacto(nuevoContacto);
-                // Solo añadir a la vista si no está ya presente o si el servidor lo confirma
-                // Mejor, la lista de contactos se actualizará completamente con el DirectorioDTO.
-                // Por ahora, lo añadimos si la agenda lo acepta.
+                // Si la vista de contactos debe mostrar solo los añadidos manualmente,
+                // la línea de abajo es correcta. Si es para "todos los online",
+                // la actualización la haría el DirectorioDTO.
                 vista.getModeloContactos().addElement(nuevoContacto);
                 mostrarMensajeFlotante("Contacto agregado: " + nuevoContacto.getNombre(), Color.GREEN);
             } catch (ContactoRepetidoException e) {
@@ -298,14 +293,13 @@ public class Controlador extends Observable implements ActionListener, Observer 
                 ChatPantalla chatPantalla = new ChatPantalla(mensajeDescifrado.getEmisor());
 
                 if (!vista.getModeloChats().contains(chatPantalla)) {
-                    if (!vista.getModeloContactos().contains(chatPantalla.getContacto())) {
-                        // Si el contacto no está en la lista de contactos, añadirlo
-                        // (Esto podría redundar si ya se actualiza desde DirectorioDTO, pero asegura el chat)
-                        vista.getModeloChats().addElement(chatPantalla);
-                        vista.getModeloContactos().addElement(mensajeDescifrado.getEmisor());
-                    } else {
-                        // Si el contacto está, añadir el chat usando la instancia del contacto de la agenda
+                    // MODIFICACIÓN: NO añadir automáticamente a vista.getModeloContactos() aquí.
+                    // Si el contacto está en el modelo de contactos (añadido), usar esa instancia.
+                    // Si no, añadir el chat con la instancia de mensajeDescifrado.getEmisor().
+                    if (vista.getModeloContactos().contains(chatPantalla.getContacto())) {
                         vista.getModeloChats().addElement(new ChatPantalla(this.agendaServicio.buscaNombreContacto(mensajeDescifrado.getEmisor())));
+                    } else {
+                        vista.getModeloChats().addElement(chatPantalla);
                     }
                 }
 
@@ -331,17 +325,14 @@ public class Controlador extends Observable implements ActionListener, Observer 
         } else if (arg instanceof DirectorioDTO) {
             DirectorioDTO directorioRecibido = (DirectorioDTO) arg;
             System.out.println("Controlador: Contactos de directorio recibidos: " + directorioRecibido);
-            // Remueve el propio usuario de la lista de contactos para no chatear consigo mismo.
-            // Es importante hacer una copia o filtrar si la lista de contactos es modificable.
             ArrayList<Contacto> contactosFiltrados = new ArrayList<>(directorioRecibido.getContactos());
             contactosFiltrados.removeIf(c -> c.getNombre().equals(usuarioDTO.getNombre()));
 
-            this.directorioDTO.setContactos(contactosFiltrados); // Actualizar el DirectorioDTO interno
+            this.directorioDTO.setContactos(contactosFiltrados);
 
-            // *************************************************************************
-            // *** IMPORTANTE: Actualizar la vista de contactos cuando se recibe el directorio ***
-            // *************************************************************************
-            vista.actualizarDirectorio(contactosFiltrados); // Pasa la lista filtrada a la vista
+            // Este es el punto donde la vista de contactos disponibles se actualiza.
+            // Si vista.getModeloContactos() es para "todos los conectados", esto es correcto.
+            vista.actualizarDirectorio(contactosFiltrados);
             mostrarMensajeFlotante("Directorio de contactos actualizado.", Color.BLUE);
         } else if (arg instanceof Map && ((Map) arg).containsKey("tipo") && ((Map) arg).get("tipo").equals("CLAVE_PUBLICA_DH")) {
             Map<String, Serializable> keyExchangeMessage = (Map<String, Serializable>) arg;
@@ -361,19 +352,29 @@ public class Controlador extends Observable implements ActionListener, Observer 
                     establecerClaveConversacion(emisorRemoto, claveSecretaAes);
 
                     // *******************************************************************
-                    // *** INICIO DE LA MODIFICACIÓN CLAVE (YA EXPLICADA) ***
+                    // *** MODIFICACIÓN CLAVE PARA DETENER EL LOOP DH ***
+                    // *** Solo enviar mi clave pública si no la he enviado ya para esta conversación ***
                     // *******************************************************************
-                    System.out.println("Controlador: Respondiendo al intercambio de claves con " + emisorRemoto.getNombre() + " enviando mi clave pública...");
-                    try {
-                        conexion.iniciarIntercambioDeClaves(emisorRemoto); // Enviar MI clave pública a 'emisorRemoto'
-                    } catch (IOException e) {
-                        System.err.println("Controlador: Error al enviar mi clave pública en respuesta: " + e.getMessage());
-                        mostrarMensajeFlotante("Error al enviar mi clave pública a " + emisorRemoto.getNombre(), Color.RED);
-                        e.printStackTrace();
+                    Conversacion conversacionDeRespuesta = conversacionServicio.getConversacion(emisorRemoto);
+                    // Comprobar si la clave AES ya está establecida Y si ya hemos enviado nuestra clave.
+                    // Si ya está establecida, el intercambio está completo y no necesitamos enviar más claves.
+                    // Si no está establecida, pero ya enviamos nuestra clave, significa que estamos esperando la suya.
+                    // Si no está establecida Y no hemos enviado nuestra clave, entonces este es el momento de responder.
+                    if (conversacionDeRespuesta != null && conversacionDeRespuesta.getClaveSecretaAes() == null && !conversacionDeRespuesta.isMyPublicKeySent()) {
+                        System.out.println("Controlador: Respondiendo al intercambio de claves con " + emisorRemoto.getNombre() + " enviando mi clave pública...");
+                        try {
+                            conexion.iniciarIntercambioDeClaves(emisorRemoto);
+                            conversacionDeRespuesta.setMyPublicKeySent(true); // Marcar como enviada
+                        } catch (IOException e) {
+                            System.err.println("Controlador: Error al enviar mi clave pública en respuesta: " + e.getMessage());
+                            mostrarMensajeFlotante("Error al enviar mi clave pública a " + emisorRemoto.getNombre(), Color.RED);
+                            e.printStackTrace();
+                        }
+                    } else if (conversacionDeRespuesta != null && conversacionDeRespuesta.getClaveSecretaAes() != null) {
+                        System.out.println("Controlador: Clave AES establecida con " + emisorRemoto.getNombre() + ". Intercambio completo.");
+                    } else if (conversacionDeRespuesta != null && conversacionDeRespuesta.isMyPublicKeySent()) {
+                        System.out.println("Controlador: Clave AES no establecida con " + emisorRemoto.getNombre() + ", pero mi clave ya fue enviada. Esperando la suya.");
                     }
-                    // *******************************************************************
-                    // *** FIN DE LA MODIFICACIÓN CLAVE ***
-                    // *******************************************************************
                 }
             } catch (Exception e) {
                 mostrarMensajeFlotante("Error al procesar clave pública DH recibida: " + e.getMessage(), Color.RED);
@@ -458,19 +459,13 @@ public class Controlador extends Observable implements ActionListener, Observer 
         }
     }
 
-    // *******************************************************************
-    // *** MODIFICADO: cargarContactosIniciales() ***
-    // *** Ahora solo envía la solicitud, sin esperar una respuesta. ***
-    // *******************************************************************
     private void cargarContactosIniciales() {
         try {
-            // SIMPLEMENTE ENVÍA LA SOLICITUD. LA RESPUESTA LLEGARÁ ASÍNCRONAMENTE
-            // Y SERÁ PROCESADA EN EL MÉTODO update() CUANDO SE RECIBA UN DirectorioDTO.
             conexion.obtenerContactos();
             System.out.println("Controlador: Solicitud de directorio de contactos enviada.");
         } catch (PerdioConexionException e) {
             reconectar();
-        } catch (IOException e) { // Se elimina ClassNotFoundException de aquí
+        } catch (IOException e) {
             mostrarMensajeFlotante("Error al solicitar contactos: " + e.getMessage(), Color.RED);
             e.printStackTrace();
         } catch (ClassNotFoundException e) {
@@ -479,23 +474,11 @@ public class Controlador extends Observable implements ActionListener, Observer 
     }
 
     public ArrayList<Contacto> obtenerContactos() {
-        // Este método en el Controlador es un poco redundante dado el flujo asíncrono.
-        // Si se llama desde la vista, debería activar la solicitud, pero no retornar nada.
-        // Sin embargo, si quieres que 'Controlador.obtenerContactos()' sirva para que la vista
-        // solicite una actualización, debería llamar a 'cargarContactosIniciales()'.
-        // Actualmente, intenta obtener un retorno síncrono, lo cual es inconsistente.
-        // Lo dejaré tal como está, pero ten en cuenta la asincronía.
         ArrayList<Contacto> contactos = new ArrayList<>();
         if (this.conexion != null) {
             try {
-                // Esto envía la solicitud al servidor, pero devuelve null inmediatamente.
-                // La lista real se recibirá a través del update(DirectorioDTO).
-                this.conexion.obtenerContactos(); // Solo se usa para enviar la solicitud
-                // Deberías devolver el directorioDTO que se ha actualizado asíncronamente
-                // o hacer que este método sea 'void' y desencadene una actualización.
-                // Para simplificar, si se necesita la lista actual en el Controlador,
-                // se usaría 'this.directorioDTO.getContactos()'.
-                contactos = this.directorioDTO.getContactos(); // Devolver lo que se tiene actualmente
+                this.conexion.obtenerContactos();
+                contactos = this.directorioDTO.getContactos();
             } catch (PerdioConexionException | IOException | ClassNotFoundException e) {
                 reconectar();
             }
@@ -506,8 +489,6 @@ public class Controlador extends Observable implements ActionListener, Observer 
         return contactos;
     }
 
-
-    // Método para la reconexión, ahora manejado solo por el Controlador
     void reconectar() {
         if (this.conexion == null) {
             System.err.println("Controlador: No hay una instancia de conexión para reconectar.");
@@ -516,34 +497,27 @@ public class Controlador extends Observable implements ActionListener, Observer 
         }
 
         try {
-            // Cierra la conexión actual (si hay algún socket abierto)
-            this.conexion.cerrarConexiones(); // Asegúrate de que esto cierre los streams y el socket.
-            // Crea una nueva instancia de Conexion para asegurar un nuevo socket y streams
+            this.conexion.cerrarConexiones();
             this.conexion = new Conexion();
-            this.conexion.addObserver(this); // Vuelve a registrar el Controlador como Observer
-            this.conexion.setMiParClavesDH(this.miParClavesDH); // Pasa de nuevo el KeyPair DH
+            this.conexion.addObserver(this);
+            this.conexion.setMiParClavesDH(this.miParClavesDH);
 
-            this.conexion.conectarServidor(usuarioDTO); // Intenta reconectar con el servidor
-            new Thread(this.conexion).start(); // Inicia el hilo de la nueva conexión para esperar mensajes
+            this.conexion.conectarServidor(usuarioDTO);
+            new Thread(this.conexion).start();
 
             System.out.println("Controlador: Reconexión exitosa y nuevo hilo de Conexion lanzado.");
             mostrarMensajeFlotante("Reconectado al servidor.", Color.GREEN);
-            // ***************************************************************
-            // *** AÑADIDO: Recargar contactos después de reconectar ***
-            // ***************************************************************
             cargarContactosIniciales();
         } catch (IOException | PuertoEnUsoException | PerdioConexionException e) {
             System.err.println("Controlador: Fallo al reconectar: " + e.getMessage());
             e.printStackTrace();
             if (this.vista.mostrarDialogoReintentarConexion()) {
-                // Si el usuario quiere reintentar, podrías reintentar la conexión aquí
-                // Para este ejemplo, simplemente informa el error y cierra.
                 mostrarMensajeFlotante("Falló el reintento de reconexión.", Color.RED);
                 this.vista.cerrarDialogoReconexion();
-                System.exit(0); // Cierra la aplicación si el reintento falla
+                System.exit(0);
             } else {
                 this.vista.cerrarDialogoReconexion();
-                System.exit(0); // Cierra la aplicación si el usuario no quiere reintentar
+                System.exit(0);
             }
         }
     }
@@ -557,6 +531,6 @@ public class Controlador extends Observable implements ActionListener, Observer 
     }
 
     public void addObserver(Observer o) {
-        super.addObserver(o); // Llama al método addObserver de Observable
+        super.addObserver(o);
     }
 }

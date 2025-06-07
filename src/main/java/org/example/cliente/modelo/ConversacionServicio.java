@@ -44,8 +44,8 @@ public class ConversacionServicio implements IConversacion {
     @Override
     public void agregarConversacion(Contacto contacto) {
         System.out.println("Agregando conversacion");
-        // Solo agregar si no existe ya
-        usuario.getConversaciones().putIfAbsent(contacto, new Conversacion());
+        // CORRECCIÓN: Usar el constructor correcto de Conversacion, pasando el contacto
+        usuario.getConversaciones().putIfAbsent(contacto, new Conversacion(contacto));
     }
 
     /**
@@ -55,8 +55,9 @@ public class ConversacionServicio implements IConversacion {
      */
     @Override
     public void addMensajeEntrante(Mensaje mensaje) {
-        // Me fijo si la conversacion ya existe y si no, la creo (La linea me la recomendo IntelliJ jajaja)
-        usuario.getConversaciones().computeIfAbsent(mensaje.getEmisor(), k -> new Conversacion());
+        // Me fijo si la conversacion ya existe y si no, la creo
+        // CORRECCIÓN: Usar el constructor correcto de Conversacion, pasando el emisor
+        usuario.getConversaciones().computeIfAbsent(mensaje.getEmisor(), k -> new Conversacion(k));
         // agrego el mensaje a la conversacion
         usuario.getConversaciones().get(mensaje.getEmisor())
                 .getMensajes().add(mensaje);
@@ -70,8 +71,9 @@ public class ConversacionServicio implements IConversacion {
      */
     @Override
     public void addMensajeSaliente(Contacto contacto, Mensaje mensaje) {
-        // Me fijo si la conversacion ya existe y si no, la creo (La linea me la recomendo IntelliJ jajaja)
-        usuario.getConversaciones().computeIfAbsent(contacto, k -> new Conversacion());
+        // Me fijo si la conversacion ya existe y si no, la creo
+        // CORRECCIÓN: Usar el constructor correcto de Conversacion, pasando el contacto
+        usuario.getConversaciones().computeIfAbsent(contacto, k -> new Conversacion(k));
         // agrego el mensaje a la conversacion
         usuario.getConversaciones().get(contacto)
                 .getMensajes().add(mensaje);
@@ -86,9 +88,8 @@ public class ConversacionServicio implements IConversacion {
         // Asegurarse de que la conversación existe antes de intentar modificarla
         if (usuario.getConversaciones().containsKey(contacto)) {
             Conversacion conversacion = usuario.getConversaciones().get(contacto);
-            if(conversacion.isPendiente()){
-                conversacion.setPendiente(false);
-            }
+            // CORRECCIÓN: Usar directamente el setter de la clase Conversacion
+            conversacion.setPendiente(false);
         }
     }
 
