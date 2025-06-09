@@ -77,25 +77,6 @@ Para mejorar la disponibilidad y robustez del sistema, se implementaron las sigu
 
 ---
 
-## Manual de Usuario
-
-### Instalación
-
-1. Clonar el repositorio:
-   ```sh
-   git clone https://github.com/facundodelga/Mensajeria-P2P-GRUPO-2.git
-   ```
-2. Compilar el proyecto:
-   ```sh
-   cd Mensajeria-P2P-GRUPO-2
-   # Usar Maven, Gradle o IDE de su preferencia
-   ```
-3. Ejecutar la aplicación:
-   ```sh
-   # Según el método de compilación
-   java -jar target/MensajeriaP2P.jar
-   ```
-
 ### Configuración
 
 - Al iniciar, el usuario puede elegir el formato de almacenamiento local (TXT, JSON, XML) y el algoritmo de encriptación (Cesar, XOR, AES).
