@@ -1,0 +1,2 @@
+#Contacto:usuario2
+E|08/06/2025 15:00|usuario2|hola usuario 2

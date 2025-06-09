@@ -3,11 +3,11 @@ package org.example.cliente.strategy;
 import java.io.BufferedReader;
 import java.io.FileReader;
 
-public class CipherContext implements ICifradoMensajes {
+public class CifradoContexto implements ICifradoMensajes {
     private CifradoStrategy strategy;
     private final String key;
 
-    public CipherContext() {
+    public CifradoContexto() {
         try (BufferedReader br = new BufferedReader(new FileReader("cifradoConfig.txt"))) {
             String line = br.readLine();
             switch (line.trim()) {

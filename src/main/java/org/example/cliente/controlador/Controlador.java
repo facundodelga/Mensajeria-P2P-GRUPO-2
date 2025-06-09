@@ -3,7 +3,7 @@ package org.example.cliente.controlador;
 import org.example.cliente.conexion.*;
 import org.example.cliente.modelo.*;
 import org.example.cliente.modelo.conversacion.Conversacion;
-import org.example.cliente.strategy.CipherContext;
+import org.example.cliente.strategy.CifradoContexto;
 import org.example.cliente.strategy.ICifradoMensajes;
 import org.example.cliente.vista.*;
 import org.example.cliente.factory.PersistenciaManager;
@@ -210,7 +210,7 @@ public class Controlador implements ActionListener, Observer {
             conexion.conectarServidor(usuarioDTO);
 
             this.persistenciaManager = new PersistenciaManager(formato, usuarioDTO);
-            this.cifradoMensajes = new CipherContext();
+            this.cifradoMensajes = new CifradoContexto();
             cargarDatosUsuario();
 
             // Registrar en el servidor de directorios
