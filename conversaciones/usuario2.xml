@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<conversaciones>
+    <conversacion usuario="usuario1">
+        <mensajes>
+            <mensaje fecha="08/06/2025 15:00" tipo="R">hola usuario 2</mensaje>
+        </mensajes>
+    </conversacion>
+    <conversacion usuario="usuario3">
+        <mensajes>
+            <mensaje fecha="08/06/2025 15:02" tipo="R">hola suusario2 jajajjaa ñ</mensaje>
+        </mensajes>
+    </conversacion>
+</conversaciones>
